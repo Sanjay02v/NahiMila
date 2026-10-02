@@ -22,6 +22,7 @@ try {
   const old = JSON.parse(
     await readFile(path.join(folder, "product-network.json"), "utf8"),
   );
+  n.gemini_usage = old.gemini_usage;
   for (const shop of n.shops) {
     const previous = old.shops.find(
       (s: { id: string; user_id: string }) => s.id === shop.id,

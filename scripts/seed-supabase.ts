@@ -21,6 +21,7 @@ if (loaded.data.shops.length || loaded.data.state.products.length)
   );
 const n = seedNetwork(),
   emails = ["sharma", "gupta", "lakshmi", "corner", "daily", "annapurna"];
+n.gemini_usage = loaded.data.gemini_usage;
 const { data, error } = await c.auth.admin.listUsers({ perPage: 1000 });
 if (error) throw new Error("Could not inspect existing demo accounts.");
 for (let i = 0; i < n.shops.length; i++) {

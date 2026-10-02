@@ -214,7 +214,7 @@ export async function converse(
   const key = process.env.GEMINI_API_KEY?.trim();
   if (!key) throw new Error("AI_UNAVAILABLE");
   const response = await geminiFetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(process.env.GEMINI_MODEL || "gemini-3.5-flash")}:generateContent`,
+    `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(process.env.GEMINI_MODEL || "gemini-3.5-flash-lite")}:generateContent`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json", "x-goog-api-key": key },
@@ -244,12 +244,21 @@ Authorized shop facts: ${JSON.stringify(facts)}`,
         },
       }),
     },
-  ).catch(() => {
+  ).catch((error) => {
+    if (
+      error instanceof Error &&
+      ["AI_RATE_LIMIT", "AI_DAILY_LIMIT", "AI_QUOTA_CONFIG"].includes(
+        error.message,
+      )
+    )
+      throw error;
     throw new Error("AI_UNAVAILABLE");
   });
   if (!response.ok) {
     console.warn("Gemini assistant failed", { status: response.status });
-    throw new Error("AI_UNAVAILABLE");
+    throw new Error(
+      response.status === 429 ? "AI_RATE_LIMIT" : "AI_UNAVAILABLE",
+    );
   }
   try {
     const j = await response.json();

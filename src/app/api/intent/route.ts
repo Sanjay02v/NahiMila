@@ -10,7 +10,11 @@ export async function POST(req: Request) {
     throttle("intent:" + shop.id, 10);
     const b = await body(req);
     const raw = text(b.raw_text);
-    const { capture, ...extracted } = await normalize(raw, shop.locale);
+    const { capture, ...extracted } = await normalize(
+      raw,
+      shop.locale,
+      shop.id,
+    );
     const catalog = await withNetwork((n) => productCatalog(n));
     const { intent, match } = await resolveProduct(extracted, catalog);
     await withNetwork((n) => {
@@ -25,7 +29,7 @@ export async function POST(req: Request) {
           source: intent.source,
           model:
             intent.source === "gemini"
-              ? process.env.GEMINI_MODEL || "gemini-3.5-flash"
+              ? process.env.GEMINI_MODEL || "gemini-3.5-flash-lite"
               : null,
           raw_hash: hash(raw),
           missing: intent.missing,

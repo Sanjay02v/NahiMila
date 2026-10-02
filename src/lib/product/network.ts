@@ -1,4 +1,5 @@
 import { phoneNumber as normalizePhone } from "./capture-fields";
+import type { GeminiUsage } from "./gemini-quota";
 export { phoneNumber as normalizePhone } from "./capture-fields";
 import { randomUUID, createHash } from "node:crypto";
 import { MemoryStore, type SeedDataPayload } from "@/lib/db/store";
@@ -20,6 +21,7 @@ import {
   type ProductIdentity,
 } from "./canonical";
 export interface Network {
+  gemini_usage?: Record<string, GeminiUsage>;
   revision: number;
   state: SeedDataPayload;
   shops: Shop[];

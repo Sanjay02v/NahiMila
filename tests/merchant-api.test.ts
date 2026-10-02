@@ -20,6 +20,7 @@ vi.mock("../src/lib/product/auth", () => ({
   },
 }));
 vi.mock("../src/lib/product/repository", () => ({
+  remote: null,
   withNetwork: async (fn: (n: Network) => unknown, write = false) => {
     const run = async () => {
       const copy = structuredClone(network);

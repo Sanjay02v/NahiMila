@@ -66,9 +66,11 @@ export default function Capture({
       next = manualDraft(raw);
       setNotice(
         t(
-          e instanceof Error && e.message === "AI_RATE_LIMIT"
-            ? "aiLimited"
-            : "aiFailed",
+          e instanceof Error && e.message === "AI_DAILY_LIMIT"
+            ? "aiDailyLimit"
+            : e instanceof Error && e.message === "AI_RATE_LIMIT"
+              ? "aiLimited"
+              : "aiFailed",
         ),
       );
     }

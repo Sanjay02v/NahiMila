@@ -12,10 +12,11 @@ const captureSchema = intentSchema.extend({
 export async function normalize(
   raw: string,
   locale: string,
+  shopId = "local",
 ): Promise<CaptureIntent> {
   if (!process.env.GEMINI_API_KEY) return manualDraft(raw);
   const schema = z.toJSONSchema(captureSchema);
-  const model = process.env.GEMINI_MODEL || "gemini-3.5-flash";
+  const model = process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";
   const response = await geminiFetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
     {
@@ -40,6 +41,18 @@ export async function normalize(
           responseJsonSchema: schema,
         },
       }),
+    },
+    {
+      cacheKey: JSON.stringify([
+        "intent-v2",
+        shopId,
+        locale,
+        new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(
+          new Date(),
+        ),
+        raw,
+      ]),
+      cacheMs: /\b(minute|hour|now)\b/i.test(raw) ? 0 : 300000,
     },
   );
   if (!response.ok) {

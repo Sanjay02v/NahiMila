@@ -1,4 +1,6 @@
 export const en = {
+  aiDailyLimit:
+    "AI’s daily allowance is used up. You can still check and save the request manually.",
   understandingRequest: "Understanding your request…",
   aiFilledHint: "AI filled this in. Please check the item and quantity.",
   aiLimited:
@@ -470,6 +472,11 @@ export const en = {
     CONFLICT: "This order changed. Refresh and review it again.",
     RECEIVE_FIRST: "Mark delivery received before recording a pickup.",
     PICKUP_WINDOW_OPEN: "The customer still has time to collect.",
+    AI_DAILY_LIMIT:
+      "AI’s daily allowance is used up. You can still check and save the request manually.",
+    AI_RATE_LIMIT: "AI is busy. Wait a minute, or enter the details manually.",
+    AI_QUOTA_CONFIG:
+      "AI usage settings need checking. Please enter the details manually.",
     AI_UNAVAILABLE:
       "Language understanding is unavailable. Please enter the details manually.",
     DATABASE_REQUIRED: "Shared database setup is required for deployment.",
@@ -484,6 +491,7 @@ export const en = {
 type Messages = typeof en;
 export const hi: Messages = {
   ...en,
+  aiDailyLimit: "आज की AI सीमा पूरी हो गई है। अनुरोध जाँचकर खुद सहेज सकते हैं।",
   understandingRequest: "आपकी बात समझ रहे हैं…",
   aiFilledHint: "AI ने विवरण भरा है। सामान और संख्या जाँचें।",
   aiLimited: "अभी AI की उपयोग सीमा लागू है। ये मैनुअल सुझाव जाँचें या बदलें।",
@@ -928,6 +936,10 @@ export const hi: Messages = {
     CONFLICT: "ऑर्डर बदला है। फिर खोलकर जाँचें।",
     RECEIVE_FIRST: "पहले सामान प्राप्त हुआ दर्ज करें।",
     PICKUP_WINDOW_OPEN: "ग्राहक के पास लेने का समय है।",
+    AI_DAILY_LIMIT:
+      "आज की AI सीमा पूरी हो गई है। अनुरोध जाँचकर खुद सहेज सकते हैं।",
+    AI_RATE_LIMIT: "AI अभी व्यस्त है। एक मिनट रुकें या जानकारी खुद भरें।",
+    AI_QUOTA_CONFIG: "AI उपयोग सेटिंग जाँचनी होगी। जानकारी खुद भरें।",
     AI_UNAVAILABLE: "भाषा सेवा नहीं है। जानकारी खुद भरें।",
     DATABASE_REQUIRED: "डिप्लॉयमेंट के लिए साझा डेटाबेस सेट करें।",
     DATABASE_UNAVAILABLE: "डेटाबेस नहीं मिल रहा। फिर कोशिश करें।",
@@ -939,6 +951,7 @@ export const hi: Messages = {
 };
 export const kn: Messages = {
   ...en,
+  aiDailyLimit: "ಇಂದಿನ AI ಮಿತಿ ಮುಗಿದಿದೆ. ವಿವರ ಪರಿಶೀಲಿಸಿ ನೀವೇ ಉಳಿಸಬಹುದು.",
   understandingRequest: "ನಿಮ್ಮ ವಿನಂತಿಯನ್ನು ಅರ್ಥಮಾಡಿಕೊಳ್ಳುತ್ತಿದೆ…",
   aiFilledHint: "AI ವಿವರಗಳನ್ನು ತುಂಬಿದೆ. ವಸ್ತು ಮತ್ತು ಸಂಖ್ಯೆಯನ್ನು ಪರಿಶೀಲಿಸಿ.",
   aiLimited:
@@ -1395,6 +1408,10 @@ export const kn: Messages = {
     CONFLICT: "ಆರ್ಡರ್ ಬದಲಾಗಿದೆ. ಮತ್ತೆ ಪರಿಶೀಲಿಸಿ.",
     RECEIVE_FIRST: "ಮೊದಲು ವಿತರಣೆ ಸ್ವೀಕರಿಸಿದ್ದನ್ನು ದಾಖಲಿಸಿ.",
     PICKUP_WINDOW_OPEN: "ಗ್ರಾಹಕರಿಗೆ ಇನ್ನೂ ಸಮಯವಿದೆ.",
+    AI_DAILY_LIMIT: "ಇಂದಿನ AI ಮಿತಿ ಮುಗಿದಿದೆ. ವಿವರ ಪರಿಶೀಲಿಸಿ ನೀವೇ ಉಳಿಸಬಹುದು.",
+    AI_RATE_LIMIT:
+      "AI ಈಗ ಕಾರ್ಯನಿರತವಾಗಿದೆ. ಒಂದು ನಿಮಿಷ ಕಾಯಿರಿ ಅಥವಾ ವಿವರ ನೀವೇ ತುಂಬಿ.",
+    AI_QUOTA_CONFIG: "AI ಬಳಕೆ ಸೆಟ್ಟಿಂಗ್ ಪರಿಶೀಲಿಸಬೇಕು. ವಿವರ ನೀವೇ ತುಂಬಿ.",
     AI_UNAVAILABLE: "ಭಾಷಾ ಸೇವೆ ಇಲ್ಲ. ವಿವರ ನೀವೇ ತುಂಬಿ.",
     DATABASE_REQUIRED: "ಡಿಪ್ಲಾಯ್ ಮಾಡಲು ಹಂಚಿಕೆಯ ಡೇಟಾಬೇಸ್ ಬೇಕು.",
     DATABASE_UNAVAILABLE: "ಡೇಟಾಬೇಸ್ ಲಭ್ಯವಿಲ್ಲ. ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",

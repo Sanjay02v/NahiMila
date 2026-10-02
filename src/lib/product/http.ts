@@ -13,14 +13,17 @@ export function failure(e: unknown) {
           ? 401
           : known === "FORBIDDEN"
             ? 403
-            : known === "RATE_LIMIT" || known === "AI_RATE_LIMIT"
+            : known === "RATE_LIMIT" ||
+                known === "AI_RATE_LIMIT" ||
+                known === "AI_DAILY_LIMIT"
               ? 429
               : known === "NOT_FOUND"
                 ? 404
                 : known === "CONFLICT"
                   ? 409
                   : known === "DATABASE_UNAVAILABLE" ||
-                      known === "AI_UNAVAILABLE"
+                      known === "AI_UNAVAILABLE" ||
+                      known === "AI_QUOTA_CONFIG"
                     ? 503
                     : 400,
       headers: { "Cache-Control": "no-store" },

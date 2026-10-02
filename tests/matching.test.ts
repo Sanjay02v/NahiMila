@@ -1,4 +1,20 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
+
+const ledger = vi.hoisted(() => ({ network: { gemini_usage: {} } }));
+vi.mock("../src/lib/product/repository", () => ({
+  remote: null,
+  withNetwork: async (fn: (n: typeof ledger.network) => unknown) =>
+    fn(ledger.network),
+}));
+beforeEach(() => {
+  ledger.network = { gemini_usage: {} };
+  const g = globalThis as unknown as {
+    geminiCache?: Map<string, unknown>;
+    geminiFlights?: Map<string, unknown>;
+  };
+  g.geminiCache?.clear();
+  g.geminiFlights?.clear();
+});
 import {
   canonicalIdentity,
   identityKey,

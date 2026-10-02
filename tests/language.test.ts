@@ -1,4 +1,20 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
+
+const ledger = vi.hoisted(() => ({ network: { gemini_usage: {} } }));
+vi.mock("../src/lib/product/repository", () => ({
+  remote: null,
+  withNetwork: async (fn: (n: typeof ledger.network) => unknown) =>
+    fn(ledger.network),
+}));
+beforeEach(() => {
+  ledger.network = { gemini_usage: {} };
+  const g = globalThis as unknown as {
+    geminiCache?: Map<string, unknown>;
+    geminiFlights?: Map<string, unknown>;
+  };
+  g.geminiCache?.clear();
+  g.geminiFlights?.clear();
+});
 import { normalize } from "../src/lib/product/normalize";
 import { manualDraft, parseIntent } from "../src/lib/product/intent";
 import { en, hi, kn } from "../src/i18n/messages";
@@ -95,7 +111,7 @@ describe("Language services remain evidence-limited", () => {
     vi.stubEnv("GEMINI_API_KEY", "test-key");
     vi.stubGlobal(
       "fetch",
-      vi.fn().mockResolvedValue(new Response("", { status: 503 })),
+      vi.fn().mockImplementation(async () => new Response("", { status: 503 })),
     );
     await expect(normalize("anything", "hi")).rejects.toThrow("AI_UNAVAILABLE");
     expect(() =>
