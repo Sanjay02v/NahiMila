@@ -129,6 +129,35 @@ export async function POST(req: Request) {
             n.state = s.exportState();
             break;
           }
+          case "add_contact": {
+            const r = ownRequest(s, shop.id, text(b.request_id, 100));
+            if (b.token !== r.request_token) throw new Error("CONFLICT");
+            if (
+              ![
+                "OFFER_CREATED",
+                "CUSTOMER_CONFIRMED",
+                "READY_FOR_PICKUP",
+                "SUPPLIER_COMMITTED",
+              ].includes(r.status)
+            )
+              throw new Error("INVALID_REQUEST");
+            const phone = normalizePhone(b.customer_phone);
+            if (!phone || b.contact_consent !== true)
+              throw new Error("CONTACT_CONSENT_REQUIRED");
+            if (r.customer_phone && r.customer_phone !== phone)
+              throw new Error("CONFLICT");
+            const detail = n.details[r.id];
+            if (!detail) throw new Error("INVALID_REQUEST");
+            r.customer_phone = phone;
+            detail.contact_consent = true;
+            r.updated_at = new Date().toISOString();
+            s.logAudit("REQUEST", r.id, "CONTACT_ADDED", {
+              merchant_id: shop.id,
+              contact_consent: true,
+            });
+            n.state = s.exportState();
+            break;
+          }
           case "revise_offer": {
             const r = ownRequest(s, shop.id, text(b.request_id, 100));
             const old = s.offers.find(

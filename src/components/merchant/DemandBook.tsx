@@ -48,6 +48,7 @@ export default function DemandBook({
     [filter, setFilter] = useState<DemandFilter>("all"),
     [limit, setLimit] = useState(20);
   const [modalError, setModalError] = useState(false);
+  const [contact, setContact] = useState<PrivateRequest | null>(null);
   const [confirm, setConfirm] = useState<PrivateRequest | null>(null),
     [revise, setRevise] = useState<PrivateRequest | null>(null);
   const groups = groupDemand(requests, search, filter);
@@ -232,6 +233,10 @@ export default function DemandBook({
                           token={r.offer.token}
                           phone={r.customer_phone}
                           pending={pending}
+                          addContact={() => {
+                            setModalError(false);
+                            setContact(r);
+                          }}
                           onNotice={onNotice}
                           message={(link) =>
                             t(
@@ -308,6 +313,61 @@ export default function DemandBook({
             </button>
           )}
         </div>
+      )}
+      {contact && (
+        <Modal title={t("addCustomerNumber")} close={() => setContact(null)}>
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const f = new FormData(e.currentTarget);
+              if (
+                await mutate({
+                  action: "add_contact",
+                  request_id: contact.id,
+                  token: contact.request_token,
+                  customer_phone: f.get("phone"),
+                  contact_consent: f.get("consent") === "on",
+                })
+              )
+                setContact(null);
+              else setModalError(true);
+            }}
+          >
+            {modalError && (
+              <p className="error" role="alert">
+                {t("reviewFailure")}
+              </p>
+            )}
+            <h3>
+              {contact.product.name} · {pack(contact.product.pack_size)}
+            </h3>
+            <p>
+              {contact.customer_name &&
+              contact.customer_name !== "Walk-in Customer"
+                ? contact.customer_name
+                : t("walkIn")}
+            </p>
+            <p className="note">{t("contactOnlyHint")}</p>
+            <label>
+              {t("customerPhoneRequired")}
+              <input
+                name="phone"
+                type="tel"
+                placeholder="+91"
+                maxLength={30}
+                required
+              />
+            </label>
+            <label className="check">
+              <input name="consent" type="checkbox" required />
+              {t("contactConsent")}
+            </label>
+            <p className="fine">{t("whatsAppSendHint")}</p>
+            <button className="button full" disabled={busy}>
+              {t("saveCustomerNumber")}
+            </button>
+          </form>
+        </Modal>
       )}
       {confirm?.offer && (
         <Modal title={t("confirmedInStore")} close={() => setConfirm(null)}>

@@ -702,3 +702,61 @@ describe("Revised reservations preserve procurement safeguards", () => {
     ).toHaveLength(24);
   });
 });
+
+describe("Adding missing customer contact preserves reservation terms", () => {
+  it("adds an owner-scoped number without changing confirmation, token, quantity or readiness", async () => {
+    const r = network.state.requests.find(
+      (r) =>
+        r.merchant_id === "m-sharma-001" && r.status === "CUSTOMER_CONFIRMED",
+    )!;
+    const before = structuredClone(network.state.reservations);
+    const fingerprintBefore = merchantView(network, "m-sharma-001").quotes.find(
+      (q) => q.quote.id === "quote-b",
+    )!.fingerprint;
+    const b = {
+      action: "add_contact",
+      request_id: r.id,
+      token: r.request_token,
+      customer_phone: "9876543210",
+      contact_consent: true,
+    };
+    as("m-gupta-002");
+    expect((await post(b)).status).toBe(404);
+    as("m-sharma-001");
+    expect((await post({ ...b, contact_consent: false })).status).toBe(400);
+    expect((await post({ ...b, customer_phone: "bad-number" })).status).toBe(
+      400,
+    );
+    expect((await post(b)).status).toBe(200);
+    const updated = network.state.requests.find((x) => x.id === r.id)!;
+    expect(updated.customer_phone).toBe("919876543210");
+    expect(updated.request_token).toBe(r.request_token);
+    expect(updated.status).toBe("CUSTOMER_CONFIRMED");
+    expect(network.state.reservations).toEqual(before);
+    expect(
+      merchantView(network, "m-sharma-001").quotes.find(
+        (q) => q.quote.id === "quote-b",
+      )!.fingerprint,
+    ).toBe(fingerprintBefore);
+    expect((await post(b)).status).toBe(200);
+    expect((await post({ ...b, customer_phone: "9876543211" })).status).toBe(
+      409,
+    );
+    expect((await post({ ...b, token: "stale-token" })).status).toBe(409);
+  });
+  it("does not turn a demand-only record into a reservation by adding a number", async () => {
+    const r = network.state.requests.find((r) => r.status === "MISSED_DEMAND")!;
+    as(r.merchant_id);
+    expect(
+      (
+        await post({
+          action: "add_contact",
+          request_id: r.id,
+          token: r.request_token,
+          customer_phone: "9876543210",
+          contact_consent: true,
+        })
+      ).status,
+    ).toBe(400);
+  });
+});

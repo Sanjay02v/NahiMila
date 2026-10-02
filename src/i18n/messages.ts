@@ -1,4 +1,12 @@
 export const en = {
+  customerPhoneRequired: "Customer phone number",
+  addCustomerNumber: "Add customer number",
+  saveCustomerNumber: "Save customer number",
+  contactOnlyHint:
+    "Adding contact details keeps this reservation’s existing terms and confirmation.",
+  whatsAppSendHint:
+    "Send on WhatsApp opens a prepared chat. Review the message and press Send in WhatsApp.",
+
   pendingUnits: "Pending units",
   demandUnits: "Demand units",
   reviewFailure:
@@ -46,7 +54,7 @@ export const en = {
   copyDetails: "Copy reservation details link",
   copyFailed:
     "Couldn’t copy the link. Please allow clipboard access and try again.",
-  shareWhatsApp: "Share on WhatsApp",
+  shareWhatsApp: "Send on WhatsApp",
   notifyWhatsApp: "Notify on WhatsApp",
   confirmationMessage:
     "{shop}: Please confirm {quantity} × {product} ({pack}) at {price} per unit, pickup by {deadline}. Supply depends on a viable shared order; no payment has been taken. {link}",
@@ -411,6 +419,14 @@ export const en = {
 type Messages = typeof en;
 export const hi: Messages = {
   ...en,
+  customerPhoneRequired: "ग्राहक का फ़ोन नंबर",
+  addCustomerNumber: "ग्राहक का नंबर जोड़ें",
+  saveCustomerNumber: "ग्राहक का नंबर सहेजें",
+  contactOnlyHint:
+    "संपर्क जोड़ने से इस आरक्षण की मौजूदा शर्तें और पुष्टि बनी रहेंगी।",
+  whatsAppSendHint:
+    "WhatsApp बटन तैयार संदेश वाली चैट खोलता है। संदेश जाँचकर WhatsApp में भेजें दबाएँ।",
+
   pendingUnits: "पुष्टि बाकी इकाइयाँ",
   demandUnits: "माँग की इकाइयाँ",
   reviewFailure:
@@ -455,7 +471,7 @@ export const hi: Messages = {
   copyConfirmation: "पुष्टि लिंक कॉपी करें",
   copyDetails: "आरक्षण विवरण लिंक कॉपी करें",
   copyFailed: "लिंक कॉपी नहीं हुआ। क्लिपबोर्ड की अनुमति देकर फिर कोशिश करें।",
-  shareWhatsApp: "WhatsApp पर साझा करें",
+  shareWhatsApp: "WhatsApp पर भेजें",
   notifyWhatsApp: "WhatsApp पर सूचना दें",
   confirmationMessage:
     "{shop}: कृपया {quantity} × {product} ({pack}), प्रति इकाई {price}, पिकअप {deadline} तक, की पुष्टि करें। आपूर्ति साझा ऑर्डर संभव होने पर निर्भर है; भुगतान नहीं लिया गया है। {link}",
@@ -794,6 +810,14 @@ export const hi: Messages = {
 };
 export const kn: Messages = {
   ...en,
+  customerPhoneRequired: "ಗ್ರಾಹಕರ ಫೋನ್ ಸಂಖ್ಯೆ",
+  addCustomerNumber: "ಗ್ರಾಹಕರ ಸಂಖ್ಯೆ ಸೇರಿಸಿ",
+  saveCustomerNumber: "ಗ್ರಾಹಕರ ಸಂಖ್ಯೆ ಉಳಿಸಿ",
+  contactOnlyHint:
+    "ಸಂಪರ್ಕ ಸೇರಿಸಿದರೂ ಈ ಕಾಯ್ದಿರಿಸುವಿಕೆಯ ಈಗಿನ ಷರತ್ತುಗಳು ಮತ್ತು ದೃಢೀಕರಣ ಉಳಿಯುತ್ತವೆ.",
+  whatsAppSendHint:
+    "WhatsApp ಬಟನ್ ಸಿದ್ಧ ಸಂದೇಶದ ಚಾಟ್ ತೆರೆಯುತ್ತದೆ. ಸಂದೇಶ ಪರಿಶೀಲಿಸಿ WhatsApp ನಲ್ಲಿ ಕಳುಹಿಸಿ ಒತ್ತಿರಿ.",
+
   pendingUnits: "ದೃಢೀಕರಣ ಬಾಕಿ ಘಟಕಗಳು",
   demandUnits: "ಬೇಡಿಕೆಯ ಘಟಕಗಳು",
   reviewFailure:
@@ -840,7 +864,7 @@ export const kn: Messages = {
   copyDetails: "ಕಾಯ್ದಿರಿಸುವಿಕೆ ವಿವರಗಳ ಲಿಂಕ್ ನಕಲಿಸಿ",
   copyFailed:
     "ಲಿಂಕ್ ನಕಲಿಸಲಾಗಲಿಲ್ಲ. ಕ್ಲಿಪ್‌ಬೋರ್ಡ್ ಅನುಮತಿ ನೀಡಿ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
-  shareWhatsApp: "WhatsApp ಮೂಲಕ ಹಂಚಿಕೊಳ್ಳಿ",
+  shareWhatsApp: "WhatsApp ನಲ್ಲಿ ಕಳುಹಿಸಿ",
   notifyWhatsApp: "WhatsApp ಮೂಲಕ ತಿಳಿಸಿ",
   confirmationMessage:
     "{shop}: {quantity} × {product} ({pack}), ಪ್ರತಿ ಘಟಕ {price}, {deadline} ಒಳಗೆ ಪಡೆಯಲು ದಯವಿಟ್ಟು ದೃಢಪಡಿಸಿ. ಪೂರೈಕೆ ಸಾಧ್ಯವಾದ ಹಂಚಿಕೆ ಆರ್ಡರ್ ಅವಲಂಬಿತ; ಪಾವತಿ ಪಡೆದಿಲ್ಲ. {link}",

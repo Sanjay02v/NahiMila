@@ -143,12 +143,14 @@ export function OfferActions({
   token,
   phone,
   pending,
+  addContact,
   message,
   onNotice,
 }: {
   token: string;
   phone?: string;
   pending: boolean;
+  addContact?: () => void;
   message: (link: string) => string;
   onNotice: (s: string) => void;
 }) {
@@ -171,6 +173,12 @@ export function OfferActions({
         <Copy size={15} />
         {t(pending ? "copyConfirmation" : "copyDetails")}
       </button>
+      {!phone && addContact && (
+        <button className="button secondary small" onClick={addContact}>
+          <MessageCircle size={15} />
+          {t("addCustomerNumber")}
+        </button>
+      )}
       {phone && (
         <WhatsAppAction
           phone={phone}
