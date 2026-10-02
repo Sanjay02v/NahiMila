@@ -7,6 +7,7 @@ try {
 if (
   process.env.SUPABASE_URL ||
   process.env.NEXT_PUBLIC_SUPABASE_URL ||
+  process.env.RENDER ||
   process.env.VERCEL
 )
   throw new Error("This reset works only with local fictional demo data.");

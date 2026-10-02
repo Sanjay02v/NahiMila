@@ -11,7 +11,7 @@ npm install
 npm run dev -- --port 3001
 ```
 
-Open http://localhost:3001. Typed capture, account access, customer offers and procurement work without external keys. Local data persists in `.data/product-network.json`; account passwords are scrypt hashes and sessions are opaque, hashed server-side tokens in `.data/product-auth.json`. One local Node process only. File storage is deliberately disabled on Vercel.
+Open http://localhost:3001. Typed capture, account access, customer offers and procurement work without external keys. Local data persists in `.data/product-network.json`; account passwords are scrypt hashes and sessions are opaque, hashed server-side tokens in `.data/product-auth.json`. One local Node process only. File storage is deliberately disabled on Vercel and Render.
 
 Separate fictional accounts use `sharma`, `gupta`, `lakshmi`, `corner`, `daily` and `annapurna` at `@demo.nahimila.local`. Their initial demo password is `NahiMila-demo-2026`. Use separate browser profiles/devices for simultaneous merchant accounts. Signing in identifies one shop; there is no merchant selector. A newly registered account completes shop/location onboarding.
 
@@ -59,7 +59,7 @@ Without keys, manual suggestions are clearly labeled, typing remains available, 
 
 ## Supabase and hosted deployment
 
-Local mode is sufficient to review the prototype. Hosted mode requires all three Supabase values in `.env.example` and the **new** `supabase/migrations/20261002010000_merchant_product.sql` migration. Apply it in your Supabase SQL editor. The earlier `demo_workspaces` migration is historical and is not the active product database.
+Local mode is sufficient to review the prototype. Hosted mode requires all three Supabase values in `.env.example` and both `supabase/migrations/20261002010000_merchant_product.sql` and `supabase/migrations/20261002020000_gemini_quota.sql` migrations. Apply them in your Supabase SQL editor. The earlier `demo_workspaces` migration is historical and is not the active product database.
 
 The new migration stores shops, products, requests, offers, reservations, quotes, approvals, orders, shares, pickups and audits as separate relational records, with owner foreign keys, uniqueness, amount checks and RLS. Shop locations have a PostGIS index. The backend currently performs distance filtering with the same stored coordinates rather than a database spatial query.
 
@@ -73,7 +73,7 @@ npm run seed:supabase -- --confirm
 
 The script creates six fictional Auth accounts and the 23-confirmation seed. It refuses an existing product database and preserves existing account passwords. Set `NML_DEMO_PASSWORD` before initial account creation if desired. The script is supplied but has not been run against a live Supabase account. The migration/RLS/RPC path requires live account verification; unit tests do not prove PostgreSQL execution.
 
-Deploy `Solution` as the Next.js project root on a suitable Node/Next.js host (the prepared demo path is Vercel with Supabase). Set the same server credentials and public Supabase URL/publishable key on the host. Check current plan quotas and AI credits before deployment; no paid service is required for local typed review. Do not put service-role or AI keys in `NEXT_PUBLIC` variables.
+See [DEPLOYMENT.md](DEPLOYMENT.md) for the prepared Render Blueprint, account steps, database seed and verification checklist. Deploy `Solution` as the Next.js project root on a suitable Node/Next.js host (the chosen demo path is Render Free with Supabase Free). Set the same server credentials and public Supabase URL/publishable key on the host. Check current plan quotas and AI credits before deployment; no paid service is required for local typed review. Do not put service-role or AI keys in `NEXT_PUBLIC` variables.
 
 ## Judge walkthrough
 

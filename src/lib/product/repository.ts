@@ -25,7 +25,8 @@ export async function withNetwork<T>(
         if (error) throw new Error("DATABASE_UNAVAILABLE");
         n = data as Network | null;
       } else {
-        if (process.env.VERCEL) throw new Error("DATABASE_REQUIRED");
+        if (process.env.VERCEL || process.env.RENDER)
+          throw new Error("DATABASE_REQUIRED");
         try {
           n = JSON.parse(await readFile(filename(), "utf8"));
         } catch (e) {

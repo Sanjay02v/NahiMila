@@ -49,7 +49,8 @@ async function supabase() {
 }
 async function authFile<T>(fn: (a: AuthFile) => T | Promise<T>, save = false) {
   const run = async () => {
-    if (process.env.VERCEL || remote) throw new Error("AUTH_NOT_CONFIGURED");
+    if (process.env.VERCEL || process.env.RENDER || remote)
+      throw new Error("AUTH_NOT_CONFIGURED");
     const file = path.join(process.cwd(), ".data", "product-auth.json");
     let a: AuthFile;
     try {
