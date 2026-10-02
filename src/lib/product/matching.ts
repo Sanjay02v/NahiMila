@@ -29,7 +29,6 @@ export async function resolveProduct(
     intent: current,
     match: { kind, label: productLabel(current) },
   });
-  if (!current.size || !current.unit) return fallback("uncertain");
   const compatible = [
     ...new Map(
       catalog
@@ -38,7 +37,8 @@ export async function resolveProduct(
         .map((i) => [identityKey(i), i]),
     ).values(),
   ].slice(0, 60);
-  if (!compatible.length) return fallback();
+  if (!compatible.length)
+    return fallback(!current.size || !current.unit ? "uncertain" : "new");
   if (!process.env.GEMINI_API_KEY) return fallback("uncertain");
   const schema = z.object({
     candidate: z

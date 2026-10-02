@@ -763,6 +763,79 @@ describe("Adding missing customer contact preserves reservation terms", () => {
 });
 
 describe("Pending interest becomes an offer only after actual terms are set", () => {
+  it("can arrange a previously recorded demand on the same entry, with fresh contact and explicit confirmation", async () => {
+    const seed = network.state.requests.find(
+      (r) => r.merchant_id === "m-sharma-001",
+    )!;
+    const intent = {
+      ...network.details[seed.id].intent,
+      budget_paise: null,
+      deadline: null,
+    };
+    expect(
+      (
+        await post({
+          action: "create",
+          submission_key: crypto.randomUUID(),
+          raw_text: "Millet Crunch, not sure if customer can wait",
+          intent,
+          can_wait: false,
+          offer_price_paise: null,
+        })
+      ).status,
+    ).toBe(200);
+    const r = network.state.requests.at(-1)!,
+      count = network.state.requests.length;
+    const terms = {
+      action: "prepare_offer",
+      request_id: r.id,
+      token: r.request_token,
+      quantity: 1,
+      price_paise: 5000,
+      budget_paise: null,
+      intent,
+      deadline: new Date(Date.now() + 4 * 86400000).toISOString(),
+      contact_consent: true,
+    };
+    expect((await post(terms)).status).toBe(400);
+    expect(
+      (await post({ ...terms, customer_phone: "9876543210" })).status,
+    ).toBe(200);
+    const updated = network.state.requests.find((x) => x.id === r.id)!;
+    expect(network.state.requests).toHaveLength(count);
+    expect(updated.status).toBe("OFFER_CREATED");
+    expect(network.state.reservations.some((x) => x.request_id === r.id)).toBe(
+      false,
+    );
+    expect(network.details[r.id].willing_to_wait).toBe(true);
+    expect(
+      (
+        await customerPOST(
+          request({ action: "confirm" }),
+          context(updated.request_token),
+        )
+      ).status,
+    ).toBe(200);
+  });
+  it("withdraws demand without an offer, preserving it in history", async () => {
+    const seed = network.state.requests.find(
+      (r) => r.merchant_id === "m-sharma-001",
+    )!;
+    await post({
+      action: "create",
+      submission_key: crypto.randomUUID(),
+      raw_text: "Millet Crunch",
+      intent: network.details[seed.id].intent,
+      can_wait: false,
+    });
+    const r = network.state.requests.at(-1)!;
+    expect((await post({ action: "cancel", request_id: r.id })).status).toBe(
+      200,
+    );
+    expect(network.state.requests.find((x) => x.id === r.id)?.status).toBe(
+      "CANCELLED",
+    );
+  });
   it("keeps incomplete interest out of procurement, then prepares and confirms the same entry", async () => {
     const baseIntent = {
       product: "Coke Zero",

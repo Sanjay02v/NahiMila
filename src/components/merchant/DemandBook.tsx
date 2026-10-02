@@ -133,10 +133,12 @@ export default function DemandBook({
             <details className="demand-group" key={g.key}>
               <summary>
                 <div className="demand-product">
-                  <h2>{g.product.name}</h2>
+                  <h2>{g.label}</h2>
                   <p>
-                    {pack(g.product.pack_size)} ·{" "}
-                    {t("entryCount", { count: g.rows.length })}
+                    {g.specifications > 1
+                      ? t("differentItemDetails")
+                      : pack(g.product.pack_size)}{" "}
+                    · {t("entryCount", { count: g.rows.length })}
                   </p>
                 </div>
                 <div className="demand-metrics">
@@ -190,6 +192,9 @@ export default function DemandBook({
                           {t(statusKeys[state] || "demandOnly")}
                         </span>
                       </div>
+                      <p className="fine demand-item-spec">
+                        {r.product.name} · {pack(r.product.pack_size)}
+                      </p>
                       {r.detail?.raw_text && (
                         <p className="demand-original">“{r.detail.raw_text}”</p>
                       )}
@@ -261,9 +266,11 @@ export default function DemandBook({
                           }
                         />
                       )}
-                      {state === "WAITING_INTEREST" && (
+                      {["WAITING_INTEREST", "MISSED_DEMAND"].includes(
+                        state,
+                      ) && (
                         <>
-                          <p className="fine">{t("pendingInterestHint")}</p>
+                          <p className="fine">{t("arrangeLaterHint")}</p>
                           <div className="demand-terms">
                             <span>
                               {t("preferredBudget")}:{" "}

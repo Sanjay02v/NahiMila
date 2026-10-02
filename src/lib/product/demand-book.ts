@@ -1,5 +1,5 @@
 import type { PrivateRequest } from "./types";
-import { identityKey } from "./canonical";
+import { familyKey, familyLabel, identityKey } from "./canonical";
 export type DemandFilter =
   "all" | "demand" | "pending" | "confirmed" | "history";
 export function demandStatus(r: PrivateRequest, now = Date.now()): string {
@@ -30,23 +30,37 @@ export function groupDemand(
 ) {
   const groups = new Map<
     string,
-    { key: string; product: PrivateRequest["product"]; rows: PrivateRequest[] }
+    {
+      key: string;
+      label: string;
+      product: PrivateRequest["product"];
+      rows: PrivateRequest[];
+    }
   >();
   for (const r of [...requests].sort(
     (a, b) => Date.parse(b.created_at) - Date.parse(a.created_at),
   )) {
-    const key = r.product.canonical_identity
-      ? identityKey(r.product.canonical_identity)
+    // Older saved products may predate canonical_identity. Use their reviewed
+    // request details rather than falling back to unrelated generated IDs.
+    const identity = r.product.canonical_identity || r.detail?.intent;
+    const key = identity
+      ? familyKey(identity)
       : r.product.intent_key || r.product.id;
     const group = groups.get(key);
     if (group) group.rows.push(r);
-    else groups.set(key, { key, product: r.product, rows: [r] });
+    else
+      groups.set(key, {
+        key,
+        label: identity ? familyLabel(identity) : r.product.name,
+        product: r.product,
+        rows: [r],
+      });
   }
   const query = search.trim().toLocaleLowerCase();
   return [...groups.values()].flatMap((g) => {
     if (
       query &&
-      !`${g.product.name} ${g.product.pack_size} ${g.rows.map((r) => r.detail?.raw_text || "").join(" ")}`
+      !`${g.label} ${g.rows.map((r) => `${r.product.name} ${r.product.pack_size} ${r.detail?.raw_text || ""}`).join(" ")}`
         .toLocaleLowerCase()
         .includes(query)
     )
@@ -62,6 +76,12 @@ export function groupDemand(
     return [
       {
         ...g,
+        specifications: new Set(
+          g.rows.map((r) => {
+            const i = r.product.canonical_identity || r.detail?.intent;
+            return i ? identityKey(i) : r.product.id;
+          }),
+        ).size,
         visible,
         total: g.rows.reduce((sum, r) => sum + r.quantity, 0),
         demand: units("demand"),

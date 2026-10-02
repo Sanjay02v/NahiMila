@@ -3,15 +3,9 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { ArrowRight, LoaderCircle } from "lucide-react";
 import type { Intent } from "@/lib/product/types";
-import type { MatchReview } from "@/lib/product/matching";
 import { manualDraft, parseIntent } from "@/lib/product/intent";
-import {
-  captureHints,
-  dayFromDeadline,
-  deadlineFromDay,
-  detailsText,
-  withDetails,
-} from "@/lib/product/capture-fields";
+import { captureHints, phoneNumber } from "@/lib/product/capture-fields";
+import { itemDescription, reviewEditedItem } from "@/lib/product/item-review";
 import { api, Modal } from "./common";
 import { useVoiceRecording } from "@/hooks/useVoiceRecording";
 import VoiceControls from "./VoiceControls";
@@ -33,13 +27,11 @@ export default function Capture({
   const t = useTranslations();
   const [raw, setRaw] = useState(initial),
     [intent, setIntent] = useState<Intent | null>(null),
-    [match, setMatch] = useState<MatchReview | null>(null);
-  const [wait, setWait] = useState(initialWait),
+    [item, setItem] = useState("");
+  const [wait, setWait] = useState<boolean | null>(initialWait ? true : null),
     [phone, setPhone] = useState(""),
-    [details, setDetails] = useState(""),
-    [flexible, setFlexible] = useState(false),
-    [noRush, setNoRush] = useState(false),
-    [offerPrice, setOfferPrice] = useState("");
+    [customer, setCustomer] = useState(""),
+    [quantity, setQuantity] = useState("1");
   const [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
     [notice, setNotice] = useState("");
@@ -57,81 +49,71 @@ export default function Capture({
     },
     { autoStart: mode === "voice" && voice },
   );
-  const reviewed = intent ? withDetails(intent, details) : null;
-  const reserving = wait && !!phone.trim();
-  const complete = !!(
-    reserving &&
-    reviewed?.size &&
-    reviewed.unit &&
-    offerPrice &&
-    reviewed.deadline
-  );
-  const update = (field: keyof Intent, value: unknown) => {
-    if (["product", "brand", "hard_constraints"].includes(field))
-      setMatch(null);
-    setIntent((i) => (i ? { ...i, [field]: value } : i));
-  };
   async function interpret() {
     setBusy(true);
     setError("");
     setNotice("");
-    let next: Intent,
-      nextMatch: MatchReview | null = null;
+    let next: Intent;
     try {
       const j = await api("/api/intent", { raw_text: raw });
       next = parseIntent(j.intent);
-      nextMatch = j.match;
     } catch {
       next = manualDraft(raw);
       setNotice(t("aiFailed"));
     }
     const hints = captureHints(raw, next);
-    setIntent({
+    const nextIntent = {
       ...next,
       budget_paise: hints.flexible_price ? null : next.budget_paise,
-      deadline: hints.no_rush
-        ? null
-        : deadlineFromDay(dayFromDeadline(next.deadline)),
-    });
-    setDetails(detailsText(next));
-    setMatch(nextMatch);
-    setWait(hints.can_wait ?? initialWait);
+      deadline: hints.no_rush ? null : next.deadline,
+      flexible_price: hints.flexible_price,
+      no_rush: hints.no_rush,
+    };
+    setIntent(nextIntent);
+    setItem(itemDescription(nextIntent));
+    setQuantity(String(next.quantity ?? 1));
+    setWait(hints.can_wait ?? (initialWait ? true : null));
     setPhone(hints.phone ? `+${hints.phone}` : "");
-    setFlexible(hints.flexible_price);
-    setNoRush(hints.no_rush);
-    setOfferPrice("");
     setBusy(false);
   }
-  const save = async (confirmInStore: boolean) => {
-    if (!reviewed) return;
+  const save = async () => {
+    if (!intent) return;
     setBusy(true);
     setError("");
-    const result = await saved({
-      action: "create",
-      raw_text: raw,
-      intent: {
-        ...reviewed,
-        quantity: reviewed.quantity ?? 1,
-        budget_paise: flexible ? null : reviewed.budget_paise,
-      },
-      can_wait: wait,
-      customer_name: customer.current?.value || "",
-      customer_phone: phone.trim(),
-      contact_consent: !!phone.trim(),
-      confirm_in_store: confirmInStore,
-      terms_accepted: confirmInStore,
-      offer_price_paise: offerPrice
-        ? Math.round(Number(offerPrice) * 100)
-        : null,
-      flexible_price: flexible,
-      no_rush: noRush,
-      submission_key: submission.current,
-    });
-    setBusy(false);
-    if (result) close();
-    else setError(t("errorGeneric"));
+    try {
+      const contact = wait === true ? phone.trim() : "";
+      try {
+        phoneNumber(contact);
+      } catch {
+        throw new Error("INVALID_PHONE");
+      }
+      const reviewed = await reviewEditedItem(item, intent, async (value) => {
+        const j = await api("/api/intent", { raw_text: value });
+        return j.intent;
+      });
+      const result = await saved({
+        action: "create",
+        raw_text: raw,
+        intent: { ...reviewed, quantity: Number(quantity), can_wait: wait },
+        can_wait: wait === true,
+        customer_name: wait === true ? customer : "",
+        customer_phone: contact,
+        contact_consent: !!contact,
+        // Capture always records interest. Actual offers are a later, explicit step.
+        offer_price_paise: null,
+        flexible_price: intent.flexible_price === true,
+        no_rush: intent.no_rush === true,
+        submission_key: submission.current,
+      });
+      if (result) close();
+      else setError(t("reviewFailure"));
+    } catch (e) {
+      const code = e instanceof Error ? e.message : "";
+      setError(t(code === "INVALID_PHONE" ? "phoneFix" : "itemReviewRetry"));
+    } finally {
+      setBusy(false);
+    }
   };
-  const customer = useRef<HTMLInputElement>(null);
   return (
     <Modal title={intent ? t("review") : t("recordRequest")} close={close}>
       {error && (
@@ -183,250 +165,100 @@ export default function Capture({
         <form
           onSubmit={async (e) => {
             e.preventDefault();
-            await save(
-              (e.nativeEvent as SubmitEvent).submitter?.getAttribute(
-                "data-confirm",
-              ) === "true",
-            );
+            await save();
           }}
+          className="simple-capture"
         >
-          <p className="note">
-            {intent.source === "gemini" ? t("aiReview") : t("manual")}
-          </p>
-          <p className="original-text">“{raw}”</p>
-          {match && (
-            <p className="match-review" role="status">
-              {t(
-                match.kind === "matched"
-                  ? "matchFound"
-                  : match.kind === "uncertain"
-                    ? "matchUncertain"
-                    : "matchNew",
-                { product: match.label },
-              )}
-            </p>
-          )}
-          <div className="form-grid">
-            <label className="span-two">
-              {t("product")}
-              <input
-                value={intent.product}
-                onChange={(e) => update("product", e.target.value)}
-                required
-                maxLength={160}
-              />
-            </label>
-            <label>
-              {t("brandName")}
-              <input
-                value={intent.brand || ""}
-                onChange={(e) => update("brand", e.target.value || null)}
-                maxLength={120}
-              />
-            </label>
-            <label>
-              {t("variantDetails")}
-              <input
-                value={details}
-                onChange={(e) => {
-                  setDetails(e.target.value);
-                  setMatch(null);
-                }}
-                placeholder={t("variantExample")}
-                maxLength={120}
-              />
-            </label>
-            <label>
-              {t("quantity")}
-              <input
-                type="number"
-                min="1"
-                max="100"
-                value={intent.quantity ?? 1}
-                onChange={(e) =>
-                  update(
-                    "quantity",
-                    e.target.value ? Number(e.target.value) : null,
-                  )
-                }
-                required
-              />
-            </label>
-            <label>
-              {t("preferredBudget")}
-              <input
-                type="number"
-                min="0.01"
-                step="0.01"
-                disabled={flexible}
-                value={
-                  intent.budget_paise === null ? "" : intent.budget_paise / 100
-                }
-                onChange={(e) =>
-                  update(
-                    "budget_paise",
-                    e.target.value
-                      ? Math.round(Number(e.target.value) * 100)
-                      : null,
-                  )
-                }
-              />
-            </label>
-          </div>
-          <label className="check">
+          <p className="fine">{t("simpleReviewHint")}</p>
+          <label>
+            {t("itemLabel")}
             <input
-              type="checkbox"
-              checked={flexible}
-              onChange={(e) => {
-                setFlexible(e.target.checked);
-                if (e.target.checked) update("budget_paise", null);
-              }}
+              value={item}
+              onChange={(e) => setItem(e.target.value)}
+              required
+              maxLength={300}
             />
-            {t("flexiblePrice")}
           </label>
-          <details className="details">
-            <summary>{t("extraPreferences")}</summary>
-            <label>
-              {t("constraints")}
-              <input
-                value={intent.hard_constraints.join(", ")}
-                onChange={(e) =>
-                  update(
-                    "hard_constraints",
-                    e.target.value
-                      .split(",")
-                      .map((v) => v.trim())
-                      .filter(Boolean),
-                  )
-                }
-              />
-            </label>
-            <label>
-              {t("preferences")}
-              <input
-                value={intent.preferences.join(", ")}
-                onChange={(e) =>
-                  update(
-                    "preferences",
-                    e.target.value
-                      .split(",")
-                      .map((v) => v.trim())
-                      .filter(Boolean),
-                  )
-                }
-              />
-            </label>
-            <label className="check">
-              <input
-                type="checkbox"
-                checked={intent.substitutions}
-                onChange={(e) => update("substitutions", e.target.checked)}
-              />
-              {t("substitutions")}
-            </label>
-          </details>
-          <label className="check wait">
+          <label>
+            {t("quantity")}
             <input
-              type="checkbox"
-              checked={wait}
-              onChange={(e) => setWait(e.target.checked)}
+              type="number"
+              min="1"
+              max="100"
+              value={quantity}
+              onChange={(e) => setQuantity(e.target.value)}
+              required
             />
-            <span>
-              {t("wait")}
-              <small>{t("waitHint")}</small>
-            </span>
           </label>
-          <div className="form-grid">
-            <label>
-              {t("customerPhoneOptional")}
-              <input
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="+91"
-                maxLength={30}
-              />
-            </label>
-            <label>
-              {t("customerName")}
-              <input ref={customer} maxLength={80} />
-            </label>
-          </div>
-          {!!phone.trim() && <p className="fine">{t("contactUseNote")}</p>}
-          {wait && (
+          <fieldset className="wait-choices">
+            <legend>{t("canCustomerWait")}</legend>
+            <div className="wait-options">
+              {([true, false, null] as const).map((choice) => (
+                <label
+                  className={`wait-choice ${wait === choice ? "selected" : ""}`}
+                  key={String(choice)}
+                >
+                  <input
+                    type="radio"
+                    name="wait"
+                    checked={wait === choice}
+                    onChange={() => setWait(choice)}
+                  />
+                  {t(
+                    choice === true
+                      ? "waitYes"
+                      : choice === false
+                        ? "waitNo"
+                        : "waitUnsure",
+                  )}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+          {wait === true && (
             <>
+              <p className="fine">{t("contactOptionalHint")}</p>
               <div className="form-grid">
                 <label>
-                  {t("exactPriceOptional")}
+                  {t("customerPhoneOptional")}
                   <input
-                    type="number"
-                    min="0.01"
-                    step="0.01"
-                    max={
-                      !flexible && intent.budget_paise
-                        ? intent.budget_paise / 100
-                        : undefined
-                    }
-                    value={offerPrice}
-                    onChange={(e) => setOfferPrice(e.target.value)}
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="+91"
+                    maxLength={30}
                   />
                 </label>
                 <label>
-                  {t("dateOptional")}
+                  {t("customerName")}
                   <input
-                    type="date"
-                    disabled={noRush}
-                    value={dayFromDeadline(intent.deadline)}
-                    onChange={(e) =>
-                      update("deadline", deadlineFromDay(e.target.value))
-                    }
+                    value={customer}
+                    onChange={(e) => setCustomer(e.target.value)}
+                    maxLength={80}
                   />
                 </label>
               </div>
-              <label className="check">
-                <input
-                  type="checkbox"
-                  checked={noRush}
-                  onChange={(e) => {
-                    setNoRush(e.target.checked);
-                    if (e.target.checked) update("deadline", null);
-                  }}
-                />
-                {t("noRush")}
-              </label>
-              <p className="note">
-                {t(
-                  !reserving
-                    ? "noContactHint"
-                    : complete
-                      ? "offerChoiceHint"
-                      : "pendingInterestHint",
-                )}
-              </p>
-              <p className="fine">{t("reservationRisk")}</p>
+              {!!phone.trim() && <p className="fine">{t("contactUseNote")}</p>}
             </>
           )}
-          <div className="modal-actions capture-save-actions">
+          <p className="note">{t("simpleSaveHint")}</p>
+          <div className="modal-actions">
             <button
               type="button"
               className="button secondary"
+              disabled={busy}
               onClick={() => setIntent(null)}
             >
               {t("back")}
             </button>
             <button className="button" disabled={busy}>
+              {busy ? (
+                <LoaderCircle className="spin" size={18} />
+              ) : (
+                <ArrowRight size={18} />
+              )}
               {t("save")}
-              {<ArrowRight size={18} />}
             </button>
-            {complete && (
-              <button
-                className="button secondary"
-                data-confirm="true"
-                disabled={busy}
-              >
-                {t("confirmInStoreAction")}
-              </button>
-            )}
           </div>
         </form>
       )}

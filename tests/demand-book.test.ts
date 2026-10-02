@@ -80,7 +80,7 @@ describe("Demand Book reservation boundaries", () => {
     ])
       expect(() => normalizePhone(value)).toThrow("INVALID_PHONE");
   });
-  it("groups repeated exact products and keeps different packs apart", () => {
+  it("groups a product family while preserving different exact pack identities", () => {
     const n = seedNetwork();
     saveRequest(n, shop, entry({ can_wait: false }));
     saveRequest(n, shop, entry({ can_wait: false }));
@@ -88,11 +88,62 @@ describe("Demand Book reservation boundaries", () => {
     other.intent = { ...other.intent, size: 2000 };
     saveRequest(n, shop, other);
     const groups = groupDemand(merchantView(n, shop).requests, "coke");
-    expect(groups).toHaveLength(2);
-    expect(groups.find((g) => g.product.pack_size === "500ml")?.demand).toBe(4);
+    expect(groups).toHaveLength(1);
+    expect(groups[0].demand).toBe(6);
+    expect(groups[0].specifications).toBe(2);
+    expect(new Set(groups[0].rows.map((r) => r.product_id)).size).toBe(2);
     expect(
       groupDemand(merchantView(n, shop).requests, "missing-product"),
     ).toHaveLength(0);
+  });
+  it("groups legacy chocolate wording with an unspecified flavour without rewriting offers", () => {
+    const n = seedNetwork();
+    const identities = [
+      {
+        ...manualDraft("Chocolate"),
+        product: "chocolate bar",
+        brand: "Feastables",
+        variant: "peanut butter",
+      },
+      {
+        ...manualDraft("Chocolate"),
+        product: "chocolate",
+        brand: "Feastables",
+        variant: null,
+      },
+      {
+        ...manualDraft("Chocolate"),
+        product: "chocolate",
+        brand: "Other Brand",
+        variant: null,
+      },
+      {
+        ...manualDraft("Chocolate"),
+        product: "chocolate spread",
+        brand: "Feastables",
+        variant: null,
+      },
+    ];
+    identities.forEach((intent) =>
+      saveRequest(n, shop, {
+        ...entry({ can_wait: false }),
+        intent,
+      }),
+    );
+    // Reproduce a product from before canonical_identity was saved.
+    const p = n.state.products.find((p) => p.name.includes("peanut butter"))!;
+    delete p.canonical_identity;
+    const snapshot = JSON.stringify(n.state);
+    const groups = groupDemand(merchantView(n, shop).requests, "Feastables");
+    expect(groups).toHaveLength(2);
+    const chocolate = groups.find((g) => g.label === "Feastables · Chocolate")!;
+    expect(chocolate.rows).toHaveLength(2);
+    expect(chocolate.specifications).toBe(2);
+    expect(chocolate.rows.map((r) => r.detail?.intent.variant)).toContain(null);
+    expect(
+      groupDemand(merchantView(n, shop).requests, "peanut butter")[0].rows,
+    ).toHaveLength(2);
+    expect(JSON.stringify(n.state)).toBe(snapshot);
   });
   it("expired confirmations are history and never inflate confirmed order units", () => {
     const n = seedNetwork();

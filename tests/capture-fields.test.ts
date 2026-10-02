@@ -40,6 +40,12 @@ describe("Simple capture fields preserve exact specifications", () => {
       size: 1,
       unit: "piece",
     });
+    expect(withDetails(i, "Peanut butter, 60g bar")).toMatchObject({
+      variant: "Peanut butter",
+      size: 60,
+      unit: "g",
+      packaging: null,
+    });
   });
   it("a phone prefills contact but never implies willingness or confirmation", () => {
     expect(
@@ -60,6 +66,11 @@ describe("Simple capture fields preserve exact specifications", () => {
     ).not.toContain("9000000001");
   });
   it("unknowns do not become unlimited willingness, price or dates", () => {
+    expect(
+      captureHints("Customer is not sure if they can wait").can_wait,
+    ).toBeNull();
+    expect(captureHints("Customer might wait").can_wait).toBeNull();
+    expect(captureHints("Customer doesn't want to wait").can_wait).toBe(false);
     expect(captureHints("a bottle")).toMatchObject({
       can_wait: null,
       flexible_price: false,

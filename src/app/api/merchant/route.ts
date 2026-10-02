@@ -170,7 +170,7 @@ export async function POST(req: Request) {
             const preparing = b.action === "prepare_offer";
             if (
               preparing
-                ? r.status !== "WAITING_INTEREST"
+                ? !["WAITING_INTEREST", "MISSED_DEMAND"].includes(r.status)
                 : !old ||
                   !["OFFER_CREATED", "CUSTOMER_CONFIRMED"].includes(r.status)
             )
@@ -247,6 +247,7 @@ export async function POST(req: Request) {
             d.revision += 1;
             d.confirmation = null;
             d.contact_consent = true;
+            d.willing_to_wait = true;
             d.intent = { ...i, quantity, budget_paise: budget, deadline };
             s.logAudit(
               "REQUEST",
@@ -261,7 +262,8 @@ export async function POST(req: Request) {
             const r = ownRequest(s, shop.id, text(b.request_id, 100));
             if (
               r.status === "OFFER_CREATED" ||
-              r.status === "WAITING_INTEREST"
+              r.status === "WAITING_INTEREST" ||
+              r.status === "MISSED_DEMAND"
             ) {
               r.status = "CANCELLED";
               r.updated_at = new Date().toISOString();

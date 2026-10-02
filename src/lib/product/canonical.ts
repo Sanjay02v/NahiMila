@@ -51,6 +51,17 @@ const packaging: Record<string, string> = {
   pouches: "pouch",
   pack: "pack",
 };
+// Known family wording only; never fuzzy-match models, brands, flavours or sizes.
+const families: Record<string, string> = {
+  chocolate: "Chocolate",
+  chocolates: "Chocolate",
+  "chocolate bar": "Chocolate",
+  "chocolate bars": "Chocolate",
+  "mobile phone": "Mobile phone",
+  "mobile phones": "Mobile phone",
+  smartphone: "Mobile phone",
+  smartphones: "Mobile phone",
+};
 export function canonicalIdentity<T extends ProductIdentity>(value: T): T {
   const i = { ...value };
   const brand = identityText(i.brand || "");
@@ -59,7 +70,18 @@ export function canonicalIdentity<T extends ProductIdentity>(value: T): T {
   i.packaging = i.packaging
     ? packaging[identityText(i.packaging)] || i.packaging
     : null;
-  const product = identityText(i.product);
+  let product = identityText(i.product);
+  // The extractor can repeat structured specifications in the family name.
+  // Remove only the exact recorded words; the original commercial fields remain.
+  for (const spec of [i.variant, i.brand]) {
+    const words = identityText(spec || "");
+    if (!words) continue;
+    const reduced = ` ${product} `.replace(` ${words} `, " ").trim();
+    if (reduced && reduced !== product) {
+      product = reduced;
+      i.product = reduced;
+    }
+  }
   // Registered, explicit aliases only. Never infer a pack or override a conflicting brand.
   if (
     (i.brand === "Coca-Cola" ||
@@ -105,7 +127,17 @@ export function canonicalIdentity<T extends ProductIdentity>(value: T): T {
     i.brand = "Millet Crunch";
     i.product = "Millet Crunch";
   }
+  i.product = families[identityText(i.product)] || i.product;
   return i;
+}
+// A display grouping, never a supplier SKU or procurement identity.
+export function familyKey(value: ProductIdentity) {
+  const i = canonicalIdentity(value);
+  return JSON.stringify([identityText(i.brand || ""), identityText(i.product)]);
+}
+export function familyLabel(value: ProductIdentity) {
+  const i = canonicalIdentity(value);
+  return productLabel({ ...i, variant: null });
 }
 function constraints(i: ProductIdentity) {
   const brand = identityText(i.brand || ""),
@@ -157,8 +189,9 @@ export function specificationKey(value: ProductIdentity) {
   ]);
 }
 export function sameSpecifications(a: ProductIdentity, b: ProductIdentity) {
-  // Incomplete packs can be recorded, but cannot be resolved semantically to a catalog item.
-  return !!a.size && !!a.unit && specificationKey(a) === specificationKey(b);
+  // Unknown may match unknown, but never a specified pack. This resolves labels,
+  // not permission to purchase: confirmation still requires actual item terms.
+  return specificationKey(a) === specificationKey(b);
 }
 export function productLabel(i: ProductIdentity) {
   return [

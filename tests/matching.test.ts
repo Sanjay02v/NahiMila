@@ -28,6 +28,30 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 describe("Shared reviewed product identities", () => {
+  it("removes exact duplicated brand/flavour words while preserving the commercial identity", () => {
+    const base = {
+      ...manualDraft("Chocolate"),
+      product: "chocolate",
+      brand: "Feastables",
+      variant: "peanut butter",
+    };
+    expect(
+      identityKey({ ...base, product: "peanut butter chocolate bar" }),
+    ).toBe(identityKey(base));
+    expect(
+      identityKey({
+        ...base,
+        product: "Feastables peanut butter chocolate bar",
+      }),
+    ).toBe(identityKey(base));
+    expect(identityKey({ ...base, variant: null })).not.toBe(identityKey(base));
+    expect(
+      identityKey({ ...base, product: "peanut butter chocolate spread" }),
+    ).not.toBe(identityKey(base));
+    expect(
+      canonicalIdentity(manualDraft("Millet Crunch Masala 100g")).product,
+    ).toBe("Millet Crunch");
+  });
   it("generic names do not invent a brand or override a conflicting variant", () => {
     expect(
       canonicalIdentity(coke({ product: "Zero", brand: null, variant: null }))
@@ -198,6 +222,32 @@ describe("Shared reviewed product identities", () => {
   });
 });
 describe("Gemini resolves arbitrary family synonyms with deterministic specification guards", () => {
+  it("resolves equally unspecified family wording without inventing a pack or variant", async () => {
+    vi.stubEnv("GEMINI_API_KEY", "test-key");
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockResolvedValue(
+          response({ candidate: 0, certainty: "same_product" }),
+        ),
+    );
+    const query = coke({
+      product: "Wireless earphones",
+      brand: "Example Audio",
+      variant: null,
+      size: null,
+      unit: null,
+      packaging: null,
+    });
+    const result = await resolveProduct(query, [
+      { ...query, product: "True wireless earbuds" },
+    ]);
+    expect(result.intent.product).toBe("True wireless earbuds");
+    expect(result.intent.size).toBeNull();
+    expect(result.intent.variant).toBeNull();
+    expect(result.match.kind).toBe("matched");
+  });
   it("maps compatible family synonyms through the provider and keeps price, deadlines and constraints intact", async () => {
     vi.stubEnv("GEMINI_API_KEY", "test-key");
     const fetch = vi

@@ -99,6 +99,7 @@ export function withDetails(i: Intent, value: string): Intent {
     .replace(match?.[0] || /$^/, "")
     .replace(half, "")
     .replace(/\b(bottle|can|pouch|packet|pack)\b/gi, "")
+    .replace(/\bbars?\b/gi, "")
     .replace(/^[\s,;·-]+|[\s,;·-]+$/g, "")
     .replace(/\s*[,;·]\s*/g, " ")
     .trim();
@@ -106,11 +107,15 @@ export function withDetails(i: Intent, value: string): Intent {
 }
 export function captureHints(raw: string, i?: Intent) {
   const unable =
-    /(?:can(?:not|'t|’t)|won(?:'t|’t)|not willing to|unable to)\s+wait|नहीं.*इंतज़ार|इंतज़ार.*नहीं|ಕಾಯಲು ಸಾಧ್ಯವಿಲ್ಲ/i.test(
+    /(?:can(?:not|'t|’t)|won(?:'t|’t)|will not|not willing to|unable to|(?:does|do)(?: not|n't|n’t) want to)\s+wait|नहीं.*इंतज़ार|इंतज़ार.*नहीं|ಕಾಯಲು ಸಾಧ್ಯವಿಲ್ಲ/i.test(
+      raw,
+    );
+  const uncertain =
+    /(?:not sure|unsure|maybe|might)\b[^.!?]{0,50}\bwait|पता नहीं|ಗೊತ್ತಿಲ್ಲ/i.test(
       raw,
     );
   const willing =
-    /(?:willing to|can|will|happy to)\s+wait|(?:customer|he|she).*\bwaits?\b|इंतज़ार.*(?:कर|तैयार)|करेगा|ಕಾಯಲು ಸಿದ್ಧ|ಕಾಯುತ್ತಾರೆ/i.test(
+    /(?:willing to|can|will|happy to)\s+wait|इंतज़ार.*(?:कर|तैयार)|करेगा|ಕಾಯಲು ಸಿದ್ಧ|ಕಾಯುತ್ತಾರೆ/i.test(
       raw,
     );
   const flexible =
@@ -127,11 +132,13 @@ export function captureHints(raw: string, i?: Intent) {
     phone: phoneFromText(raw),
     can_wait: unable
       ? false
-      : willing || noRush
-        ? true
-        : grounded("can_wait")
-          ? (i?.can_wait ?? null)
-          : null,
+      : uncertain
+        ? null
+        : willing || noRush
+          ? true
+          : grounded("can_wait")
+            ? (i?.can_wait ?? null)
+            : null,
     flexible_price:
       flexible || (!!i?.flexible_price && grounded("flexible_price")),
     no_rush: noRush || (!!i?.no_rush && grounded("no_rush")),

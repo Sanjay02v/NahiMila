@@ -1,4 +1,35 @@
 export const en = {
+  itemLabel: "Item",
+  simpleReviewHint: "Check the item and quantity. You can change either.",
+  canCustomerWait: "Can the customer wait?",
+  waitYes: "Yes",
+  waitNo: "No",
+  waitUnsure: "Not sure",
+  contactOptionalHint:
+    "Add a number if they want updates. You can leave it blank.",
+  simpleSaveHint: "Save their need now. Agree the price and pickup date later.",
+  phoneFix: "Please check the customer’s phone number.",
+  itemReviewRetry:
+    "Couldn’t check the changed item. Please try again. Your details are still here.",
+  whichPack: "Which size or pack?",
+  whichPackExample: "e.g. 60g bar, 500ml bottle or 1 piece",
+  whichPackHint:
+    "Add the actual size or pack so we arrange the right item. Don’t know yet? Keep this as demand.",
+  sellingPrice: "Selling price for each (₹)",
+  expectedPickupDate: "Expected pickup date",
+  simpleOfferHint: "Check the item, then set the price and pickup date.",
+  offerNextHint:
+    "After saving, send the offer on WhatsApp or record that the customer agreed in person.",
+  saveOffer: "Save offer",
+  priceFix: "Enter the actual selling price for each item.",
+  pickupDateFix: "Choose today or a future pickup date.",
+  budgetFix:
+    "This price is above the customer’s budget. Check it with them before changing the budget.",
+  customerBudget: "Customer’s stated budget: ₹{price} · change",
+  differentItemDetails: "Sizes or flavours vary · shown inside",
+  arrangeLaterHint:
+    "When supply is known, agree the item, price and pickup date.",
+
   variantDetails: "Variant / details · optional",
   variantExample: "e.g. Masala, 100g pouch",
   preferredBudget: "Preferred budget per unit (₹) · optional",
@@ -17,7 +48,7 @@ export const en = {
     "Save now as pending interest. Prepare the actual product, price and pickup date later; this won’t count toward an order yet.",
   offerChoiceHint:
     "Save for confirmation by link, or record acceptance of these terms in-store.",
-  prepareOffer: "Prepare customer offer",
+  prepareOffer: "Arrange this item",
   prepareOfferHint:
     "Set the actual terms now. The customer will confirm before these units can support a shared order.",
   offerReviewFailure:
@@ -42,7 +73,7 @@ export const en = {
     "Couldn’t save. Close this dialog, review the latest entry and check the details before trying again.",
 
   demandBookHint:
-    "Your shop’s unmet demand, grouped by exact product and pack.",
+    "Your shop’s unmet demand, grouped by product. Each entry keeps its size and flavour.",
   searchDemand: "Search product or pack",
   filterDemand: "Filter entries",
   filter_all: "All entries",
@@ -51,13 +82,13 @@ export const en = {
   filter_confirmed: "Confirmed for ordering",
   filter_history: "Order and past history",
   demandRule:
-    "Only active, customer-confirmed reservations support a shared order. Collection is still uncertain.",
+    "Different sizes and flavours stay separate for orders. Only active customer confirmations count; collection is still uncertain.",
   noMatchingDemand: "No matching products",
   adjustFilters: "Try another search or filter.",
   entryCount: "{count, plural, one {# entry} other {# entries}}",
   requestedUnits: "Requested units · all history",
   demandOnly: "Demand only",
-  confirmedUnits: "Confirmed units for ordering",
+  confirmedUnits: "Customer-confirmed units",
   walkIn: "Walk-in customer",
   waitNoContact:
     "Willing to wait, without contact details. Demand signal only; excluded from orders.",
@@ -448,6 +479,36 @@ export const en = {
 type Messages = typeof en;
 export const hi: Messages = {
   ...en,
+  itemLabel: "सामान",
+  simpleReviewHint: "सामान और संख्या जाँचें। दोनों बदल सकते हैं।",
+  canCustomerWait: "क्या ग्राहक इंतज़ार कर सकता है?",
+  waitYes: "हाँ",
+  waitNo: "नहीं",
+  waitUnsure: "पता नहीं",
+  contactOptionalHint:
+    "जानकारी भेजनी हो तो नंबर जोड़ें। इसे खाली छोड़ सकते हैं।",
+  simpleSaveHint:
+    "अभी ज़रूरत दर्ज करें। कीमत और लेने की तारीख बाद में तय करें।",
+  phoneFix: "ग्राहक का फ़ोन नंबर जाँचें।",
+  itemReviewRetry:
+    "बदले हुए सामान की जाँच नहीं हो सकी। फिर कोशिश करें। आपका विवरण यहीं है।",
+  whichPack: "कौन सा साइज़ या पैक?",
+  whichPackExample: "जैसे 60g बार, 500ml बोतल या 1 piece",
+  whichPackHint:
+    "सही सामान मँगाने के लिए वास्तविक साइज़ या पैक बताएँ। अभी नहीं पता? इसे माँग के रूप में रखें।",
+  sellingPrice: "एक सामान की बिक्री कीमत (₹)",
+  expectedPickupDate: "सामान लेने की अपेक्षित तारीख",
+  simpleOfferHint: "सामान जाँचें, फिर कीमत और लेने की तारीख तय करें।",
+  offerNextHint:
+    "सहेजने के बाद WhatsApp पर भेजें या ग्राहक की दुकान में दी गई सहमति दर्ज करें।",
+  saveOffer: "प्रस्ताव सहेजें",
+  priceFix: "एक सामान की वास्तविक बिक्री कीमत भरें।",
+  pickupDateFix: "आज या आगे की तारीख चुनें।",
+  budgetFix: "यह कीमत ग्राहक के बजट से अधिक है। बजट बदलने से पहले उनसे पूछें।",
+  customerBudget: "ग्राहक का बताया बजट: ₹{price} · बदलें",
+  differentItemDetails: "साइज़ या स्वाद अलग हैं · अंदर देखें",
+  arrangeLaterHint: "सप्लाई पता चलने पर सामान, कीमत और लेने की तारीख तय करें।",
+
   variantDetails: "प्रकार / विवरण · वैकल्पिक",
   variantExample: "जैसे मसाला, 100g पाउच",
   preferredBudget: "प्रति इकाई पसंदीदा बजट (₹) · वैकल्पिक",
@@ -466,7 +527,7 @@ export const hi: Messages = {
     "अभी रुचि दर्ज करें। वास्तविक उत्पाद, कीमत और पिकअप तारीख बाद में तय करें; अभी यह ऑर्डर में नहीं गिना जाएगा।",
   offerChoiceHint:
     "लिंक से पुष्टि के लिए सहेजें, या दुकान में इन शर्तों की स्वीकृति दर्ज करें।",
-  prepareOffer: "ग्राहक का प्रस्ताव तैयार करें",
+  prepareOffer: "सामान का इंतज़ाम करें",
   prepareOfferHint:
     "अब वास्तविक शर्तें तय करें। साझा ऑर्डर में गिनने से पहले ग्राहक पुष्टि करेगा।",
   offerReviewFailure:
@@ -490,7 +551,8 @@ export const hi: Messages = {
   reviewFailure:
     "सहेजा नहीं गया। यह विंडो बंद करें, नवीनतम प्रविष्टि और विवरण जाँचकर फिर प्रयास करें।",
 
-  demandBookHint: "आपकी दुकान की अधूरी माँग, सटीक उत्पाद और पैक के अनुसार।",
+  demandBookHint:
+    "आपकी दुकान की अधूरी माँग, उत्पाद के अनुसार। हर प्रविष्टि का साइज़ और स्वाद अलग दिखता है।",
   searchDemand: "उत्पाद या पैक खोजें",
   filterDemand: "प्रविष्टियाँ फ़िल्टर करें",
   filter_all: "सभी प्रविष्टियाँ",
@@ -499,13 +561,13 @@ export const hi: Messages = {
   filter_confirmed: "ऑर्डर के लिए पुष्ट",
   filter_history: "ऑर्डर और पुराना इतिहास",
   demandRule:
-    "केवल सक्रिय, ग्राहक द्वारा पुष्ट आरक्षण साझा ऑर्डर में गिने जाते हैं। ग्राहक का सामान लेना अभी भी निश्चित नहीं है।",
+    "ऑर्डर में अलग साइज़ और स्वाद अलग रहते हैं। केवल सक्रिय ग्राहक पुष्टियाँ गिनी जाती हैं; सामान लेना अभी भी निश्चित नहीं है।",
   noMatchingDemand: "कोई उत्पाद नहीं मिला",
   adjustFilters: "दूसरी खोज या फ़िल्टर आज़माएँ।",
   entryCount: "{count} प्रविष्टियाँ",
   requestedUnits: "माँगी गई इकाइयाँ · पूरा इतिहास",
   demandOnly: "केवल माँग",
-  confirmedUnits: "ऑर्डर के लिए पुष्ट इकाइयाँ",
+  confirmedUnits: "ग्राहक द्वारा पुष्ट इकाइयाँ",
   walkIn: "दुकान पर आया ग्राहक",
   waitNoContact:
     "इंतज़ार को तैयार, पर संपर्क विवरण नहीं। केवल माँग; ऑर्डर में नहीं गिना जाएगा।",
@@ -868,6 +930,37 @@ export const hi: Messages = {
 };
 export const kn: Messages = {
   ...en,
+  itemLabel: "ವಸ್ತು",
+  simpleReviewHint: "ವಸ್ತು ಮತ್ತು ಸಂಖ್ಯೆಯನ್ನು ಪರಿಶೀಲಿಸಿ. ಎರಡನ್ನೂ ಬದಲಾಯಿಸಬಹುದು.",
+  canCustomerWait: "ಗ್ರಾಹಕರು ಕಾಯಬಹುದೇ?",
+  waitYes: "ಹೌದು",
+  waitNo: "ಇಲ್ಲ",
+  waitUnsure: "ಗೊತ್ತಿಲ್ಲ",
+  contactOptionalHint: "ಮಾಹಿತಿ ಬೇಕಿದ್ದರೆ ಸಂಖ್ಯೆ ಸೇರಿಸಿ. ಖಾಲಿ ಬಿಡಬಹುದು.",
+  simpleSaveHint:
+    "ಈಗ ಅಗತ್ಯವನ್ನು ಉಳಿಸಿ. ಬೆಲೆ ಮತ್ತು ಪಡೆಯುವ ದಿನಾಂಕವನ್ನು ನಂತರ ಒಪ್ಪಿಕೊಳ್ಳಿ.",
+  phoneFix: "ಗ್ರಾಹಕರ ಫೋನ್ ಸಂಖ್ಯೆಯನ್ನು ಪರಿಶೀಲಿಸಿ.",
+  itemReviewRetry:
+    "ಬದಲಾಯಿಸಿದ ವಸ್ತುವನ್ನು ಪರಿಶೀಲಿಸಲಾಗಲಿಲ್ಲ. ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ. ವಿವರಗಳು ಇಲ್ಲಿಯೇ ಇವೆ.",
+  whichPack: "ಯಾವ ಗಾತ್ರ ಅಥವಾ ಪ್ಯಾಕ್?",
+  whichPackExample: "ಉದಾ. 60g ಬಾರ್, 500ml ಬಾಟಲಿ ಅಥವಾ 1 piece",
+  whichPackHint:
+    "ಸರಿಯಾದ ವಸ್ತುವಿಗಾಗಿ ನಿಜವಾದ ಗಾತ್ರ ಅಥವಾ ಪ್ಯಾಕ್ ಸೇರಿಸಿ. ಇನ್ನೂ ಗೊತ್ತಿಲ್ಲವೇ? ಬೇಡಿಕೆಯಾಗಿ ಉಳಿಸಿ.",
+  sellingPrice: "ಒಂದು ವಸ್ತುವಿನ ಮಾರಾಟ ಬೆಲೆ (₹)",
+  expectedPickupDate: "ಪಡೆಯುವ ನಿರೀಕ್ಷಿತ ದಿನಾಂಕ",
+  simpleOfferHint: "ವಸ್ತುವನ್ನು ಪರಿಶೀಲಿಸಿ, ನಂತರ ಬೆಲೆ ಮತ್ತು ಪಡೆಯುವ ದಿನಾಂಕ ನೀಡಿ.",
+  offerNextHint:
+    "ಉಳಿಸಿದ ನಂತರ WhatsApp ಮೂಲಕ ಕಳುಹಿಸಿ ಅಥವಾ ಗ್ರಾಹಕರು ಅಂಗಡಿಯಲ್ಲಿ ಒಪ್ಪಿದ್ದನ್ನು ದಾಖಲಿಸಿ.",
+  saveOffer: "ಪ್ರಸ್ತಾವ ಉಳಿಸಿ",
+  priceFix: "ಪ್ರತಿ ವಸ್ತುವಿನ ನಿಜವಾದ ಮಾರಾಟ ಬೆಲೆ ನಮೂದಿಸಿ.",
+  pickupDateFix: "ಇಂದು ಅಥವಾ ಮುಂದಿನ ದಿನಾಂಕ ಆಯ್ಕೆಮಾಡಿ.",
+  budgetFix:
+    "ಈ ಬೆಲೆ ಗ್ರಾಹಕರ ಬಜೆಟ್‌ಗಿಂತ ಹೆಚ್ಚಾಗಿದೆ. ಬಜೆಟ್ ಬದಲಿಸುವ ಮೊದಲು ಅವರೊಂದಿಗೆ ಪರಿಶೀಲಿಸಿ.",
+  customerBudget: "ಗ್ರಾಹಕರ ಬಜೆಟ್: ₹{price} · ಬದಲಾಯಿಸಿ",
+  differentItemDetails: "ಗಾತ್ರ ಅಥವಾ ರುಚಿಗಳು ಬೇರೆ · ಒಳಗೆ ನೋಡಿ",
+  arrangeLaterHint:
+    "ಪೂರೈಕೆ ಗೊತ್ತಾದಾಗ ವಸ್ತು, ಬೆಲೆ ಮತ್ತು ಪಡೆಯುವ ದಿನಾಂಕ ಒಪ್ಪಿಕೊಳ್ಳಿ.",
+
   variantDetails: "ವಿಧ / ವಿವರಗಳು · ಐಚ್ಛಿಕ",
   variantExample: "ಉದಾ. ಮಸಾಲಾ, 100g ಪೌಚ್",
   preferredBudget: "ಪ್ರತಿ ಘಟಕದ ಬಜೆಟ್ (₹) · ಐಚ್ಛಿಕ",
@@ -886,7 +979,7 @@ export const kn: Messages = {
     "ಈಗ ಆಸಕ್ತಿಯನ್ನು ಉಳಿಸಿ. ನಿಜವಾದ ಉತ್ಪನ್ನ, ಬೆಲೆ ಮತ್ತು ಪಡೆಯುವ ದಿನಾಂಕವನ್ನು ನಂತರ ಸಿದ್ಧಪಡಿಸಿ; ಇದು ಇನ್ನೂ ಆರ್ಡರ್‌ಗೆ ಸೇರುವುದಿಲ್ಲ.",
   offerChoiceHint:
     "ಲಿಂಕ್ ದೃಢೀಕರಣಕ್ಕೆ ಉಳಿಸಿ, ಅಥವಾ ಅಂಗಡಿಯಲ್ಲಿ ಈ ಷರತ್ತುಗಳಿಗೆ ಒಪ್ಪಿಗೆ ದಾಖಲಿಸಿ.",
-  prepareOffer: "ಗ್ರಾಹಕರ ಪ್ರಸ್ತಾವ ಸಿದ್ಧಪಡಿಸಿ",
+  prepareOffer: "ವಸ್ತುವನ್ನು ವ್ಯವಸ್ಥೆ ಮಾಡಿ",
   prepareOfferHint:
     "ಈಗ ನಿಜವಾದ ಷರತ್ತುಗಳನ್ನು ಸಿದ್ಧಪಡಿಸಿ. ಹಂಚಿಕೆ ಆರ್ಡರ್‌ಗೆ ಸೇರುವ ಮೊದಲು ಗ್ರಾಹಕರು ದೃಢಪಡಿಸುತ್ತಾರೆ.",
   offerReviewFailure:
@@ -911,7 +1004,7 @@ export const kn: Messages = {
     "ಉಳಿಸಲಾಗಲಿಲ್ಲ. ಈ ಕಿಟಕಿ ಮುಚ್ಚಿ, ಇತ್ತೀಚಿನ ದಾಖಲೆ ಮತ್ತು ವಿವರ ಪರಿಶೀಲಿಸಿ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
 
   demandBookHint:
-    "ನಿಮ್ಮ ಅಂಗಡಿಯ ಈಡೇರದ ಬೇಡಿಕೆ, ನಿಖರ ಉತ್ಪನ್ನ ಮತ್ತು ಪ್ಯಾಕ್ ಪ್ರಕಾರ.",
+    "ನಿಮ್ಮ ಅಂಗಡಿಯ ಈಡೇರದ ಬೇಡಿಕೆ, ಉತ್ಪನ್ನ ಪ್ರಕಾರ. ಪ್ರತಿ ದಾಖಲೆಯ ಗಾತ್ರ ಮತ್ತು ರುಚಿ ಪ್ರತ್ಯೇಕವಾಗಿ ಕಾಣುತ್ತದೆ.",
   searchDemand: "ಉತ್ಪನ್ನ ಅಥವಾ ಪ್ಯಾಕ್ ಹುಡುಕಿ",
   filterDemand: "ದಾಖಲೆಗಳನ್ನು ಆಯ್ಕೆಮಾಡಿ",
   filter_all: "ಎಲ್ಲಾ ದಾಖಲೆಗಳು",
@@ -920,13 +1013,13 @@ export const kn: Messages = {
   filter_confirmed: "ಆರ್ಡರ್‌ಗೆ ದೃಢಪಟ್ಟಿದೆ",
   filter_history: "ಆರ್ಡರ್ ಮತ್ತು ಹಿಂದಿನ ದಾಖಲೆಗಳು",
   demandRule:
-    "ಸಕ್ರಿಯ, ಗ್ರಾಹಕರು ದೃಢಪಡಿಸಿದ ಕಾಯ್ದಿರಿಸುವಿಕೆಗಳು ಮಾತ್ರ ಹಂಚಿಕೆ ಆರ್ಡರ್‌ಗೆ ಸೇರುತ್ತವೆ. ಗ್ರಾಹಕರು ಬಂದು ಪಡೆಯುವುದು ಖಚಿತವಲ್ಲ.",
+    "ಆರ್ಡರ್‌ಗಳಲ್ಲಿ ಬೇರೆ ಗಾತ್ರ ಮತ್ತು ರುಚಿಗಳು ಪ್ರತ್ಯೇಕವಾಗಿರುತ್ತವೆ. ಸಕ್ರಿಯ ಗ್ರಾಹಕ ದೃಢೀಕರಣಗಳು ಮಾತ್ರ ಸೇರುತ್ತವೆ; ಪಡೆಯುವುದು ಖಚಿತವಲ್ಲ.",
   noMatchingDemand: "ಹೊಂದುವ ಉತ್ಪನ್ನಗಳಿಲ್ಲ",
   adjustFilters: "ಬೇರೆ ಹುಡುಕಾಟ ಅಥವಾ ಆಯ್ಕೆ ಪ್ರಯತ್ನಿಸಿ.",
   entryCount: "{count} ದಾಖಲೆಗಳು",
   requestedUnits: "ಕೇಳಿದ ಘಟಕಗಳು · ಎಲ್ಲಾ ದಾಖಲೆಗಳು",
   demandOnly: "ಬೇಡಿಕೆ ಮಾತ್ರ",
-  confirmedUnits: "ಆರ್ಡರ್‌ಗೆ ದೃಢಪಟ್ಟ ಘಟಕಗಳು",
+  confirmedUnits: "ಗ್ರಾಹಕರು ದೃಢಪಡಿಸಿದ ಘಟಕಗಳು",
   walkIn: "ಅಂಗಡಿಗೆ ಬಂದ ಗ್ರಾಹಕ",
   waitNoContact:
     "ಕಾಯಲು ಸಿದ್ಧ, ಸಂಪರ್ಕ ವಿವರಗಳಿಲ್ಲ. ಬೇಡಿಕೆ ಮಾತ್ರ; ಆರ್ಡರ್‌ಗೆ ಸೇರುವುದಿಲ್ಲ.",

@@ -281,6 +281,54 @@ input[type="checkbox"] {
   grid-template-columns: 1fr 1fr;
   gap: 0 18px;
 }
+.wait-choices {
+  border: 0;
+  padding: 0;
+  margin: 4px 0 22px;
+}
+.wait-choices legend {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+.wait-options {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.wait-choice {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin: 0;
+  cursor: pointer;
+  flex: 1;
+  justify-content: center;
+  white-space: nowrap;
+}
+.wait-choice.selected {
+  border-color: var(--green);
+  background: #eef4ec;
+}
+.wait-choice input {
+  margin: 0;
+  padding: 0;
+  min-height: 17px;
+  flex-shrink: 0;
+  width: 17px;
+  height: 17px;
+  accent-color: #285e48;
+}
+.simple-capture > .fine {
+  margin-top: 0;
+}
+.demand-item-spec {
+  margin: 10px 0;
+  font-weight: 550;
+}
 .span-two {
   grid-column: span 2;
 }
@@ -2756,5 +2804,9 @@ input[type="checkbox"] {
     display: inline-flex;
   }
 }
-.capture-save-actions { flex-wrap: wrap; }
-.capture-save-actions .button { flex: 1 1 auto; }
+.capture-save-actions {
+  flex-wrap: wrap;
+}
+.capture-save-actions .button {
+  flex: 1 1 auto;
+}
