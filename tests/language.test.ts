@@ -82,6 +82,10 @@ describe("Language services remain evidence-limited", () => {
         "nearbyHint",
         "noShowHint",
         "quoteHint",
+        "matchFound",
+        "matchUncertain",
+        "blockedUnits",
+        "provisionalShare",
       ] as const)
         expect(language[key]).not.toBe(en[key]);
     }

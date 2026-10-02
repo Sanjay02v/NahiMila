@@ -1922,3 +1922,48 @@ input[type="checkbox"] {
   font-size: 19px;
   white-space: nowrap;
 }
+
+/* Disabled purchase actions stay readable, with visible reasons beside them. */
+.button:disabled {
+  opacity: 1;
+  background: #edf1ec;
+  color: #536459;
+  border: 1px solid #dfe5dc;
+  box-shadow: none;
+  transform: none;
+}
+.order-blockers {
+  background: #faf6ef;
+  border: 1px solid #eadfcf;
+  border-radius: 13px;
+  padding: 15px 17px;
+  margin-top: 16px;
+  color: #6d502e;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.order-blockers strong {
+  font-weight: 650;
+}
+.order-blockers ul {
+  margin: 7px 0 0;
+  padding-left: 19px;
+}
+.order-blockers li + li {
+  margin-top: 5px;
+}
+.order-blockers .text-button {
+  margin-top: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.match-review {
+  background: #eef4f0;
+  border: 1px solid #d7e4d9;
+  padding: 13px 16px;
+  border-radius: 12px;
+  color: #31583f;
+  font-size: 14px;
+  margin: 12px 0 20px;
+}

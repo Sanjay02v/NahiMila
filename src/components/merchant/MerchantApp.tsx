@@ -23,6 +23,7 @@ import Access from "./Access";
 import Capture from "./Capture";
 import QuoteForm from "./QuoteForm";
 import Agent from "./Agent";
+import { quoteActions, quoteBlockers } from "@/lib/product/quote-actions";
 type View = "home" | "requests" | "nearby" | "orders" | "settings";
 const navigation = [
   { key: "home", icon: Home },
@@ -357,12 +358,7 @@ export default function MerchantApp() {
           <div className="quote-actions">
             <button
               className={`button ${q.own?.approval_status === "APPROVED" ? "secondary" : ""}`}
-              disabled={
-                busy ||
-                !q.eligible ||
-                !q.own ||
-                q.own.approval_status === "APPROVED"
-              }
+              disabled={!quoteActions(q, busy).canReview}
               onClick={() => setApproval(q)}
             >
               {q.own?.approval_status === "APPROVED" ? (
@@ -376,12 +372,8 @@ export default function MerchantApp() {
             </button>
             <button
               className="button secondary"
-              disabled={
-                busy ||
-                !q.eligible ||
-                !q.participant_count ||
-                q.approval_count !== q.participant_count
-              }
+              disabled={!quoteActions(q, busy).canCommit}
+              aria-describedby={`blockers-${q.quote.id}`}
               onClick={() =>
                 mutate({
                   action: "commit",
@@ -394,6 +386,29 @@ export default function MerchantApp() {
               <ArrowRight size={16} />
             </button>
           </div>
+          {quoteBlockers(q).length > 0 && (
+            <div className="order-blockers" id={`blockers-${q.quote.id}`}>
+              <strong>{t("beforeOrdering")}</strong>
+              <ul>
+                {quoteBlockers(q).map((b, index) => (
+                  <li key={`${b.key}-${index}`}>
+                    {t(b.key, { count: b.count ?? 0 })}
+                  </li>
+                ))}
+              </ul>
+              {!q.checks.find((c) => c.code === "cases")?.passed &&
+                data.requests.some(
+                  (r) => r.status === "OFFER_CREATED" && r.offer,
+                ) && (
+                  <button
+                    className="text-button small"
+                    onClick={() => setView("requests")}
+                  >
+                    {t("viewWaitingOffers")} <ArrowRight size={14} />
+                  </button>
+                )}
+            </div>
+          )}
           <p className="fine">{t("groupHint")}</p>
         </article>
       ))}
@@ -925,7 +940,10 @@ export default function MerchantApp() {
         />
       )}{" "}
       {approval?.own && (
-        <Modal title={t("approveTitle")} close={() => setApproval(null)}>
+        <Modal
+          title={t(approval.eligible ? "approveTitle" : "previewShareTitle")}
+          close={() => setApproval(null)}
+        >
           <>
             {error && (
               <p className="error" role="alert">
@@ -944,6 +962,21 @@ export default function MerchantApp() {
               {approval.own.allocated_units} {t("units")} · {t("totalCost")}
             </span>
           </div>
+          {!approval.eligible && (
+            <p className="note">{t("provisionalShare")}</p>
+          )}
+          {quoteBlockers(approval).length > 0 && (
+            <div className="order-blockers">
+              <strong>{t("beforeOrdering")}</strong>
+              <ul>
+                {quoteBlockers(approval).map((b, index) => (
+                  <li key={`${b.key}-${index}`}>
+                    {t(b.key, { count: b.count ?? 0 })}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
           <p className="fine">{t("groupHint")}</p>
           <div className="modal-actions">
             <button
@@ -954,7 +987,7 @@ export default function MerchantApp() {
             </button>
             <button
               className="button"
-              disabled={busy}
+              disabled={!quoteActions(approval, busy).canApprove}
               onClick={async () => {
                 if (
                   await mutate({

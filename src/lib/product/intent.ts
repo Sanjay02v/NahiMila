@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { Intent } from "./types";
+import { identityKey } from "./canonical";
 const nullableText = z.string().max(120).nullable();
 export const intentSchema = z.object({
   product: z.string().min(1).max(160),
@@ -28,22 +29,8 @@ export function parseIntent(value: unknown): Intent {
 export function pack(i: Intent) {
   return i.size && i.unit ? `${i.size}${i.unit}` : "Unspecified pack";
 }
-const clean = (s: string) =>
-  s
-    .normalize("NFKC")
-    .toLowerCase()
-    .replace(/[^\p{L}\p{N}]+/gu, " ")
-    .trim();
 export function productKey(i: Intent) {
-  return JSON.stringify([
-    clean(i.product),
-    clean(i.brand || ""),
-    clean(i.variant || ""),
-    i.size,
-    i.unit,
-    clean(i.packaging || ""),
-    [...i.hard_constraints].map(clean).sort(),
-  ]);
+  return identityKey(i);
 }
 export function manualDraft(raw: string): Intent {
   // Explicit aliases are suggestions, not a pretend AI response. All values require review.

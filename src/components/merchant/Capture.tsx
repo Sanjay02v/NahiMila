@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Mic, Square, ArrowRight, LoaderCircle } from "lucide-react";
 import type { Intent } from "@/lib/product/types";
+import type { MatchReview } from "@/lib/product/matching";
 import { manualDraft } from "@/lib/product/intent";
 import { api, Modal } from "./common";
 export default function Capture({
@@ -19,6 +20,7 @@ export default function Capture({
   const t = useTranslations(),
     [raw, setRaw] = useState(initial),
     [intent, setIntent] = useState<Intent | null>(null),
+    [match, setMatch] = useState<MatchReview | null>(null),
     [wait, setWait] = useState(false),
     [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
@@ -36,14 +38,28 @@ export default function Capture({
     },
     [],
   );
-  const update = (field: keyof Intent, value: unknown) =>
+  const update = (field: keyof Intent, value: unknown) => {
+    if (
+      [
+        "product",
+        "brand",
+        "variant",
+        "size",
+        "unit",
+        "packaging",
+        "hard_constraints",
+      ].includes(field)
+    )
+      setMatch(null);
     setIntent((i) => (i ? { ...i, [field]: value } : i));
+  };
   async function interpret() {
     setBusy(true);
     setError("");
     try {
       const j = await api("/api/intent", { raw_text: raw });
       setIntent(j.intent);
+      setMatch(j.match);
     } catch {
       setIntent(manualDraft(raw));
       setNotice(t("aiFailed"));
@@ -182,6 +198,18 @@ export default function Capture({
             {intent.source === "gemini" ? t("aiReview") : t("manual")}
           </p>
           <p className="original-text">“{raw}”</p>
+          {match && (
+            <p className="match-review" role="status">
+              {t(
+                match.kind === "matched"
+                  ? "matchFound"
+                  : match.kind === "uncertain"
+                    ? "matchUncertain"
+                    : "matchNew",
+                { product: match.label },
+              )}
+            </p>
+          )}
           <div className="form-grid">
             <label className="span-two">
               {t("product")}

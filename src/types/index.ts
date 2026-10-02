@@ -57,6 +57,15 @@ export interface Merchant {
 
 export interface Product {
   intent_key?: string;
+  canonical_identity?: {
+    product: string;
+    brand: string | null;
+    variant: string | null;
+    size: number | null;
+    unit: 'g' | 'ml' | 'piece' | null;
+    packaging: string | null;
+    hard_constraints: string[];
+  };
   id: string;
   sku: string;
   name: string;

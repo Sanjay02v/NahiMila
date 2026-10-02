@@ -11,6 +11,12 @@ import type {
   OrderView,
 } from "./types";
 import { distanceMeters, pack, productKey, parseIntent } from "./intent";
+import {
+  canonicalIdentity,
+  identityKey,
+  productLabel,
+  type ProductIdentity,
+} from "./canonical";
 export interface Network {
   revision: number;
   state: SeedDataPayload;
@@ -21,6 +27,38 @@ export interface Network {
 }
 export const hash = (value: string) =>
   createHash("sha256").update(value).digest("hex");
+export function productIdentity(
+  n: Network,
+  id: string,
+): ProductIdentity | null {
+  const p = n.state.products.find((p) => p.id === id);
+  const stored =
+    p?.canonical_identity ||
+    n.details[
+      n.state.requests.find((r) => r.product_id === id && n.details[r.id])
+        ?.id || ""
+    ]?.intent;
+  return stored ? canonicalIdentity(stored) : null;
+}
+// Only reviewed product specifications are projected; no requests, customers or shop identifiers.
+export function productCatalog(n: Network): ProductIdentity[] {
+  return n.state.products.flatMap((p) => {
+    const i = productIdentity(n, p.id);
+    return i
+      ? [
+          {
+            product: i.product,
+            brand: i.brand,
+            variant: i.variant,
+            size: i.size,
+            unit: i.unit,
+            packaging: i.packaging,
+            hard_constraints: [...i.hard_constraints],
+          },
+        ]
+      : [];
+  });
+}
 export function seedNetwork(): Network {
   const s = new MemoryStore();
   const shops: Shop[] = s.merchants.map((m, i) => ({
@@ -193,10 +231,21 @@ export function merchantView(n: Network, shopId: string): MerchantView {
         }
       : null,
   }));
-  const nearby = s.products.flatMap((p) => {
+  const productGroups = new Map<
+    string,
+    { product: (typeof s.products)[number]; ids: Set<string> }
+  >();
+  for (const p of s.products) {
+    const identity = productIdentity(n, p.id);
+    const key = identity ? identityKey(identity) : p.id;
+    const group = productGroups.get(key);
+    if (group) group.ids.add(p.id);
+    else productGroups.set(key, { product: p, ids: new Set([p.id]) });
+  }
+  const nearby = [...productGroups.values()].flatMap(({ product: p, ids }) => {
     const recent = s.requests.filter(
       (r) =>
-        r.product_id === p.id &&
+        ids.has(r.product_id) &&
         Date.parse(r.created_at) > Date.now() - 7 * 86400000,
     );
     const own = recent.filter((r) => r.merchant_id === shopId);
@@ -376,45 +425,41 @@ export function saveRequest(
   if (previous) return ownRequest(s, shopId, previous);
   const raw = String(body.raw_text || "").trim();
   if (!raw || raw.length > 1200) throw new Error("INVALID_REQUEST");
-  const i = parseIntent(body.intent);
+  const i = canonicalIdentity(parseIntent(body.intent));
   const qty = i.quantity ?? 1;
   if (typeof body.can_wait !== "boolean") throw new Error("INVALID_REQUEST");
   const canWait = body.can_wait === true;
   if (canWait && (!i.size || !i.unit || !i.budget_paise || !i.deadline))
     throw new Error("OFFER_DETAILS_REQUIRED");
   const identity = productKey(i);
-  let p = s.products.find((p) => p.intent_key === identity);
+  let p = s.products.find((p) => {
+    const stored = productIdentity(n, p.id);
+    return stored
+      ? identityKey(stored) === identity
+      : p.intent_key === identity;
+  });
   if (!p) {
     p = {
       id: `prod-${hash(identity).slice(0, 24)}`,
       sku: `INT-${hash(identity).slice(0, 24)}`,
-      name: [
-        i.brand && i.brand !== i.product ? i.brand : "",
-        i.product,
-        i.variant,
-      ]
-        .filter(Boolean)
-        .join(" · "),
+      name: productLabel(i),
       category: i.category,
       pack_size: pack(i),
       standard_mrp_paise: 0,
       shelf_stable: false,
       created_at: new Date().toISOString(),
       intent_key: identity,
+      canonical_identity: {
+        product: i.product,
+        brand: i.brand,
+        variant: i.variant,
+        size: i.size,
+        unit: i.unit,
+        packaging: i.packaging,
+        hard_constraints: [...i.hard_constraints],
+      },
     };
     s.products.push(p);
-  }
-  // Seed aliases are explicit reviewed identities, never fuzzy order substitutions.
-  if (
-    i.product === "Millet Crunch" &&
-    i.variant === "Masala" &&
-    i.size === 100 &&
-    i.unit === "g" &&
-    (!i.brand || i.brand === "Millet Crunch") &&
-    !i.packaging &&
-    !i.hard_constraints.length
-  ) {
-    p = s.products.find((p) => p.id === "prod-millet")!;
   }
   const deadline = i.deadline
     ? new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(

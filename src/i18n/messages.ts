@@ -1,4 +1,32 @@
 export const en = {
+  matchFound:
+    "Shared product: {product}. Check the brand, variant and pack before saving.",
+  matchNew:
+    "New product identity: {product}. Matching reviewed requests can join it.",
+  matchUncertain:
+    "Match uncertain. Check the product, brand, variant and pack; unverified matches stay separate.",
+  beforeOrdering: "Before you can order",
+  blockedUnits:
+    "Need {count} more confirmed {count, plural, one {unit} other {units}} to fill a supplier case.",
+  blockedCases:
+    "Confirmed quantities must fill whole supplier cases without adding unwanted stock.",
+  blockedDelivery:
+    "Supplier delivery is later than a selected customer’s deadline. Ask for earlier delivery.",
+  blockedExpiry:
+    "This supplier quote has expired. Update its terms before approving.",
+  blockedPrice:
+    "A confirmed customer price or budget does not cover this quote. Review the supplier terms.",
+  blockedGroup:
+    "A shop’s spending limit or supplier permission blocks this quote. Each shop must review its own settings.",
+  blockedShare: "Your shop has no allocated share in this order yet.",
+  blockedApprovals:
+    "Waiting for {count} participating {count, plural, one {shop} other {shops}} to approve their own cost.",
+  blockedGeneral: "Review the supplier terms and customer confirmations.",
+  viewWaitingOffers: "View waiting customer offers",
+  previewShareTitle: "Your estimated share",
+  provisionalShare:
+    "This is an estimate from the current confirmations. It can change when demand changes. Approval is available after all checks pass.",
+
   showQr: "Show QR",
   editQuote: "Edit supplier terms",
   saveQuote: "Save supplier terms",
@@ -230,6 +258,31 @@ export const en = {
 type Messages = typeof en;
 export const hi: Messages = {
   ...en,
+  matchFound:
+    "साझा उत्पाद: {product}। सहेजने से पहले ब्रांड, प्रकार और पैक जाँचें।",
+  matchNew: "नया उत्पाद: {product}। समान जाँची गई माँग इससे जुड़ सकती है।",
+  matchUncertain:
+    "मिलान पक्का नहीं है। उत्पाद, ब्रांड, प्रकार और पैक जाँचें। अपुष्ट मिलान अलग रहेगा।",
+  beforeOrdering: "ऑर्डर से पहले",
+  blockedUnits: "एक पूरा केस भरने के लिए {count} और पुष्ट इकाइयाँ चाहिए।",
+  blockedCases:
+    "बिना अतिरिक्त अनचाहा स्टॉक खरीदे पुष्ट मात्रा से पूरे केस भरने चाहिए।",
+  blockedDelivery:
+    "सप्लायर की डिलीवरी ग्राहक की समय सीमा के बाद है। पहले डिलीवरी माँगें।",
+  blockedExpiry:
+    "सप्लायर का प्रस्ताव समाप्त हो गया है। मंज़ूरी से पहले शर्तें अपडेट करें।",
+  blockedPrice:
+    "ग्राहक की पुष्ट कीमत या बजट इस लागत के लिए पर्याप्त नहीं है। सप्लायर की शर्तें जाँचें।",
+  blockedGroup:
+    "किसी दुकान की खर्च सीमा या सप्लायर अनुमति बाधा है। हर दुकान अपनी सेटिंग जाँचे।",
+  blockedShare: "इस ऑर्डर में आपकी दुकान का हिस्सा अभी तय नहीं है।",
+  blockedApprovals: "{count} सहभागी दुकानों को अपनी लागत मंज़ूर करनी है।",
+  blockedGeneral: "सप्लायर की शर्तें और ग्राहक की पुष्टि जाँचें।",
+  viewWaitingOffers: "ग्राहक की प्रतीक्षा वाले प्रस्ताव देखें",
+  previewShareTitle: "आपके हिस्से का अनुमान",
+  provisionalShare:
+    "यह वर्तमान पुष्टियों पर आधारित अनुमान है। माँग बदलने पर यह बदल सकता है। सभी जाँच पास होने पर मंज़ूरी दे सकते हैं।",
+
   showQr: "QR दिखाएँ",
   editQuote: "सप्लायर की शर्तें बदलें",
   saveQuote: "सप्लायर की शर्तें सहेजें",
@@ -443,6 +496,32 @@ export const hi: Messages = {
 };
 export const kn: Messages = {
   ...en,
+  matchFound:
+    "ಹಂಚಿದ ಉತ್ಪನ್ನ: {product}. ಉಳಿಸುವ ಮೊದಲು ಬ್ರ್ಯಾಂಡ್, ವಿಧ ಮತ್ತು ಪ್ಯಾಕ್ ಪರಿಶೀಲಿಸಿ.",
+  matchNew:
+    "ಹೊಸ ಉತ್ಪನ್ನ: {product}. ಹೊಂದುವ ಪರಿಶೀಲಿತ ಕೋರಿಕೆಗಳು ಇದನ್ನು ಸೇರಬಹುದು.",
+  matchUncertain:
+    "ಹೊಂದಾಣಿಕೆ ಖಚಿತವಿಲ್ಲ. ಉತ್ಪನ್ನ, ಬ್ರ್ಯಾಂಡ್, ವಿಧ ಮತ್ತು ಪ್ಯಾಕ್ ಪರಿಶೀಲಿಸಿ. ಖಚಿತವಲ್ಲದ ಹೊಂದಾಣಿಕೆ ಪ್ರತ್ಯೇಕವಾಗಿರುತ್ತದೆ.",
+  beforeOrdering: "ಆರ್ಡರ್ ಮಾಡುವ ಮೊದಲು",
+  blockedUnits: "ಪೂರ್ಣ ಕೇಸ್ ತುಂಬಲು ಇನ್ನೂ {count} ದೃಢಪಟ್ಟ ಘಟಕಗಳು ಬೇಕು.",
+  blockedCases: "ಅನಗತ್ಯ ಸ್ಟಾಕ್ ಸೇರಿಸದೆ ದೃಢಪಟ್ಟ ಪ್ರಮಾಣದಿಂದ ಪೂರ್ಣ ಕೇಸ್ ತುಂಬಬೇಕು.",
+  blockedDelivery:
+    "ಪೂರೈಕೆದಾರರ ವಿತರಣೆಯು ಗ್ರಾಹಕರ ಗಡುವಿನ ನಂತರ ಇದೆ. ಮುಂಚಿನ ವಿತರಣೆ ಕೇಳಿ.",
+  blockedExpiry:
+    "ಪೂರೈಕೆದಾರರ ಕೊಟೇಶನ್ ಅವಧಿ ಮುಗಿದಿದೆ. ಅನುಮೋದನೆ ಮೊದಲು ವಿವರ ನವೀಕರಿಸಿ.",
+  blockedPrice:
+    "ಗ್ರಾಹಕರ ದೃಢಪಟ್ಟ ಬೆಲೆ ಅಥವಾ ಬಜೆಟ್ ಈ ವೆಚ್ಚಕ್ಕೆ ಸಾಲುವುದಿಲ್ಲ. ಪೂರೈಕೆದಾರರ ವಿವರ ಪರಿಶೀಲಿಸಿ.",
+  blockedGroup:
+    "ಒಂದು ಅಂಗಡಿಯ ವೆಚ್ಚ ಮಿತಿ ಅಥವಾ ಪೂರೈಕೆದಾರರ ಅನುಮತಿ ಆರ್ಡರ್ ತಡೆಯುತ್ತಿದೆ. ಪ್ರತಿ ಅಂಗಡಿ ತನ್ನ ಸೆಟ್ಟಿಂಗ್ ಪರಿಶೀಲಿಸಬೇಕು.",
+  blockedShare: "ಈ ಆರ್ಡರ್‌ನಲ್ಲಿ ನಿಮ್ಮ ಅಂಗಡಿಗೆ ಇನ್ನೂ ಪಾಲು ಹಂಚಿಲ್ಲ.",
+  blockedApprovals:
+    "ಇನ್ನೂ {count} ಪಾಲ್ಗೊಳ್ಳುವ ಅಂಗಡಿಗಳು ತಮ್ಮ ವೆಚ್ಚ ಅನುಮೋದಿಸಬೇಕು.",
+  blockedGeneral: "ಪೂರೈಕೆದಾರರ ವಿವರ ಮತ್ತು ಗ್ರಾಹಕರ ದೃಢೀಕರಣ ಪರಿಶೀಲಿಸಿ.",
+  viewWaitingOffers: "ದೃಢೀಕರಣಕ್ಕಾಗಿ ಕಾಯುವ ಗ್ರಾಹಕರ ಪ್ರಸ್ತಾವ ನೋಡಿ",
+  previewShareTitle: "ನಿಮ್ಮ ಪಾಲಿನ ಅಂದಾಜು",
+  provisionalShare:
+    "ಇದು ಈಗಿನ ದೃಢೀಕರಣದ ಆಧಾರದ ಅಂದಾಜು. ಬೇಡಿಕೆ ಬದಲಾದರೆ ಇದು ಬದಲಾಗಬಹುದು. ಎಲ್ಲ ಪರಿಶೀಲನೆ ಪಾಸಾದ ನಂತರ ಅನುಮೋದಿಸಬಹುದು.",
+
   showQr: "QR ತೋರಿಸಿ",
   editQuote: "ಪೂರೈಕೆದಾರರ ವಿವರ ಬದಲಿಸಿ",
   saveQuote: "ಪೂರೈಕೆದಾರರ ವಿವರ ಉಳಿಸಿ",
