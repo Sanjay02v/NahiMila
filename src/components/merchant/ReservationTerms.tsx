@@ -7,9 +7,8 @@ import {
   dayFromDeadline,
   deadlineFromDay,
   phoneNumber,
-  withDetails,
 } from "@/lib/product/capture-fields";
-import { itemDescription, reviewEditedItem } from "@/lib/product/item-review";
+import { itemFields, reviewItemFields } from "@/lib/product/item-review";
 import { api, Modal } from "./common";
 export default function ReservationTerms({
   request,
@@ -29,8 +28,10 @@ export default function ReservationTerms({
       request.status,
     ),
     base = request.detail?.intent || manualDraft(request.product.name);
-  const [item, setItem] = useState(itemDescription(base)),
-    [needsDetails, setNeedsDetails] = useState(!base.size || !base.unit);
+  const initial = itemFields(base);
+  const [item, setItem] = useState(initial.item),
+    [variant, setVariant] = useState(initial.variant),
+    [pack, setPack] = useState(initial.pack);
   return (
     <Modal title={t(preparing ? "prepareOffer" : "reviseTerms")} close={close}>
       <form
@@ -41,22 +42,13 @@ export default function ReservationTerms({
           const f = new FormData(e.currentTarget);
           let failure = "itemReviewRetry";
           try {
-            let i = await reviewEditedItem(
-              item,
+            const i = await reviewItemFields(
+              { item, variant, pack },
               base,
               async (value) =>
                 (await api("/api/intent", { raw_text: value })).intent,
             );
-            const details = String(f.get("details") || "").trim();
-            if (details)
-              i = withDetails(
-                i,
-                [i.variant, details, i.packaging].filter(Boolean).join(", "),
-              );
-            if (!i.size || !i.unit) {
-              setNeedsDetails(true);
-              throw new Error("ITEM_DETAILS");
-            }
+            if (!i.size || !i.unit) throw new Error("ITEM_DETAILS");
             const price = Math.round(Number(f.get("price")) * 100);
             if (!Number.isSafeInteger(price) || price < 1)
               throw new Error("PRICE");
@@ -91,13 +83,15 @@ export default function ReservationTerms({
             const code = e instanceof Error ? e.message : "";
             setError(
               t(
-                code === "ITEM_DETAILS"
-                  ? "whichPackHint"
-                  : code === "PRICE"
-                    ? "priceFix"
-                    : code === "BUDGET"
-                      ? "budgetFix"
-                      : failure,
+                code === "PACK_INVALID"
+                  ? "packFix"
+                  : code === "ITEM_DETAILS"
+                    ? "whichPackHint"
+                    : code === "PRICE"
+                      ? "priceFix"
+                      : code === "BUDGET"
+                        ? "budgetFix"
+                        : failure,
               ),
             );
           } finally {
@@ -115,20 +109,29 @@ export default function ReservationTerms({
             required
           />
         </label>
-        {needsDetails && (
-          <label>
-            {t("whichPack")}
-            <input
-              name="details"
-              placeholder={t("whichPackExample")}
-              maxLength={120}
-              aria-describedby="pack-hint"
-            />
-            <small id="pack-hint" className="fine">
-              {t("whichPackHint")}
-            </small>
-          </label>
-        )}
+        <label>
+          {t("variant")}
+          <input
+            value={variant}
+            onChange={(e) => setVariant(e.target.value)}
+            maxLength={120}
+            placeholder={t("simpleVariantExample")}
+          />
+        </label>
+        <label>
+          {t("packLabel")}
+          <input
+            value={pack}
+            onChange={(e) => setPack(e.target.value)}
+            maxLength={120}
+            placeholder={t("whichPackExample")}
+            required
+            aria-describedby="pack-hint"
+          />
+          <small id="pack-hint" className="fine">
+            {t("whichPackHint")}
+          </small>
+        </label>
         <div className="form-grid">
           <label>
             {t("quantity")}

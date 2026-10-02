@@ -2,11 +2,100 @@ import { describe, it, expect, vi } from "vitest";
 import {
   itemDescription,
   reviewEditedItem,
+  itemFields,
+  reviewItemFields,
 } from "../src/lib/product/item-review";
 import { manualDraft } from "../src/lib/product/intent";
 import { saveRequest, seedNetwork, storeFor } from "../src/lib/product/network";
 
 describe("Simple item review", () => {
+  it("splits an extracted item, variant and pack without duplicating flavour", () => {
+    const base = {
+      ...manualDraft("Coke Zero 500ml bottle"),
+      product: "Cola",
+      variant: "Diet",
+    };
+    expect(itemFields(base)).toEqual({
+      item: "Coca-Cola · Cola",
+      variant: "Diet",
+      pack: "500ml bottle",
+    });
+  });
+  it("can set a missing pack and edit flavour without AI or losing the brand", async () => {
+    const base = {
+      ...manualDraft("Coke Zero"),
+      product: "Cola",
+      variant: "Diet",
+      size: null,
+      unit: null,
+    };
+    const normalize = vi.fn().mockRejectedValue(new Error("AI_DAILY_LIMIT"));
+    const result = await reviewItemFields(
+      { ...itemFields(base), variant: "Zero Sugar", pack: "330ml can" },
+      base,
+      normalize,
+    );
+    expect(result).toMatchObject({
+      product: "Cola",
+      brand: "Coca-Cola",
+      variant: "Zero Sugar",
+      size: 330,
+      unit: "ml",
+      packaging: "can",
+    });
+    expect(normalize).not.toHaveBeenCalled();
+  });
+  it("known packs remain editable and optional fields can truly be cleared", async () => {
+    const base = manualDraft("Coke Zero 500ml bottle"),
+      normalize = vi.fn();
+    expect(
+      await reviewItemFields(
+        { ...itemFields(base), pack: "1 litre bottle" },
+        base,
+        normalize,
+      ),
+    ).toMatchObject({ size: 1000, unit: "ml" });
+    expect(
+      await reviewItemFields(
+        { ...itemFields(base), variant: "", pack: "" },
+        base,
+        normalize,
+      ),
+    ).toMatchObject({ variant: null, size: null, unit: null, packaging: null });
+    expect(normalize).not.toHaveBeenCalled();
+  });
+  it("a new item stays saveable during an AI limit without retaining the previous brand", async () => {
+    const base = {
+      ...manualDraft("Coke Zero 500ml bottle"),
+      source: "gemini" as const,
+    };
+    const result = await reviewItemFields(
+      { item: "Vim bar", variant: "Lemon", pack: "100g" },
+      base,
+      async () => {
+        throw new Error("AI_DAILY_LIMIT");
+      },
+    );
+    expect(result).toMatchObject({
+      product: "Vim bar",
+      brand: null,
+      variant: "Lemon",
+      size: 100,
+      unit: "g",
+      packaging: null,
+      source: "manual",
+    });
+  });
+  it("rejects ambiguous edited pack text rather than hiding it or inventing a size", async () => {
+    const base = manualDraft("Coke Zero 500ml bottle");
+    await expect(
+      reviewItemFields(
+        { ...itemFields(base), pack: "large bottle" },
+        base,
+        vi.fn(),
+      ),
+    ).rejects.toThrow("PACK_INVALID");
+  });
   it("retains reviewed identity and never calls AI when item text is unchanged", async () => {
     const base = manualDraft("Coke Zero 500ml bottle"),
       normalize = vi.fn();

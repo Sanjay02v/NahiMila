@@ -1,5 +1,6 @@
 import type { Intent } from "./types";
 import { productLabel } from "./canonical";
+import { withDetails } from "./capture-fields";
 import { manualDraft, parseIntent } from "./intent";
 
 export function itemDescription(i: Intent) {
@@ -33,4 +34,70 @@ export async function reviewEditedItem(
     flexible_price: base.flexible_price,
     no_rush: base.no_rush,
   };
+}
+
+export interface ItemFields {
+  item: string;
+  variant: string;
+  pack: string;
+}
+export function itemFields(i: Intent): ItemFields {
+  return {
+    item: productLabel({ ...i, variant: null }),
+    variant: i.variant || "",
+    pack: [i.size && i.unit ? `${i.size}${i.unit}` : null, i.packaging]
+      .filter(Boolean)
+      .join(" "),
+  };
+}
+// Structured edits are authoritative. Never ask AI to reinterpret a size/flavour correction.
+export async function reviewItemFields(
+  fields: ItemFields,
+  base: Intent,
+  normalize: (text: string) => Promise<unknown>,
+): Promise<Intent> {
+  if (!fields.item.trim()) throw new Error("ITEM_REQUIRED");
+  const original = itemFields(base);
+  let reviewed = base;
+  if (fields.item.trim() !== original.item) {
+    const identityBase = {
+      ...base,
+      variant: null,
+      size: null,
+      unit: null,
+      packaging: null,
+    };
+    try {
+      reviewed = await reviewEditedItem(fields.item, identityBase, normalize);
+    } catch (e) {
+      if (
+        !(e instanceof Error) ||
+        !["AI_RATE_LIMIT", "AI_DAILY_LIMIT", "AI_UNAVAILABLE"].includes(
+          e.message,
+        )
+      )
+        throw e;
+      reviewed = await reviewEditedItem(
+        fields.item,
+        { ...identityBase, source: "manual" },
+        normalize,
+      );
+    }
+  }
+  const packed = withDetails(reviewed, fields.pack.trim());
+  if (
+    fields.pack.trim() !== original.pack &&
+    fields.pack.trim() &&
+    (!packed.size || !packed.unit || packed.variant)
+  )
+    throw new Error("PACK_INVALID");
+  // Preserve unchanged packs, including known packaging labels that the simple parser doesn't recognise.
+  const samePack = fields.pack.trim() === original.pack;
+  return parseIntent({
+    ...reviewed,
+    variant: fields.variant.trim() || null,
+    size: samePack ? base.size : packed.size,
+    unit: samePack ? base.unit : packed.unit,
+    packaging: samePack ? base.packaging : packed.packaging,
+  });
 }

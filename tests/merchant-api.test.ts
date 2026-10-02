@@ -1,4 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { manualDraft } from "../src/lib/product/intent";
+import { itemFields, reviewItemFields } from "../src/lib/product/item-review";
 import {
   seedNetwork,
   storeFor,
@@ -764,6 +766,65 @@ describe("Adding missing customer contact preserves reservation terms", () => {
 });
 
 describe("Pending interest becomes an offer only after actual terms are set", () => {
+  it("arranges a missing-pack item using separate flavour/pack edits without another AI call", async () => {
+    const intent = {
+      ...manualDraft("Cola"),
+      brand: "Coca-Cola",
+      variant: "Diet",
+    };
+    expect(
+      (
+        await post({
+          action: "create",
+          submission_key: crypto.randomUUID(),
+          raw_text: "Diet cola",
+          intent,
+          can_wait: true,
+          customer_phone: "9876543210",
+          contact_consent: true,
+          offer_price_paise: null,
+        })
+      ).status,
+    ).toBe(200);
+    const r = network.state.requests.at(-1)!;
+    const normalize = vi.fn();
+    const reviewed = await reviewItemFields(
+      { ...itemFields(intent), pack: "330ml can" },
+      intent,
+      normalize,
+    );
+    const deadline = new Date(Date.now() + 3 * 86400000).toISOString();
+    expect(
+      (
+        await post({
+          action: "prepare_offer",
+          request_id: r.id,
+          token: r.request_token,
+          quantity: 1,
+          price_paise: 5000,
+          budget_paise: null,
+          deadline,
+          intent: reviewed,
+          customer_phone: "9876543210",
+          contact_consent: true,
+        })
+      ).status,
+    ).toBe(200);
+    expect(normalize).not.toHaveBeenCalled();
+    expect(network.details[r.id].intent).toMatchObject({
+      brand: "Coca-Cola",
+      variant: "Diet",
+      size: 330,
+      unit: "ml",
+      packaging: "can",
+    });
+    expect(network.state.requests.find((x) => x.id === r.id)?.status).toBe(
+      "OFFER_CREATED",
+    );
+    expect(network.state.reservations.some((x) => x.request_id === r.id)).toBe(
+      false,
+    );
+  });
   it("can arrange a previously recorded demand on the same entry, with fresh contact and explicit confirmation", async () => {
     const seed = network.state.requests.find(
       (r) => r.merchant_id === "m-sharma-001",

@@ -5,7 +5,7 @@ import { ArrowRight, LoaderCircle } from "lucide-react";
 import type { Intent } from "@/lib/product/types";
 import { manualDraft, parseIntent } from "@/lib/product/intent";
 import { captureHints, phoneNumber } from "@/lib/product/capture-fields";
-import { itemDescription, reviewEditedItem } from "@/lib/product/item-review";
+import { itemFields, reviewItemFields } from "@/lib/product/item-review";
 import { api, Modal } from "./common";
 import { useVoiceRecording } from "@/hooks/useVoiceRecording";
 import VoiceControls from "./VoiceControls";
@@ -27,7 +27,9 @@ export default function Capture({
   const t = useTranslations();
   const [raw, setRaw] = useState(initial),
     [intent, setIntent] = useState<Intent | null>(null),
-    [item, setItem] = useState("");
+    [item, setItem] = useState(""),
+    [variant, setVariant] = useState(""),
+    [pack, setPack] = useState("");
   const [wait, setWait] = useState<boolean | null>(initialWait ? true : null),
     [phone, setPhone] = useState(""),
     [customer, setCustomer] = useState(""),
@@ -83,7 +85,10 @@ export default function Capture({
       no_rush: hints.no_rush,
     };
     setIntent(nextIntent);
-    setItem(itemDescription(nextIntent));
+    const fields = itemFields(nextIntent);
+    setItem(fields.item);
+    setVariant(fields.variant);
+    setPack(fields.pack);
     setQuantity(String(next.quantity ?? 1));
     setWait(hints.can_wait ?? (initialWait ? true : null));
     setPhone(hints.phone ? `+${hints.phone}` : "");
@@ -101,10 +106,14 @@ export default function Capture({
       } catch {
         throw new Error("INVALID_PHONE");
       }
-      const reviewed = await reviewEditedItem(item, intent, async (value) => {
-        const j = await api("/api/intent", { raw_text: value });
-        return j.intent;
-      });
+      const reviewed = await reviewItemFields(
+        { item, variant, pack },
+        intent,
+        async (value) => {
+          const j = await api("/api/intent", { raw_text: value });
+          return j.intent;
+        },
+      );
       const result = await saved({
         action: "create",
         raw_text: raw,
@@ -123,7 +132,15 @@ export default function Capture({
       else setError(t("reviewFailure"));
     } catch (e) {
       const code = e instanceof Error ? e.message : "";
-      setError(t(code === "INVALID_PHONE" ? "phoneFix" : "itemReviewRetry"));
+      setError(
+        t(
+          code === "INVALID_PHONE"
+            ? "phoneFix"
+            : code === "PACK_INVALID"
+              ? "packFix"
+              : "itemReviewRetry",
+        ),
+      );
     } finally {
       setBusy(false);
     }
@@ -197,6 +214,26 @@ export default function Capture({
               maxLength={300}
             />
           </label>
+          <div className="form-grid">
+            <label>
+              {t("variant")}
+              <input
+                value={variant}
+                onChange={(e) => setVariant(e.target.value)}
+                maxLength={120}
+                placeholder={t("simpleVariantExample")}
+              />
+            </label>
+            <label>
+              {t("packOptional")}
+              <input
+                value={pack}
+                onChange={(e) => setPack(e.target.value)}
+                maxLength={120}
+                placeholder={t("whichPackExample")}
+              />
+            </label>
+          </div>
           <label>
             {t("quantity")}
             <input

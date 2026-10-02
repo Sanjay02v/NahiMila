@@ -6,6 +6,10 @@ export const en = {
   aiLimited:
     "AI is temporarily rate-limited. Check or edit these manual suggestions.",
 
+  packLabel: "Size or pack",
+  packOptional: "Size or pack · optional",
+  simpleVariantExample: "e.g. Diet, Masala or Black",
+  packFix: "Use a size such as 500ml bottle, 100g pouch or 1 piece.",
   itemLabel: "Item",
   simpleReviewHint: "Check the item and quantity. You can change either.",
   canCustomerWait: "Can the customer wait?",
@@ -496,6 +500,10 @@ export const hi: Messages = {
   aiFilledHint: "AI ने विवरण भरा है। सामान और संख्या जाँचें।",
   aiLimited: "अभी AI की उपयोग सीमा लागू है। ये मैनुअल सुझाव जाँचें या बदलें।",
 
+  packLabel: "आकार या पैक",
+  packOptional: "आकार या पैक · वैकल्पिक",
+  simpleVariantExample: "जैसे डाइट, मसाला या काला",
+  packFix: "आकार भरें, जैसे 500ml bottle, 100g pouch या 1 piece।",
   itemLabel: "सामान",
   simpleReviewHint: "सामान और संख्या जाँचें। दोनों बदल सकते हैं।",
   canCustomerWait: "क्या ग्राहक इंतज़ार कर सकता है?",
@@ -957,6 +965,10 @@ export const kn: Messages = {
   aiLimited:
     "ಈಗ AI ಬಳಕೆಯ ಮಿತಿ ಇದೆ. ಈ ಕೈಯಾರೆ ಸಲಹೆಗಳನ್ನು ಪರಿಶೀಲಿಸಿ ಅಥವಾ ಬದಲಾಯಿಸಿ.",
 
+  packLabel: "ಗಾತ್ರ ಅಥವಾ ಪ್ಯಾಕ್",
+  packOptional: "ಗಾತ್ರ ಅಥವಾ ಪ್ಯಾಕ್ · ಐಚ್ಛಿಕ",
+  simpleVariantExample: "ಉದಾ. ಡಯಟ್, ಮಸಾಲಾ ಅಥವಾ ಕಪ್ಪು",
+  packFix: "ಗಾತ್ರ ನಮೂದಿಸಿ, ಉದಾ. 500ml bottle, 100g pouch ಅಥವಾ 1 piece.",
   itemLabel: "ವಸ್ತು",
   simpleReviewHint: "ವಸ್ತು ಮತ್ತು ಸಂಖ್ಯೆಯನ್ನು ಪರಿಶೀಲಿಸಿ. ಎರಡನ್ನೂ ಬದಲಾಯಿಸಬಹುದು.",
   canCustomerWait: "ಗ್ರಾಹಕರು ಕಾಯಬಹುದೇ?",
