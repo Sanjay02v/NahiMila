@@ -22,7 +22,7 @@ export async function POST(req: Request) {
           source: intent.source,
           model:
             intent.source === "gemini"
-              ? process.env.GEMINI_MODEL || "gemini-3.8-flash"
+              ? process.env.GEMINI_MODEL || "gemini-2.5-flash"
               : null,
           raw_hash: hash(raw),
           missing: intent.missing,

@@ -23,15 +23,13 @@ describe("Language services remain evidence-limited", () => {
       hard_constraints: ["bottle only"],
       evidence: { size: "half litre" },
     };
-    const fetch = vi
-      .fn()
-      .mockResolvedValue(
-        Response.json({
-          candidates: [
-            { content: { parts: [{ text: JSON.stringify(result) }] } },
-          ],
-        }),
-      );
+    const fetch = vi.fn().mockResolvedValue(
+      Response.json({
+        candidates: [
+          { content: { parts: [{ text: JSON.stringify(result) }] } },
+        ],
+      }),
+    );
     vi.stubGlobal("fetch", fetch);
     const parsed = await normalize("Coke Zero half litre bottle", "kn");
     expect(parsed).toMatchObject({
@@ -48,6 +46,10 @@ describe("Language services remain evidence-limited", () => {
     expect(
       JSON.parse(fetch.mock.calls[0][1].body).contents[0].parts[0].text,
     ).toBe("Coke Zero half litre bottle");
+    // Exercise the raw REST configuration, rather than the SDK-only format.
+    expect(
+      JSON.parse(fetch.mock.calls[0][1].body).generationConfig.responseMimeType,
+    ).toBe("application/json");
   });
   it("provider failures and invalid numeric output never become fabricated valid intents", async () => {
     vi.stubEnv("GEMINI_API_KEY", "test-key");

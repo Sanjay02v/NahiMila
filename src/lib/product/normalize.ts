@@ -5,7 +5,7 @@ import { intentSchema, manualDraft, parseIntent } from "./intent";
 export async function normalize(raw: string, locale: string): Promise<Intent> {
   if (!process.env.GEMINI_API_KEY) return manualDraft(raw);
   const schema = z.toJSONSchema(intentSchema);
-  const model = process.env.GEMINI_MODEL || "gemini-3.8-flash";
+  const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
   const response = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
     {
@@ -26,12 +26,18 @@ export async function normalize(raw: string, locale: string): Promise<Intent> {
         contents: [{ role: "user", parts: [{ text: raw }] }],
         generationConfig: {
           temperature: 0,
-          responseFormat: { text: { mimeType: "application/json", schema } },
+          responseMimeType: "application/json",
+          responseJsonSchema: schema,
         },
       }),
     },
   );
-  if (!response.ok) throw new Error("AI_UNAVAILABLE");
+  if (!response.ok) {
+    console.warn("Gemini normalization request failed", {
+      status: response.status,
+    });
+    throw new Error("AI_UNAVAILABLE");
+  }
   const result = await response.json();
   const text = result.candidates?.[0]?.content?.parts
     ?.map((p: { text?: string }) => p.text || "")

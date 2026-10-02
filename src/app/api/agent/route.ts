@@ -17,7 +17,7 @@ export async function POST(req: Request) {
       const question = text(b.question, 600);
       if (!process.env.GEMINI_API_KEY) throw new Error("AI_UNAVAILABLE");
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(process.env.GEMINI_MODEL || "gemini-3.8-flash")}:generateContent`,
+        `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(process.env.GEMINI_MODEL || "gemini-2.5-flash")}:generateContent`,
         {
           method: "POST",
           headers: {
@@ -35,23 +35,24 @@ export async function POST(req: Request) {
             },
             contents: [{ role: "user", parts: [{ text: question }] }],
             generationConfig: {
-              responseFormat: {
-                text: {
-                  mimeType: "application/json",
-                  schema: {
-                    type: "object",
-                    properties: {
-                      tool: { type: "string", enum: [...tools, "denied"] },
-                    },
-                    required: ["tool"],
-                  },
+              responseMimeType: "application/json",
+              responseJsonSchema: {
+                type: "object",
+                properties: {
+                  tool: { type: "string", enum: [...tools, "denied"] },
                 },
+                required: ["tool"],
               },
             },
           }),
         },
       );
-      if (!response.ok) throw new Error("AI_UNAVAILABLE");
+      if (!response.ok) {
+        console.warn("Gemini read-tool request failed", {
+          status: response.status,
+        });
+        throw new Error("AI_UNAVAILABLE");
+      }
       const j = await response.json();
       try {
         tool = JSON.parse(

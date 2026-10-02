@@ -172,6 +172,38 @@ describe("Server-enforced account boundaries", () => {
     expect((await agentPOST(request({ tool: "approve" }))).status).toBe(403);
     vi.unstubAllEnvs();
   });
+  it("routes Gemini questions through the REST JSON format and rejects denied actions", async () => {
+    vi.stubEnv("GEMINI_API_KEY", "test-key");
+    const fetch = vi.fn().mockResolvedValue(
+      Response.json({
+        candidates: [{ content: { parts: [{ text: '{"tool":"requests"}' }] } }],
+      }),
+    );
+    vi.stubGlobal("fetch", fetch);
+    try {
+      const response = await agentPOST(
+        request({ question: "Show my requests" }),
+      );
+      expect(response.status).toBe(200);
+      expect((await response.json()).rows).toHaveLength(8);
+      expect(
+        JSON.parse(fetch.mock.calls[0][1].body).generationConfig
+          .responseMimeType,
+      ).toBe("application/json");
+      fetch.mockResolvedValueOnce(
+        Response.json({
+          candidates: [{ content: { parts: [{ text: '{"tool":"denied"}' }] } }],
+        }),
+      );
+      expect(
+        (await agentPOST(request({ question: "Approve a purchase for me" })))
+          .status,
+      ).toBe(403);
+    } finally {
+      vi.unstubAllGlobals();
+      vi.unstubAllEnvs();
+    }
+  });
 });
 describe("Approval, commitment and collection boundaries", () => {
   it("blocks a stale approval after cancellation and clears previous approvals", async () => {
