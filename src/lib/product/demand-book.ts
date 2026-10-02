@@ -17,7 +17,8 @@ export function demandCategory(
 ): Exclude<DemandFilter, "all"> {
   const status = demandStatus(r, now);
   if (status === "MISSED_DEMAND") return "demand";
-  if (status === "OFFER_CREATED") return "pending";
+  if (status === "OFFER_CREATED" || status === "WAITING_INTEREST")
+    return "pending";
   if (status === "CUSTOMER_CONFIRMED") return "confirmed";
   return "history";
 }

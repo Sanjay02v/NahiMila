@@ -1,3 +1,5 @@
+import { canonicalIdentity } from "@/lib/product/canonical";
+import { parseIntent } from "@/lib/product/intent";
 import { actor, shopActor } from "@/lib/product/auth";
 import { withNetwork } from "@/lib/product/repository";
 import {
@@ -7,6 +9,7 @@ import {
   ownRequest,
   fingerprint,
   normalizePhone,
+  ensureProduct,
 } from "@/lib/product/network";
 import { body, failure, ok, text, integer } from "@/lib/product/http";
 import { locales, type Locale, type Shop } from "@/lib/product/types";
@@ -158,14 +161,18 @@ export async function POST(req: Request) {
             n.state = s.exportState();
             break;
           }
+          case "prepare_offer":
           case "revise_offer": {
             const r = ownRequest(s, shop.id, text(b.request_id, 100));
             const old = s.offers.find(
               (o) => o.request_token === r.request_token,
             );
+            const preparing = b.action === "prepare_offer";
             if (
-              !old ||
-              !["OFFER_CREATED", "CUSTOMER_CONFIRMED"].includes(r.status)
+              preparing
+                ? r.status !== "WAITING_INTEREST"
+                : !old ||
+                  !["OFFER_CREATED", "CUSTOMER_CONFIRMED"].includes(r.status)
             )
               throw new Error("INVALID_REQUEST");
             if (b.token !== r.request_token) throw new Error("CONFLICT");
@@ -174,14 +181,30 @@ export async function POST(req: Request) {
               throw new Error("CONTACT_CONSENT_REQUIRED");
             const quantity = integer(b.quantity, 1, 100),
               price = integer(b.price_paise, 1),
-              budget = integer(b.budget_paise, 1),
+              budget =
+                b.budget_paise === null || b.budget_paise === undefined
+                  ? null
+                  : integer(b.budget_paise, 1),
               deadline = text(b.deadline, 50);
-            if (price > budget) throw new Error("INVALID_REQUEST");
+            if (budget && price > budget) throw new Error("INVALID_REQUEST");
             if (
               !Number.isFinite(Date.parse(deadline)) ||
               Date.parse(deadline) <= Date.now()
             )
               throw new Error("INVALID_DEADLINE");
+            const d = n.details[r.id];
+            if (!d) throw new Error("INVALID_REQUEST");
+            const i = canonicalIdentity(
+              parseIntent(
+                b.intent ?? {
+                  ...d.intent,
+                  quantity,
+                  budget_paise: budget,
+                  deadline,
+                },
+              ),
+            );
+            if (!i.size || !i.unit) throw new Error("OFFER_DETAILS_REQUIRED");
             const active = s.reservations.find(
               (x) =>
                 x.request_token === r.request_token && x.status !== "CANCELLED",
@@ -194,50 +217,52 @@ export async function POST(req: Request) {
                 "Customer terms changed; confirmation required again",
               );
             s.invalidateAllApprovals("Customer terms changed");
-            const token = `NML-${crypto.randomUUID()}`;
+            const product = ensureProduct(n, s, i),
+              token = `NML-${crypto.randomUUID()}`;
             Object.assign(r, {
+              product_id: product.id,
+              sku: product.sku,
+              pack_size: product.pack_size,
               quantity,
-              max_retail_price_paise: budget,
+              max_retail_price_paise: budget || price,
               required_by_date: new Intl.DateTimeFormat("en-CA", {
                 timeZone: "Asia/Kolkata",
               }).format(new Date(deadline)),
               customer_phone: phone,
               request_token: token,
+              can_wait: true,
               status: "OFFER_CREATED",
               updated_at: new Date().toISOString(),
             });
             s.offers.push({
-              ...old,
               id: `off-${crypto.randomUUID()}`,
+              request_id: r.id,
               request_token: token,
               proposed_price_paise: price,
+              pickup_merchant_id: shop.id,
               pickup_deadline: deadline,
+              is_conditional: true,
               created_at: new Date().toISOString(),
             });
-            const d = n.details[r.id];
-            if (d) {
-              d.revision += 1;
-              d.confirmation = null;
-              d.contact_consent = true;
-              d.intent = {
-                ...d.intent,
-                quantity,
-                budget_paise: budget,
-                deadline,
-              };
-            }
-            s.logAudit("REQUEST", r.id, "TERMS_REVISED", {
-              merchant_id: shop.id,
-              quantity,
-              price,
-              deadline,
-            });
+            d.revision += 1;
+            d.confirmation = null;
+            d.contact_consent = true;
+            d.intent = { ...i, quantity, budget_paise: budget, deadline };
+            s.logAudit(
+              "REQUEST",
+              r.id,
+              preparing ? "OFFER_PREPARED" : "TERMS_REVISED",
+              { merchant_id: shop.id, quantity, price, deadline },
+            );
             n.state = s.exportState();
             break;
           }
           case "cancel": {
             const r = ownRequest(s, shop.id, text(b.request_id, 100));
-            if (r.status === "OFFER_CREATED") {
+            if (
+              r.status === "OFFER_CREATED" ||
+              r.status === "WAITING_INTEREST"
+            ) {
               r.status = "CANCELLED";
               r.updated_at = new Date().toISOString();
               s.logAudit("REQUEST", r.id, "PENDING_WITHDRAWN", {

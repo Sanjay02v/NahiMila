@@ -1,3 +1,5 @@
+import { phoneNumber as normalizePhone } from "./capture-fields";
+export { phoneNumber as normalizePhone } from "./capture-fields";
 import { randomUUID, createHash } from "node:crypto";
 import { MemoryStore, type SeedDataPayload } from "@/lib/db/store";
 import { getFutureDateString } from "@/lib/constants";
@@ -437,16 +439,84 @@ export function saveRequest(
   if (typeof body.can_wait !== "boolean") throw new Error("INVALID_REQUEST");
   const willing = body.can_wait === true;
   const phone = normalizePhone(body.customer_phone);
-  const canWait = willing && !!phone;
-  if (phone && (!willing || body.contact_consent !== true))
+  const rawPrice =
+    body.offer_price_paise === undefined ? null : body.offer_price_paise;
+  if (
+    rawPrice !== null &&
+    (typeof rawPrice !== "number" ||
+      !Number.isSafeInteger(rawPrice) ||
+      rawPrice < 1 ||
+      rawPrice > 100000000)
+  )
+    throw new Error("INVALID_REQUEST");
+  const exactPrice = rawPrice as number | null;
+  if (exactPrice && i.budget_paise && exactPrice > i.budget_paise)
+    throw new Error("INVALID_REQUEST");
+  const canWait =
+    willing && !!phone && !!i.size && !!i.unit && !!exactPrice && !!i.deadline;
+  if (phone && body.contact_consent !== true)
     throw new Error("CONTACT_CONSENT_REQUIRED");
   if (
     body.confirm_in_store === true &&
     (!canWait || body.terms_accepted !== true)
   )
     throw new Error("CONFIRMATION_REQUIRED");
-  if (canWait && (!i.size || !i.unit || !i.budget_paise || !i.deadline))
-    throw new Error("OFFER_DETAILS_REQUIRED");
+
+  const p = ensureProduct(n, s, i);
+  const deadline = i.deadline
+    ? new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(
+        new Date(i.deadline),
+      )
+    : getFutureDateString(2);
+  const { request, offer } = s.createDemandRequest({
+    merchant_id: shopId,
+    product_id: p.id,
+    quantity: qty,
+    max_retail_price_paise: i.budget_paise || exactPrice || 0,
+    required_by_date: deadline,
+    reason_unavailable: "not_stocked",
+    can_wait: canWait,
+    pickup_deadline: canWait ? i.deadline! : undefined,
+    customer_name: String(body.customer_name || "").slice(0, 80) || undefined,
+    customer_phone: phone || undefined,
+  });
+  if (offer) {
+    if (Date.parse(i.deadline!) <= Date.now())
+      throw new Error("INVALID_DEADLINE");
+    offer.pickup_deadline = i.deadline!;
+    offer.proposed_price_paise = exactPrice!;
+  }
+  n.details[request.id] = {
+    raw_text: raw,
+    intent: i,
+    revision: 1,
+    submission_key: key,
+    willing_to_wait: willing,
+    contact_consent: !!phone,
+    flexible_price: body.flexible_price === true,
+    no_rush: body.no_rush === true,
+    confirmation: null,
+  };
+  if (willing && phone && !canWait) request.status = "WAITING_INTEREST";
+  if (canWait && body.confirm_in_store === true) {
+    s.confirmCustomerOffer(request.request_token);
+    n.details[request.id].confirmation = {
+      method: "in_store",
+      at: new Date().toISOString(),
+    };
+    s.logAudit("RESERVATION", request.id, "IN_STORE_CONFIRMATION", {
+      merchant_id: shopId,
+      quantity: qty,
+      price: offer!.proposed_price_paise,
+      deadline: offer!.pickup_deadline,
+    });
+  }
+  n.submissions[`${shopId}:${key}`] = request.id;
+  n.state = s.exportState();
+  return request;
+}
+
+export function ensureProduct(n: Network, s: MemoryStore, i: Intent) {
   const identity = productKey(i);
   let p = s.products.find((p) => {
     const stored = productIdentity(n, p.id);
@@ -477,82 +547,5 @@ export function saveRequest(
     };
     s.products.push(p);
   }
-  const deadline = i.deadline
-    ? new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(
-        new Date(i.deadline),
-      )
-    : getFutureDateString(2);
-  const { request, offer } = s.createDemandRequest({
-    merchant_id: shopId,
-    product_id: p.id,
-    quantity: qty,
-    max_retail_price_paise: i.budget_paise || 0,
-    required_by_date: deadline,
-    reason_unavailable: "not_stocked",
-    can_wait: canWait,
-    pickup_deadline: canWait ? i.deadline! : undefined,
-    customer_name: String(body.customer_name || "").slice(0, 80) || undefined,
-    customer_phone: canWait ? phone! : undefined,
-  });
-  if (offer) {
-    if (Date.parse(i.deadline!) <= Date.now())
-      throw new Error("INVALID_DEADLINE");
-    offer.pickup_deadline = i.deadline!;
-    const price =
-      body.offer_price_paise === undefined
-        ? i.budget_paise!
-        : body.offer_price_paise;
-    if (
-      typeof price !== "number" ||
-      !Number.isSafeInteger(price) ||
-      price < 1 ||
-      price > i.budget_paise!
-    )
-      throw new Error("INVALID_REQUEST");
-    offer.proposed_price_paise = price;
-  }
-  n.details[request.id] = {
-    raw_text: raw,
-    intent: i,
-    revision: 1,
-    submission_key: key,
-    willing_to_wait: willing,
-    contact_consent: canWait,
-    confirmation: null,
-  };
-  if (canWait && body.confirm_in_store === true) {
-    s.confirmCustomerOffer(request.request_token);
-    n.details[request.id].confirmation = {
-      method: "in_store",
-      at: new Date().toISOString(),
-    };
-    s.logAudit("RESERVATION", request.id, "IN_STORE_CONFIRMATION", {
-      merchant_id: shopId,
-      quantity: qty,
-      price: offer!.proposed_price_paise,
-      deadline: offer!.pickup_deadline,
-    });
-  }
-  n.submissions[`${shopId}:${key}`] = request.id;
-  n.state = s.exportState();
-  return request;
-}
-
-export function normalizePhone(value: unknown): string | null {
-  if (value === undefined || value === null || value === "") return null;
-  if (
-    typeof value !== "string" ||
-    value.length > 30 ||
-    !/^[+\d\s()-]+$/.test(value)
-  )
-    throw new Error("INVALID_PHONE");
-  let digits = value.replace(/\D/g, "");
-  if (digits.length === 10 && /^[6-9]/.test(digits)) digits = "91" + digits;
-  else if (
-    !value.trim().startsWith("+") &&
-    !(digits.length === 12 && digits.startsWith("91"))
-  )
-    throw new Error("INVALID_PHONE");
-  if (!/^[1-9]\d{7,14}$/.test(digits)) throw new Error("INVALID_PHONE");
-  return digits;
+  return p;
 }

@@ -4,7 +4,14 @@ import { useTranslations } from "next-intl";
 import { ArrowRight, LoaderCircle } from "lucide-react";
 import type { Intent } from "@/lib/product/types";
 import type { MatchReview } from "@/lib/product/matching";
-import { manualDraft } from "@/lib/product/intent";
+import { manualDraft, parseIntent } from "@/lib/product/intent";
+import {
+  captureHints,
+  dayFromDeadline,
+  deadlineFromDay,
+  detailsText,
+  withDetails,
+} from "@/lib/product/capture-fields";
 import { api, Modal } from "./common";
 import { useVoiceRecording } from "@/hooks/useVoiceRecording";
 import VoiceControls from "./VoiceControls";
@@ -23,19 +30,21 @@ export default function Capture({
   close: () => void;
   saved: (b: Record<string, unknown>) => Promise<boolean>;
 }) {
-  const t = useTranslations(),
-    [raw, setRaw] = useState(initial),
+  const t = useTranslations();
+  const [raw, setRaw] = useState(initial),
     [intent, setIntent] = useState<Intent | null>(null),
-    [match, setMatch] = useState<MatchReview | null>(null),
-    [wait, setWait] = useState(initialWait),
+    [match, setMatch] = useState<MatchReview | null>(null);
+  const [wait, setWait] = useState(initialWait),
     [phone, setPhone] = useState(""),
-    [inStore, setInStore] = useState(false),
-    [busy, setBusy] = useState(false),
+    [details, setDetails] = useState(""),
+    [flexible, setFlexible] = useState(false),
+    [noRush, setNoRush] = useState(false),
+    [offerPrice, setOfferPrice] = useState("");
+  const [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
     [notice, setNotice] = useState("");
-  const reserving = wait && !!phone.trim();
-  const submission = useRef(crypto.randomUUID());
-  const textInput = useRef<HTMLTextAreaElement>(null);
+  const submission = useRef(crypto.randomUUID()),
+    textInput = useRef<HTMLTextAreaElement>(null);
   useEffect(() => {
     if (mode !== "type" || intent) return;
     const timer = setTimeout(() => textInput.current?.focus(), 0);
@@ -48,43 +57,81 @@ export default function Capture({
     },
     { autoStart: mode === "voice" && voice },
   );
+  const reviewed = intent ? withDetails(intent, details) : null;
+  const reserving = wait && !!phone.trim();
+  const complete = !!(
+    reserving &&
+    reviewed?.size &&
+    reviewed.unit &&
+    offerPrice &&
+    reviewed.deadline
+  );
   const update = (field: keyof Intent, value: unknown) => {
-    if (
-      [
-        "product",
-        "brand",
-        "variant",
-        "size",
-        "unit",
-        "packaging",
-        "hard_constraints",
-      ].includes(field)
-    )
+    if (["product", "brand", "hard_constraints"].includes(field))
       setMatch(null);
     setIntent((i) => (i ? { ...i, [field]: value } : i));
   };
   async function interpret() {
     setBusy(true);
     setError("");
+    setNotice("");
+    let next: Intent,
+      nextMatch: MatchReview | null = null;
     try {
       const j = await api("/api/intent", { raw_text: raw });
-      setIntent(j.intent);
-      setMatch(j.match);
+      next = parseIntent(j.intent);
+      nextMatch = j.match;
     } catch {
-      setIntent(manualDraft(raw));
+      next = manualDraft(raw);
       setNotice(t("aiFailed"));
-    } finally {
-      setBusy(false);
     }
+    const hints = captureHints(raw, next);
+    setIntent({
+      ...next,
+      budget_paise: hints.flexible_price ? null : next.budget_paise,
+      deadline: hints.no_rush
+        ? null
+        : deadlineFromDay(dayFromDeadline(next.deadline)),
+    });
+    setDetails(detailsText(next));
+    setMatch(nextMatch);
+    setWait(hints.can_wait ?? initialWait);
+    setPhone(hints.phone ? `+${hints.phone}` : "");
+    setFlexible(hints.flexible_price);
+    setNoRush(hints.no_rush);
+    setOfferPrice("");
+    setBusy(false);
   }
-  const localDate = (value: string | null) =>
-    value
-      ? new Date(
-          Date.parse(value) - new Date(value).getTimezoneOffset() * 60000,
-        )
-          .toISOString()
-          .slice(0, 16)
-      : "";
+  const save = async (confirmInStore: boolean) => {
+    if (!reviewed) return;
+    setBusy(true);
+    setError("");
+    const result = await saved({
+      action: "create",
+      raw_text: raw,
+      intent: {
+        ...reviewed,
+        quantity: reviewed.quantity ?? 1,
+        budget_paise: flexible ? null : reviewed.budget_paise,
+      },
+      can_wait: wait,
+      customer_name: customer.current?.value || "",
+      customer_phone: phone.trim(),
+      contact_consent: !!phone.trim(),
+      confirm_in_store: confirmInStore,
+      terms_accepted: confirmInStore,
+      offer_price_paise: offerPrice
+        ? Math.round(Number(offerPrice) * 100)
+        : null,
+      flexible_price: flexible,
+      no_rush: noRush,
+      submission_key: submission.current,
+    });
+    setBusy(false);
+    if (result) close();
+    else setError(t("errorGeneric"));
+  };
+  const customer = useRef<HTMLInputElement>(null);
   return (
     <Modal title={intent ? t("review") : t("recordRequest")} close={close}>
       {error && (
@@ -128,7 +175,7 @@ export default function Capture({
               <LoaderCircle className="spin" />
             ) : (
               <ArrowRight size={18} />
-            )}{" "}
+            )}
             {t("interpret")}
           </button>
         </>
@@ -136,27 +183,11 @@ export default function Capture({
         <form
           onSubmit={async (e) => {
             e.preventDefault();
-            setBusy(true);
-            const f = new FormData(e.currentTarget);
-            const result = await saved({
-              action: "create",
-              raw_text: raw,
-              intent: { ...intent, quantity: intent.quantity ?? 1 },
-              can_wait: wait,
-              customer_name: f.get("customer"),
-              customer_phone: wait ? phone.trim() : "",
-              contact_consent: reserving && f.get("consent") === "on",
-              confirm_in_store: reserving && inStore,
-              terms_accepted:
-                reserving && inStore && f.get("accepted") === "on",
-              offer_price_paise: reserving
-                ? Math.round(Number(f.get("offerPrice")) * 100)
-                : undefined,
-              submission_key: submission.current,
-            });
-            setBusy(false);
-            if (result) close();
-            else setError(t("errorGeneric"));
+            await save(
+              (e.nativeEvent as SubmitEvent).submitter?.getAttribute(
+                "data-confirm",
+              ) === "true",
+            );
           }}
         >
           <p className="note">
@@ -190,40 +221,20 @@ export default function Capture({
               <input
                 value={intent.brand || ""}
                 onChange={(e) => update("brand", e.target.value || null)}
+                maxLength={120}
               />
             </label>
             <label>
-              {t("variant")}
+              {t("variantDetails")}
               <input
-                value={intent.variant || ""}
-                onChange={(e) => update("variant", e.target.value || null)}
+                value={details}
+                onChange={(e) => {
+                  setDetails(e.target.value);
+                  setMatch(null);
+                }}
+                placeholder={t("variantExample")}
+                maxLength={120}
               />
-            </label>
-            <label>
-              {t("size")}
-              <input
-                type="number"
-                min="0.01"
-                step="0.01"
-                value={intent.size ?? ""}
-                onChange={(e) =>
-                  update("size", e.target.value ? Number(e.target.value) : null)
-                }
-                required={reserving}
-              />
-            </label>
-            <label>
-              {t("unit")}
-              <select
-                value={intent.unit || ""}
-                onChange={(e) => update("unit", e.target.value || null)}
-                required={reserving}
-              >
-                <option value="">—</option>
-                <option value="g">g</option>
-                <option value="ml">ml</option>
-                <option value="piece">{t("units")}</option>
-              </select>
             </label>
             <label>
               {t("quantity")}
@@ -238,15 +249,16 @@ export default function Capture({
                     e.target.value ? Number(e.target.value) : null,
                   )
                 }
-                required={reserving}
+                required
               />
             </label>
             <label>
-              {t("budget")}
+              {t("preferredBudget")}
               <input
                 type="number"
                 min="0.01"
                 step="0.01"
+                disabled={flexible}
                 value={
                   intent.budget_paise === null ? "" : intent.budget_paise / 100
                 }
@@ -258,58 +270,61 @@ export default function Capture({
                       : null,
                   )
                 }
-                required={reserving}
               />
             </label>
-            <details className="span-two details">
-              <summary>{t("constraints")}</summary>
-              <label>
-                {t("packaging")}
-                <input
-                  value={intent.packaging || ""}
-                  onChange={(e) => update("packaging", e.target.value || null)}
-                />
-              </label>
-              <label>
-                {t("constraints")}
-                <input
-                  value={intent.hard_constraints.join(", ")}
-                  onChange={(e) =>
-                    update(
-                      "hard_constraints",
-                      e.target.value
-                        .split(",")
-                        .map((s) => s.trim())
-                        .filter(Boolean),
-                    )
-                  }
-                />
-              </label>
-              <label>
-                {t("preferences")}
-                <input
-                  value={intent.preferences.join(", ")}
-                  onChange={(e) =>
-                    update(
-                      "preferences",
-                      e.target.value
-                        .split(",")
-                        .map((s) => s.trim())
-                        .filter(Boolean),
-                    )
-                  }
-                />
-              </label>
-              <label className="check">
-                <input
-                  type="checkbox"
-                  checked={intent.substitutions}
-                  onChange={(e) => update("substitutions", e.target.checked)}
-                />
-                {t("substitutions")}
-              </label>
-            </details>
           </div>
+          <label className="check">
+            <input
+              type="checkbox"
+              checked={flexible}
+              onChange={(e) => {
+                setFlexible(e.target.checked);
+                if (e.target.checked) update("budget_paise", null);
+              }}
+            />
+            {t("flexiblePrice")}
+          </label>
+          <details className="details">
+            <summary>{t("extraPreferences")}</summary>
+            <label>
+              {t("constraints")}
+              <input
+                value={intent.hard_constraints.join(", ")}
+                onChange={(e) =>
+                  update(
+                    "hard_constraints",
+                    e.target.value
+                      .split(",")
+                      .map((v) => v.trim())
+                      .filter(Boolean),
+                  )
+                }
+              />
+            </label>
+            <label>
+              {t("preferences")}
+              <input
+                value={intent.preferences.join(", ")}
+                onChange={(e) =>
+                  update(
+                    "preferences",
+                    e.target.value
+                      .split(",")
+                      .map((v) => v.trim())
+                      .filter(Boolean),
+                  )
+                }
+              />
+            </label>
+            <label className="check">
+              <input
+                type="checkbox"
+                checked={intent.substitutions}
+                onChange={(e) => update("substitutions", e.target.checked)}
+              />
+              {t("substitutions")}
+            </label>
+          </details>
           <label className="check wait">
             <input
               type="checkbox"
@@ -321,83 +336,77 @@ export default function Capture({
               <small>{t("waitHint")}</small>
             </span>
           </label>
+          <div className="form-grid">
+            <label>
+              {t("customerPhoneOptional")}
+              <input
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="+91"
+                maxLength={30}
+              />
+            </label>
+            <label>
+              {t("customerName")}
+              <input ref={customer} maxLength={80} />
+            </label>
+          </div>
+          {!!phone.trim() && <p className="fine">{t("contactUseNote")}</p>}
           {wait && (
             <>
-              <label>
-                {t("customerPhone")}
-                <input
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="+91"
-                  maxLength={30}
-                />
-              </label>
-              {!reserving && <p className="note">{t("noContactHint")}</p>}
-            </>
-          )}
-          {reserving && (
-            <>
-              <label>
-                {t("offerPrice")}
-                <input
-                  name="offerPrice"
-                  type="number"
-                  min="0.01"
-                  step="0.01"
-                  max={
-                    intent.budget_paise ? intent.budget_paise / 100 : undefined
-                  }
-                  defaultValue={
-                    intent.budget_paise ? intent.budget_paise / 100 : ""
-                  }
-                  required
-                />
-              </label>
-              <label>
-                {t("deadline")}
-                <input
-                  type="datetime-local"
-                  value={localDate(intent.deadline)}
-                  onChange={(e) =>
-                    update(
-                      "deadline",
-                      e.target.value
-                        ? new Date(e.target.value).toISOString()
-                        : null,
-                    )
-                  }
-                  required
-                />
-              </label>
-              <label>
-                {t("customerName")}
-                <input name="customer" maxLength={80} />
-              </label>
-              <label className="check">
-                <input type="checkbox" name="consent" required />
-                {t("contactConsent")}
-              </label>
-              <label>
-                {t("confirmationPath")}
-                <select
-                  value={inStore ? "in_store" : "link"}
-                  onChange={(e) => setInStore(e.target.value === "in_store")}
-                >
-                  <option value="link">{t("confirmByLink")}</option>
-                  <option value="in_store">{t("confirmedInStore")}</option>
-                </select>
-              </label>
-              {inStore && (
-                <label className="check">
-                  <input name="accepted" type="checkbox" required />
-                  {t("termsAccepted")}
+              <div className="form-grid">
+                <label>
+                  {t("exactPriceOptional")}
+                  <input
+                    type="number"
+                    min="0.01"
+                    step="0.01"
+                    max={
+                      !flexible && intent.budget_paise
+                        ? intent.budget_paise / 100
+                        : undefined
+                    }
+                    value={offerPrice}
+                    onChange={(e) => setOfferPrice(e.target.value)}
+                  />
                 </label>
-              )}
+                <label>
+                  {t("dateOptional")}
+                  <input
+                    type="date"
+                    disabled={noRush}
+                    value={dayFromDeadline(intent.deadline)}
+                    onChange={(e) =>
+                      update("deadline", deadlineFromDay(e.target.value))
+                    }
+                  />
+                </label>
+              </div>
+              <label className="check">
+                <input
+                  type="checkbox"
+                  checked={noRush}
+                  onChange={(e) => {
+                    setNoRush(e.target.checked);
+                    if (e.target.checked) update("deadline", null);
+                  }}
+                />
+                {t("noRush")}
+              </label>
+              <p className="note">
+                {t(
+                  !reserving
+                    ? "noContactHint"
+                    : complete
+                      ? "offerChoiceHint"
+                      : "pendingInterestHint",
+                )}
+              </p>
               <p className="fine">{t("reservationRisk")}</p>
             </>
           )}
-          <div className="modal-actions">
+          <div className="modal-actions capture-save-actions">
             <button
               type="button"
               className="button secondary"
@@ -407,8 +416,17 @@ export default function Capture({
             </button>
             <button className="button" disabled={busy}>
               {t("save")}
-              <ArrowRight size={18} />
+              {<ArrowRight size={18} />}
             </button>
+            {complete && (
+              <button
+                className="button secondary"
+                data-confirm="true"
+                disabled={busy}
+              >
+                {t("confirmInStoreAction")}
+              </button>
+            )}
           </div>
         </form>
       )}

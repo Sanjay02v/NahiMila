@@ -1,9 +1,10 @@
 import { z } from "zod";
 import type { Intent } from "./types";
+import { manualDay, withoutPhones } from "./capture-fields";
 import { identityKey } from "./canonical";
 const nullableText = z.string().max(120).nullable();
 export const intentSchema = z.object({
-  product: z.string().min(1).max(160),
+  product: z.string().trim().min(1).max(160),
   category: z.string().max(100),
   brand: nullableText,
   variant: nullableText,
@@ -19,6 +20,9 @@ export const intentSchema = z.object({
   missing: z.array(z.string().max(100)).max(12),
   evidence: z.record(z.string(), z.string().max(200)),
   source: z.enum(["gemini", "manual"]),
+  can_wait: z.boolean().nullable().optional(),
+  flexible_price: z.boolean().optional(),
+  no_rush: z.boolean().optional(),
 });
 export function parseIntent(value: unknown): Intent {
   const i = intentSchema.parse(value);
@@ -60,7 +64,7 @@ export function manualDraft(raw: string): Intent {
       ? "Millet Crunch"
       : coke
         ? "Coke Zero"
-        : raw.trim().slice(0, 160),
+        : withoutPhones(raw).slice(0, 160) || "",
     category: millet ? "Snacks" : coke ? "Soft drink" : "",
     brand: millet ? "Millet Crunch" : coke ? "Coca-Cola" : null,
     variant: millet
@@ -77,7 +81,7 @@ export function manualDraft(raw: string): Intent {
     packaging: coke && /bottle/.test(lower) ? "bottle" : null,
     quantity: qty ? Number(qty[1]) : null,
     budget_paise: price ? Math.round(Number(price[1]) * 100) : null,
-    deadline: null,
+    deadline: manualDay(raw),
     substitutions: false,
     hard_constraints: [],
     preferences: [],

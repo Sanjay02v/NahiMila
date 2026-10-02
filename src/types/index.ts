@@ -9,6 +9,7 @@ export type UnavailableReason =
 export type RequestStatus =
   | 'REQUEST_CAPTURED'
   | 'MISSED_DEMAND'
+  | 'WAITING_INTEREST'
   | 'OFFER_CREATED'
   | 'CUSTOMER_CONFIRMED'
   | 'DEMAND_MATCHED'

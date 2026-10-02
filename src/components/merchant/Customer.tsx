@@ -76,8 +76,7 @@ export default function Customer({ token }: { token: string }) {
                   {new Intl.DateTimeFormat(`${locale}-IN`, {
                     day: "numeric",
                     month: "long",
-                    hour: "numeric",
-                    minute: "2-digit",
+                    year: "numeric",
                     timeZone: "Asia/Kolkata",
                   }).format(new Date(data.deadline))}
                 </dd>

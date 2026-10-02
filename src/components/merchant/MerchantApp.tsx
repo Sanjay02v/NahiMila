@@ -706,7 +706,15 @@ export default function MerchantApp() {
                                         `${locale}-IN`,
                                         { style: "currency", currency: "INR" },
                                       ).format(p.price / 100),
-                                      deadline: date(p.deadline),
+                                      deadline: new Intl.DateTimeFormat(
+                                        `${locale}-IN`,
+                                        {
+                                          day: "numeric",
+                                          month: "short",
+                                          year: "numeric",
+                                          timeZone: "Asia/Kolkata",
+                                        },
+                                      ).format(new Date(p.deadline)),
                                       link: `${window.location.origin}/confirm/${p.token}`,
                                     })
                                   }

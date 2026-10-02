@@ -493,6 +493,7 @@ describe("In-store confirmations and revised customer terms", () => {
       source: "manual",
     },
     can_wait: true,
+    offer_price_paise: 5000,
     customer_phone: "9876543210",
     contact_consent: true,
   });
@@ -758,5 +759,116 @@ describe("Adding missing customer contact preserves reservation terms", () => {
         })
       ).status,
     ).toBe(400);
+  });
+});
+
+describe("Pending interest becomes an offer only after actual terms are set", () => {
+  it("keeps incomplete interest out of procurement, then prepares and confirms the same entry", async () => {
+    const baseIntent = {
+      product: "Coke Zero",
+      category: "Drinks",
+      brand: "Coca-Cola",
+      variant: "Zero",
+      size: null,
+      unit: null,
+      packaging: null,
+      quantity: 2,
+      budget_paise: null,
+      deadline: null,
+      substitutions: false,
+      hard_constraints: [],
+      preferences: [],
+      missing: [],
+      evidence: {},
+      source: "manual",
+    };
+    expect(
+      (
+        await post({
+          action: "create",
+          submission_key: crypto.randomUUID(),
+          raw_text: "Coke Zero, phone 9876543210, can wait",
+          intent: baseIntent,
+          can_wait: true,
+          customer_phone: "9876543210",
+          contact_consent: true,
+          offer_price_paise: null,
+        })
+      ).status,
+    ).toBe(200);
+    const r = network.state.requests.at(-1)!,
+      oldCount = network.state.requests.length;
+    expect(r.status).toBe("WAITING_INTEREST");
+    expect(
+      (
+        await customerPOST(
+          request({ action: "confirm" }),
+          context(r.request_token),
+        )
+      ).status,
+    ).toBe(404);
+    const deadline = new Date(Date.now() + 4 * 86400000).toISOString();
+    const b = {
+      action: "prepare_offer",
+      request_id: r.id,
+      token: r.request_token,
+      quantity: 2,
+      price_paise: 5000,
+      budget_paise: null,
+      deadline,
+      intent: { ...baseIntent, size: 500, unit: "ml" },
+      contact_consent: true,
+    };
+    as("m-gupta-002");
+    expect((await post(b)).status).toBe(404);
+    as("m-sharma-001");
+    expect((await post({ ...b, intent: baseIntent })).status).toBe(400);
+    expect((await post(b)).status).toBe(200);
+    const updated = network.state.requests.find((x) => x.id === r.id)!;
+    expect(network.state.requests).toHaveLength(oldCount);
+    expect(updated.status).toBe("OFFER_CREATED");
+    expect(network.state.reservations.some((x) => x.request_id === r.id)).toBe(
+      false,
+    );
+    expect(
+      (
+        await customerPOST(
+          request({ action: "confirm" }),
+          context(updated.request_token),
+        )
+      ).status,
+    ).toBe(200);
+    expect(
+      network.state.reservations.find((x) => x.request_id === r.id)
+        ?.confirmed_price_paise,
+    ).toBe(5000);
+  });
+  it("allows withdrawing incomplete interest without an active reservation", async () => {
+    const seed = network.state.requests.find(
+      (r) => r.merchant_id === "m-sharma-001",
+    )!;
+    await post({
+      action: "create",
+      submission_key: crypto.randomUUID(),
+      raw_text: "Millet Crunch, can wait",
+      intent: {
+        ...network.details[seed.id].intent,
+        budget_paise: null,
+        deadline: null,
+        size: null,
+        unit: null,
+      },
+      can_wait: true,
+      customer_phone: "9876543210",
+      contact_consent: true,
+    });
+    const r = network.state.requests.at(-1)!;
+    expect(r.status).toBe("WAITING_INTEREST");
+    expect((await post({ action: "cancel", request_id: r.id })).status).toBe(
+      200,
+    );
+    expect(network.state.requests.find((x) => x.id === r.id)?.status).toBe(
+      "CANCELLED",
+    );
   });
 });

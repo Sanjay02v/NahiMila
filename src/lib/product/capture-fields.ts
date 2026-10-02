@@ -1,0 +1,153 @@
+import type { Intent } from "./types";
+export function phoneNumber(value: unknown): string | null {
+  if (value === undefined || value === null || value === "") return null;
+  if (
+    typeof value !== "string" ||
+    value.length > 30 ||
+    !/^[+\d\s()-]+$/.test(value)
+  )
+    throw new Error("INVALID_PHONE");
+  let digits = value.replace(/\D/g, "");
+  if (digits.length === 10 && /^[6-9]/.test(digits)) digits = "91" + digits;
+  else if (
+    !value.trim().startsWith("+") &&
+    !(digits.length === 12 && digits.startsWith("91"))
+  )
+    throw new Error("INVALID_PHONE");
+  if (
+    !/^[1-9]\d{7,14}$/.test(digits) ||
+    (digits.startsWith("91") &&
+      (digits.length !== 12 || !/^91[6-9]/.test(digits)))
+  )
+    throw new Error("INVALID_PHONE");
+  return digits;
+}
+const phonePattern =
+  /(?<!\d)(?:\+?91[\s()-]*[6-9](?:[\s()-]*\d){9}|[6-9](?:[\s()-]*\d){9}|\+\d[\d ()-]{7,25}\d)(?!\d)/g;
+function phoneCandidates(raw: string) {
+  return [...raw.matchAll(phonePattern)].flatMap((match) => {
+    if (
+      /(?:₹|rs\.?|price|budget|under|quantity|qty)\s*[:=]?\s*$/i.test(
+        raw.slice(Math.max(0, match.index! - 25), match.index),
+      )
+    )
+      return [];
+    try {
+      const phone = phoneNumber(match[0].trim());
+      return phone ? [{ phone, text: match[0] }] : [];
+    } catch {
+      return [];
+    }
+  });
+}
+export function withoutPhones(raw: string): string {
+  let value = raw;
+  for (const candidate of phoneCandidates(raw))
+    value = value.replace(candidate.text, "");
+  return value.trim();
+}
+export function phoneFromText(raw: string): string | null {
+  const valid = new Set(phoneCandidates(raw).map((v) => v.phone));
+  return valid.size === 1 ? [...valid][0] : null;
+}
+export function dayFromDeadline(value: string | null): string {
+  return value && Number.isFinite(Date.parse(value))
+    ? new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(
+        new Date(value),
+      )
+    : "";
+}
+export function deadlineFromDay(day: string): string | null {
+  if (!day) return null;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) throw new Error("INVALID_DEADLINE");
+  const value = `${day}T23:59:59+05:30`;
+  if (!Number.isFinite(Date.parse(value)) || dayFromDeadline(value) !== day)
+    throw new Error("INVALID_DEADLINE");
+  return new Date(value).toISOString();
+}
+export function detailsText(i: Intent): string {
+  return [
+    i.variant,
+    i.size && i.unit ? `${i.size}${i.unit}` : null,
+    i.packaging,
+  ]
+    .filter(Boolean)
+    .join(", ");
+}
+export function withDetails(i: Intent, value: string): Intent {
+  const match = value.match(
+    /(\d+(?:\.\d+)?)\s*(kg\b|grams?\b|g\b|ml\b|litres?\b|liters?\b|l\b|pieces?\b)/i,
+  );
+  let size: number | null = match ? Number(match[1]) : null;
+  let unit: Intent["unit"] = match
+    ? /kg|gram|^g$/i.test(match[2])
+      ? "g"
+      : /piece/i.test(match[2])
+        ? "piece"
+        : "ml"
+    : null;
+  if (match && /kg|lit|^l$/i.test(match[2])) size = size! * 1000;
+  const half = /half[ -]?lit(?:re|er)/i;
+  if (half.test(value)) {
+    size = 500;
+    unit = "ml";
+  }
+  const packaging =
+    value.match(/\b(bottle|can|pouch|packet|pack)\b/i)?.[1].toLowerCase() ||
+    null;
+  const variant = value
+    .replace(match?.[0] || /$^/, "")
+    .replace(half, "")
+    .replace(/\b(bottle|can|pouch|packet|pack)\b/gi, "")
+    .replace(/^[\s,;·-]+|[\s,;·-]+$/g, "")
+    .replace(/\s*[,;·]\s*/g, " ")
+    .trim();
+  return { ...i, variant: variant || null, size, unit, packaging };
+}
+export function captureHints(raw: string, i?: Intent) {
+  const unable =
+    /(?:can(?:not|'t|’t)|won(?:'t|’t)|not willing to|unable to)\s+wait|नहीं.*इंतज़ार|इंतज़ार.*नहीं|ಕಾಯಲು ಸಾಧ್ಯವಿಲ್ಲ/i.test(
+      raw,
+    );
+  const willing =
+    /(?:willing to|can|will|happy to)\s+wait|(?:customer|he|she).*\bwaits?\b|इंतज़ार.*(?:कर|तैयार)|करेगा|ಕಾಯಲು ಸಿದ್ಧ|ಕಾಯುತ್ತಾರೆ/i.test(
+      raw,
+    );
+  const flexible =
+    /flexible (?:on|with) price|any price|no (?:price|budget) limit|कोई भी कीमत|ಬೆಲೆ.*ಪರವಾಗಿಲ್ಲ/i.test(
+      raw,
+    );
+  const noRush =
+    /no rush|no deadline|any (?:amount of )?time|कभी भी|समय की जल्दी नहीं|ತುರ್ತು ಇಲ್ಲ/i.test(
+      raw,
+    );
+  const grounded = (field: string) =>
+    !!i?.evidence[field] && raw.includes(i.evidence[field]);
+  return {
+    phone: phoneFromText(raw),
+    can_wait: unable
+      ? false
+      : willing || noRush
+        ? true
+        : grounded("can_wait")
+          ? (i?.can_wait ?? null)
+          : null,
+    flexible_price:
+      flexible || (!!i?.flexible_price && grounded("flexible_price")),
+    no_rush: noRush || (!!i?.no_rush && grounded("no_rush")),
+  };
+}
+export function manualDay(raw: string): string | null {
+  const iso = raw.match(/\b(\d{4}-\d{2}-\d{2})\b/);
+  const local = raw.match(/\b(\d{1,2})[/-](\d{1,2})[/-](\d{4})\b/);
+  const day =
+    iso?.[1] ||
+    (local
+      ? `${local[3]}-${local[2].padStart(2, "0")}-${local[1].padStart(2, "0")}`
+      : "");
+  try {
+    return deadlineFromDay(day);
+  } catch {
+    return null;
+  }
+}

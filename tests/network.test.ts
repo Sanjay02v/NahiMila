@@ -84,22 +84,24 @@ describe("Private demand and reviewed identities", () => {
       can_wait: true,
       customer_phone: "9876543210",
       contact_consent: true,
+      offer_price_paise: 5000,
     });
     expect(
       n.state.offers.find((o) => o.request_id === r.id)?.pickup_deadline,
     ).toBe(deadline);
   });
-  it("does not mistake observed demand for permission to spend", () => {
-    expect(() =>
-      saveRequest(n, sharma, {
-        submission_key: crypto.randomUUID(),
-        raw_text: "charger",
-        intent: manualDraft("charger"),
-        can_wait: true,
-        customer_phone: "9876543210",
-        contact_consent: true,
-      }),
-    ).toThrow("OFFER_DETAILS_REQUIRED");
+  it("incomplete waiting details save as pending interest, not permission to spend", () => {
+    const r = saveRequest(n, sharma, {
+      submission_key: crypto.randomUUID(),
+      raw_text: "charger",
+      intent: manualDraft("charger"),
+      can_wait: true,
+      customer_phone: "9876543210",
+      contact_consent: true,
+    });
+    expect(r.status).toBe("WAITING_INTEREST");
+    expect(n.state.offers.some((o) => o.request_id === r.id)).toBe(false);
+    expect(storeFor(n).evaluateQuote("quote-b").total_demand_units).toBe(23);
   });
   it("canonical reviewed aliases match, while pack, brand and hard constraints separate products", () => {
     const a = manualDraft("Coke Zero half litre bottle under 50"),

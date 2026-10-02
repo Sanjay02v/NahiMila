@@ -19,6 +19,7 @@ const entry = (extra: Record<string, unknown> = {}) => ({
     deadline: new Date(Date.now() + 3 * 86400000).toISOString(),
   },
   can_wait: true,
+  offer_price_paise: 5000,
   ...extra,
 });
 describe("Demand Book reservation boundaries", () => {

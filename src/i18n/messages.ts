@@ -1,4 +1,33 @@
 export const en = {
+  variantDetails: "Variant / details · optional",
+  variantExample: "e.g. Masala, 100g pouch",
+  preferredBudget: "Preferred budget per unit (₹) · optional",
+  flexiblePrice: "Flexible on price",
+  extraPreferences: "More preferences · optional",
+  customerPhoneOptional: "Customer phone · optional",
+  contactUseNote:
+    "Use this number only for this reservation and pickup updates.",
+  exactPriceOptional: "Actual offered price per unit (₹) · optional",
+  dateOptional: "Preferred date · optional",
+  noRush: "No rush",
+  priceUnspecified: "Price not specified",
+  dateUnspecified: "Date not specified",
+  pendingInterest: "Waiting · terms not confirmed",
+  pendingInterestHint:
+    "Save now as pending interest. Prepare the actual product, price and pickup date later; this won’t count toward an order yet.",
+  offerChoiceHint:
+    "Save for confirmation by link, or record acceptance of these terms in-store.",
+  prepareOffer: "Prepare customer offer",
+  prepareOfferHint:
+    "Set the actual terms now. The customer will confirm before these units can support a shared order.",
+  offerReviewFailure:
+    "Couldn’t save. Check the actual price, future pickup date, valid phone and exact product details such as 500ml bottle or 1 piece.",
+  offerPickupDate: "Pickup date for this offer",
+  offerSpecHint:
+    "For ordering, specify the exact item in Variant / details, such as 500ml bottle or 1 piece.",
+  confirmTermsHint:
+    "Select below only if the customer accepted the displayed terms in-store.",
+
   customerPhoneRequired: "Customer phone number",
   addCustomerNumber: "Add customer number",
   saveCustomerNumber: "Save customer number",
@@ -57,11 +86,11 @@ export const en = {
   shareWhatsApp: "Send on WhatsApp",
   notifyWhatsApp: "Notify on WhatsApp",
   confirmationMessage:
-    "{shop}: Please confirm {quantity} × {product} ({pack}) at {price} per unit, pickup by {deadline}. Supply depends on a viable shared order; no payment has been taken. {link}",
+    "{shop}\nPlease confirm: {quantity} × {product} ({pack}), {price} each.\nPickup by {deadline}, if stock is arranged.\n{link}",
   reservationMessage:
-    "{shop}: Your reservation is confirmed: {quantity} × {product} ({pack}) at {price} per unit, pickup by {deadline}. No further confirmation is needed. Supply depends on a viable shared order; this is not an arrival notice. Details: {link}",
+    "{shop}\nReserved: {quantity} × {product} ({pack}), {price} each.\nPickup by {deadline}, subject to stock. We’ll message when it arrives.\nDetails: {link}",
   pickupMessage:
-    "{shop}: Your {quantity} × {product} ({pack}) has arrived. Price: {price} per unit. Please collect by {deadline}. Reservation details: {link}",
+    "{shop}\nYour {quantity} × {product} ({pack}) has arrived. {price} each.\nPlease collect by {deadline}.\n{link}",
   reviseTerms: "Change reservation terms",
   reconfirmHint:
     "Saving replaces the old link and removes any previous confirmation. The customer must accept the new terms before this can support an order.",
@@ -148,7 +177,7 @@ export const en = {
   substitutions: "Customer accepts substitutes",
   wait: "Customer is willing to wait",
   waitHint: "If they won’t wait, the request still goes into your demand book.",
-  customerName: "Customer nickname · optional",
+  customerName: "Customer name · optional",
   offerHint:
     "An exact pack, price and deadline are needed for a customer offer. A reservation is not a payment.",
   save: "Save request",
@@ -419,6 +448,35 @@ export const en = {
 type Messages = typeof en;
 export const hi: Messages = {
   ...en,
+  variantDetails: "प्रकार / विवरण · वैकल्पिक",
+  variantExample: "जैसे मसाला, 100g पाउच",
+  preferredBudget: "प्रति इकाई पसंदीदा बजट (₹) · वैकल्पिक",
+  flexiblePrice: "कीमत को लेकर लचीला",
+  extraPreferences: "अन्य पसंद · वैकल्पिक",
+  customerPhoneOptional: "ग्राहक का फ़ोन · वैकल्पिक",
+  contactUseNote:
+    "इस नंबर का उपयोग केवल इस आरक्षण और पिकअप की जानकारी के लिए करें।",
+  exactPriceOptional: "प्रति इकाई वास्तविक प्रस्तावित कीमत (₹) · वैकल्पिक",
+  dateOptional: "पसंदीदा तारीख · वैकल्पिक",
+  noRush: "कोई जल्दी नहीं",
+  priceUnspecified: "कीमत नहीं बताई गई",
+  dateUnspecified: "तारीख नहीं बताई गई",
+  pendingInterest: "इंतज़ार · शर्तें पुष्ट नहीं",
+  pendingInterestHint:
+    "अभी रुचि दर्ज करें। वास्तविक उत्पाद, कीमत और पिकअप तारीख बाद में तय करें; अभी यह ऑर्डर में नहीं गिना जाएगा।",
+  offerChoiceHint:
+    "लिंक से पुष्टि के लिए सहेजें, या दुकान में इन शर्तों की स्वीकृति दर्ज करें।",
+  prepareOffer: "ग्राहक का प्रस्ताव तैयार करें",
+  prepareOfferHint:
+    "अब वास्तविक शर्तें तय करें। साझा ऑर्डर में गिनने से पहले ग्राहक पुष्टि करेगा।",
+  offerReviewFailure:
+    "सहेजा नहीं गया। वास्तविक कीमत, आगे की पिकअप तारीख, सही फ़ोन और सटीक विवरण जैसे 500ml बोतल या 1 पीस जाँचें।",
+  offerPickupDate: "इस प्रस्ताव की पिकअप तारीख",
+  offerSpecHint:
+    "ऑर्डर के लिए प्रकार / विवरण में सटीक वस्तु लिखें, जैसे 500ml बोतल या 1 पीस।",
+  confirmTermsHint:
+    "नीचे तभी चुनें जब ग्राहक ने दुकान में दिखाई गई शर्तें स्वीकार की हों।",
+
   customerPhoneRequired: "ग्राहक का फ़ोन नंबर",
   addCustomerNumber: "ग्राहक का नंबर जोड़ें",
   saveCustomerNumber: "ग्राहक का नंबर सहेजें",
@@ -474,11 +532,11 @@ export const hi: Messages = {
   shareWhatsApp: "WhatsApp पर भेजें",
   notifyWhatsApp: "WhatsApp पर सूचना दें",
   confirmationMessage:
-    "{shop}: कृपया {quantity} × {product} ({pack}), प्रति इकाई {price}, पिकअप {deadline} तक, की पुष्टि करें। आपूर्ति साझा ऑर्डर संभव होने पर निर्भर है; भुगतान नहीं लिया गया है। {link}",
+    "{shop}\nकृपया पुष्टि करें: {quantity} × {product} ({pack}), प्रति इकाई {price}।\nस्टॉक आने पर {deadline} तक पिकअप।\n{link}",
   reservationMessage:
-    "{shop}: आपका आरक्षण पुष्ट है: {quantity} × {product} ({pack}), प्रति इकाई {price}, पिकअप {deadline} तक। फिर पुष्टि की ज़रूरत नहीं। आपूर्ति साझा ऑर्डर संभव होने पर निर्भर है; यह सामान आने की सूचना नहीं है। विवरण: {link}",
+    "{shop}\nआरक्षित: {quantity} × {product} ({pack}), प्रति इकाई {price}।\nस्टॉक आने पर {deadline} तक पिकअप। आने पर सूचना देंगे।\nविवरण: {link}",
   pickupMessage:
-    "{shop}: आपका {quantity} × {product} ({pack}) आ गया है। प्रति इकाई कीमत {price}। कृपया {deadline} तक ले जाएँ। आरक्षण विवरण: {link}",
+    "{shop}\nआपका {quantity} × {product} ({pack}) आ गया है। प्रति इकाई {price}।\nकृपया {deadline} तक ले जाएँ।\n{link}",
   reviseTerms: "आरक्षण की शर्तें बदलें",
   reconfirmHint:
     "सहेजने पर पुराना लिंक और पिछली पुष्टि अमान्य होंगे। ऑर्डर में गिनने से पहले ग्राहक को नई शर्तें स्वीकार करनी होंगी।",
@@ -810,6 +868,35 @@ export const hi: Messages = {
 };
 export const kn: Messages = {
   ...en,
+  variantDetails: "ವಿಧ / ವಿವರಗಳು · ಐಚ್ಛಿಕ",
+  variantExample: "ಉದಾ. ಮಸಾಲಾ, 100g ಪೌಚ್",
+  preferredBudget: "ಪ್ರತಿ ಘಟಕದ ಬಜೆಟ್ (₹) · ಐಚ್ಛಿಕ",
+  flexiblePrice: "ಬೆಲೆಯಲ್ಲಿ ಹೊಂದಿಕೊಳ್ಳಬಹುದು",
+  extraPreferences: "ಹೆಚ್ಚಿನ ಆದ್ಯತೆಗಳು · ಐಚ್ಛಿಕ",
+  customerPhoneOptional: "ಗ್ರಾಹಕರ ಫೋನ್ · ಐಚ್ಛಿಕ",
+  contactUseNote:
+    "ಈ ಸಂಖ್ಯೆಯನ್ನು ಈ ಕಾಯ್ದಿರಿಸುವಿಕೆ ಮತ್ತು ಪಡೆಯುವ ಮಾಹಿತಿ ನೀಡಲು ಮಾತ್ರ ಬಳಸಿ.",
+  exactPriceOptional: "ನಿಜವಾದ ಪ್ರತಿ ಘಟಕದ ಬೆಲೆ (₹) · ಐಚ್ಛಿಕ",
+  dateOptional: "ಆದ್ಯತೆಯ ದಿನಾಂಕ · ಐಚ್ಛಿಕ",
+  noRush: "ತುರ್ತು ಇಲ್ಲ",
+  priceUnspecified: "ಬೆಲೆ ತಿಳಿಸಿಲ್ಲ",
+  dateUnspecified: "ದಿನಾಂಕ ತಿಳಿಸಿಲ್ಲ",
+  pendingInterest: "ಕಾಯುತ್ತಿದ್ದಾರೆ · ಷರತ್ತು ದೃಢಪಟ್ಟಿಲ್ಲ",
+  pendingInterestHint:
+    "ಈಗ ಆಸಕ್ತಿಯನ್ನು ಉಳಿಸಿ. ನಿಜವಾದ ಉತ್ಪನ್ನ, ಬೆಲೆ ಮತ್ತು ಪಡೆಯುವ ದಿನಾಂಕವನ್ನು ನಂತರ ಸಿದ್ಧಪಡಿಸಿ; ಇದು ಇನ್ನೂ ಆರ್ಡರ್‌ಗೆ ಸೇರುವುದಿಲ್ಲ.",
+  offerChoiceHint:
+    "ಲಿಂಕ್ ದೃಢೀಕರಣಕ್ಕೆ ಉಳಿಸಿ, ಅಥವಾ ಅಂಗಡಿಯಲ್ಲಿ ಈ ಷರತ್ತುಗಳಿಗೆ ಒಪ್ಪಿಗೆ ದಾಖಲಿಸಿ.",
+  prepareOffer: "ಗ್ರಾಹಕರ ಪ್ರಸ್ತಾವ ಸಿದ್ಧಪಡಿಸಿ",
+  prepareOfferHint:
+    "ಈಗ ನಿಜವಾದ ಷರತ್ತುಗಳನ್ನು ಸಿದ್ಧಪಡಿಸಿ. ಹಂಚಿಕೆ ಆರ್ಡರ್‌ಗೆ ಸೇರುವ ಮೊದಲು ಗ್ರಾಹಕರು ದೃಢಪಡಿಸುತ್ತಾರೆ.",
+  offerReviewFailure:
+    "ಉಳಿಸಲಾಗಲಿಲ್ಲ. ನಿಜವಾದ ಬೆಲೆ, ಮುಂದಿನ ಪಡೆಯುವ ದಿನಾಂಕ, ಸರಿಯಾದ ಫೋನ್ ಮತ್ತು 500ml ಬಾಟಲಿ ಅಥವಾ 1 piece ಮುಂತಾದ ನಿಖರ ವಿವರ ಪರಿಶೀಲಿಸಿ.",
+  offerPickupDate: "ಈ ಪ್ರಸ್ತಾವದ ಪಡೆಯುವ ದಿನಾಂಕ",
+  offerSpecHint:
+    "ಆರ್ಡರ್‌ಗಾಗಿ ವಿಧ / ವಿವರಗಳಲ್ಲಿ 500ml ಬಾಟಲಿ ಅಥವಾ 1 piece ಮುಂತಾದ ನಿಖರ ವಸ್ತು ಬರೆಯಿರಿ.",
+  confirmTermsHint:
+    "ಅಂಗಡಿಯಲ್ಲಿ ಗ್ರಾಹಕರು ತೋರಿಸಿದ ಷರತ್ತುಗಳನ್ನು ಒಪ್ಪಿದ್ದರೆ ಮಾತ್ರ ಕೆಳಗೆ ಆಯ್ಕೆಮಾಡಿ.",
+
   customerPhoneRequired: "ಗ್ರಾಹಕರ ಫೋನ್ ಸಂಖ್ಯೆ",
   addCustomerNumber: "ಗ್ರಾಹಕರ ಸಂಖ್ಯೆ ಸೇರಿಸಿ",
   saveCustomerNumber: "ಗ್ರಾಹಕರ ಸಂಖ್ಯೆ ಉಳಿಸಿ",
@@ -867,11 +954,11 @@ export const kn: Messages = {
   shareWhatsApp: "WhatsApp ನಲ್ಲಿ ಕಳುಹಿಸಿ",
   notifyWhatsApp: "WhatsApp ಮೂಲಕ ತಿಳಿಸಿ",
   confirmationMessage:
-    "{shop}: {quantity} × {product} ({pack}), ಪ್ರತಿ ಘಟಕ {price}, {deadline} ಒಳಗೆ ಪಡೆಯಲು ದಯವಿಟ್ಟು ದೃಢಪಡಿಸಿ. ಪೂರೈಕೆ ಸಾಧ್ಯವಾದ ಹಂಚಿಕೆ ಆರ್ಡರ್ ಅವಲಂಬಿತ; ಪಾವತಿ ಪಡೆದಿಲ್ಲ. {link}",
+    "{shop}\nದಯವಿಟ್ಟು ದೃಢಪಡಿಸಿ: {quantity} × {product} ({pack}), ಪ್ರತಿ ಘಟಕ {price}.\nಸ್ಟಾಕ್ ಬಂದರೆ {deadline} ಒಳಗೆ ಪಡೆಯಿರಿ.\n{link}",
   reservationMessage:
-    "{shop}: ನಿಮ್ಮ ಕಾಯ್ದಿರಿಸುವಿಕೆ ದೃಢಪಟ್ಟಿದೆ: {quantity} × {product} ({pack}), ಪ್ರತಿ ಘಟಕ {price}, {deadline} ಒಳಗೆ ಪಡೆಯಿರಿ. ಮತ್ತೆ ದೃಢೀಕರಣ ಅಗತ್ಯವಿಲ್ಲ. ಪೂರೈಕೆ ಹಂಚಿಕೆ ಆರ್ಡರ್ ಅವಲಂಬಿತ; ಇದು ಆಗಮನದ ಸೂಚನೆಯಲ್ಲ. ವಿವರಗಳು: {link}",
+    "{shop}\nಕಾಯ್ದಿರಿಸಲಾಗಿದೆ: {quantity} × {product} ({pack}), ಪ್ರತಿ ಘಟಕ {price}.\nಸ್ಟಾಕ್ ಬಂದರೆ {deadline} ಒಳಗೆ ಪಡೆಯಿರಿ. ಬಂದಾಗ ತಿಳಿಸುತ್ತೇವೆ.\nವಿವರಗಳು: {link}",
   pickupMessage:
-    "{shop}: ನಿಮ್ಮ {quantity} × {product} ({pack}) ಬಂದಿದೆ. ಪ್ರತಿ ಘಟಕದ ಬೆಲೆ {price}. ದಯವಿಟ್ಟು {deadline} ಒಳಗೆ ಪಡೆಯಿರಿ. ಕಾಯ್ದಿರಿಸುವಿಕೆ ವಿವರಗಳು: {link}",
+    "{shop}\nನಿಮ್ಮ {quantity} × {product} ({pack}) ಬಂದಿದೆ. ಪ್ರತಿ ಘಟಕ {price}.\nದಯವಿಟ್ಟು {deadline} ಒಳಗೆ ಪಡೆಯಿರಿ.\n{link}",
   reviseTerms: "ಕಾಯ್ದಿರಿಸುವಿಕೆಯ ಷರತ್ತು ಬದಲಿಸಿ",
   reconfirmHint:
     "ಉಳಿಸಿದಾಗ ಹಳೆಯ ಲಿಂಕ್ ಮತ್ತು ಹಿಂದಿನ ದೃಢೀಕರಣ ಅಮಾನ್ಯವಾಗುತ್ತವೆ. ಆರ್ಡರ್‌ಗೆ ಸೇರುವ ಮೊದಲು ಗ್ರಾಹಕರು ಹೊಸ ಷರತ್ತು ಒಪ್ಪಬೇಕು.",

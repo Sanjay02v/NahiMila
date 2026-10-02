@@ -26,6 +26,9 @@ export interface Intent {
   missing: string[];
   evidence: Record<string, string>;
   source: "gemini" | "manual";
+  can_wait?: boolean | null;
+  flexible_price?: boolean;
+  no_rush?: boolean;
 }
 export interface Shop extends Merchant {
   user_id: string;
@@ -41,6 +44,8 @@ export interface RequestDetail {
   revision: number;
   submission_key: string;
   willing_to_wait?: boolean;
+  flexible_price?: boolean;
+  no_rush?: boolean;
   contact_consent?: boolean;
   confirmation?: { method: "link" | "in_store"; at: string } | null;
 }

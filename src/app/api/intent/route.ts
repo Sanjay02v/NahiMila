@@ -21,7 +21,7 @@ export async function POST(req: Request) {
         action: "NORMALIZATION_REVIEW_REQUIRED",
         payload: {
           actor: shop.user_id,
-          schema_version: 1,
+          schema_version: 2,
           source: intent.source,
           model:
             intent.source === "gemini"

@@ -165,6 +165,7 @@ describe("Shared reviewed product identities", () => {
         can_wait: true,
         customer_phone: "9876543210",
         contact_consent: true,
+        offer_price_paise: 5000,
       }),
     );
     expect(new Set(saved.map((r) => r.product_id)).size).toBe(1);

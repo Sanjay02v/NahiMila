@@ -1,4 +1,5 @@
 "use client";
+import ReservationTerms from "./ReservationTerms";
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import {
@@ -18,6 +19,7 @@ import {
 import { Modal, Money, OfferActions } from "./common";
 const statusKeys: Record<string, string> = {
   MISSED_DEMAND: "demandOnly",
+  WAITING_INTEREST: "pendingInterest",
   OFFER_CREATED: "filter_pending",
   CUSTOMER_CONFIRMED: "confirmed",
   CANCELLED: "withdrawn",
@@ -67,10 +69,13 @@ export default function DemandBook({
       style: "currency",
       currency: "INR",
     }).format(value / 100);
-  const localDate = (value: string) =>
-    new Date(Date.parse(value) - new Date(value).getTimezoneOffset() * 60000)
-      .toISOString()
-      .slice(0, 16);
+  const calendarDate = (value: string) =>
+    new Intl.DateTimeFormat(`${locale}-IN`, {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      timeZone: "Asia/Kolkata",
+    }).format(new Date(value));
   return (
     <>
       <div className="page-heading">
@@ -204,7 +209,7 @@ export default function DemandBook({
                             <Money value={r.offer.price} />
                           </span>
                           <span>
-                            {t("pickupBy")}: {date(r.offer.deadline)}
+                            {t("pickupBy")}: {calendarDate(r.offer.deadline)}
                           </span>
                           {r.customer_phone && (
                             <span>
@@ -249,12 +254,63 @@ export default function DemandBook({
                                 pack: pack(r.product.pack_size),
                                 quantity: r.quantity,
                                 price: price(r.offer!.price),
-                                deadline: date(r.offer!.deadline),
+                                deadline: calendarDate(r.offer!.deadline),
                                 link,
                               },
                             )
                           }
                         />
+                      )}
+                      {state === "WAITING_INTEREST" && (
+                        <>
+                          <p className="fine">{t("pendingInterestHint")}</p>
+                          <div className="demand-terms">
+                            <span>
+                              {t("preferredBudget")}:{" "}
+                              {r.detail?.flexible_price ? (
+                                t("flexiblePrice")
+                              ) : r.detail?.intent.budget_paise ? (
+                                <Money value={r.detail.intent.budget_paise} />
+                              ) : (
+                                t("priceUnspecified")
+                              )}
+                            </span>
+                            <span>
+                              {t("dateOptional")}:{" "}
+                              {r.detail?.no_rush
+                                ? t("noRush")
+                                : r.detail?.intent.deadline
+                                  ? calendarDate(r.detail.intent.deadline)
+                                  : t("dateUnspecified")}
+                            </span>
+                            {r.customer_phone && (
+                              <span>
+                                {t("contact")}: +{r.customer_phone}
+                              </span>
+                            )}
+                          </div>
+                          <div className="demand-entry-actions">
+                            <button
+                              className="button secondary small"
+                              disabled={busy}
+                              onClick={() => {
+                                setModalError(false);
+                                setRevise(r);
+                              }}
+                            >
+                              {t("prepareOffer")}
+                            </button>
+                            <button
+                              className="text-button small"
+                              disabled={busy}
+                              onClick={() =>
+                                mutate({ action: "cancel", request_id: r.id })
+                              }
+                            >
+                              {t("withdraw")}
+                            </button>
+                          </div>
+                        </>
                       )}
                       {r.offer &&
                         ["OFFER_CREATED", "CUSTOMER_CONFIRMED"].includes(
@@ -326,7 +382,7 @@ export default function DemandBook({
                   request_id: contact.id,
                   token: contact.request_token,
                   customer_phone: f.get("phone"),
-                  contact_consent: f.get("consent") === "on",
+                  contact_consent: true,
                 })
               )
                 setContact(null);
@@ -358,10 +414,7 @@ export default function DemandBook({
                 required
               />
             </label>
-            <label className="check">
-              <input name="consent" type="checkbox" required />
-              {t("contactConsent")}
-            </label>
+            <p className="fine">{t("contactUseNote")}</p>
             <p className="fine">{t("whatsAppSendHint")}</p>
             <button className="button full" disabled={busy}>
               {t("saveCustomerNumber")}
@@ -400,12 +453,9 @@ export default function DemandBook({
               {confirm.quantity} × <Money value={confirm.offer.price} />
             </p>
             <p>
-              {t("pickupBy")}: {date(confirm.offer.deadline)}
+              {t("pickupBy")}: {calendarDate(confirm.offer.deadline)}
             </p>
-            <label className="check">
-              <input type="checkbox" required />
-              {t("termsAccepted")}
-            </label>
+            <p className="fine">{t("confirmTermsHint")}</p>
             <p className="fine">{t("reservationRisk")}</p>
             <button className="button full" disabled={busy}>
               {t("confirmInStoreAction")}
@@ -413,103 +463,13 @@ export default function DemandBook({
           </form>
         </Modal>
       )}
-      {revise?.offer && (
-        <Modal title={t("reviseTerms")} close={() => setRevise(null)}>
-          <form
-            onSubmit={async (e) => {
-              e.preventDefault();
-              const f = new FormData(e.currentTarget);
-              if (
-                await mutate({
-                  action: "revise_offer",
-                  request_id: revise.id,
-                  token: revise.request_token,
-                  quantity: Number(f.get("quantity")),
-                  price_paise: Math.round(Number(f.get("price")) * 100),
-                  budget_paise: Math.round(Number(f.get("budget")) * 100),
-                  deadline: new Date(String(f.get("deadline"))).toISOString(),
-                  customer_phone: f.get("phone"),
-                  contact_consent: f.get("consent") === "on",
-                })
-              )
-                setRevise(null);
-              else setModalError(true);
-            }}
-          >
-            {modalError && (
-              <p className="error" role="alert">
-                {t("reviewFailure")}
-              </p>
-            )}
-            <p className="note">{t("reconfirmHint")}</p>
-            <h3>
-              {revise.product.name} · {pack(revise.product.pack_size)}
-            </h3>
-            <div className="form-grid">
-              <label>
-                {t("quantity")}
-                <input
-                  name="quantity"
-                  type="number"
-                  min="1"
-                  max="100"
-                  defaultValue={revise.quantity}
-                  required
-                />
-              </label>
-              <label>
-                {t("offerPrice")}
-                <input
-                  name="price"
-                  type="number"
-                  min="0.01"
-                  step="0.01"
-                  defaultValue={revise.offer.price / 100}
-                  required
-                />
-              </label>
-              <label>
-                {t("budget")}
-                <input
-                  name="budget"
-                  type="number"
-                  min="0.01"
-                  step="0.01"
-                  defaultValue={revise.max_retail_price_paise / 100}
-                  required
-                />
-              </label>
-              <label>
-                {t("deadline")}
-                <input
-                  name="deadline"
-                  type="datetime-local"
-                  defaultValue={localDate(revise.offer.deadline)}
-                  required
-                />
-              </label>
-            </div>
-            <label>
-              {t("customerPhone")}
-              <input
-                name="phone"
-                type="tel"
-                defaultValue={
-                  revise.customer_phone ? `+${revise.customer_phone}` : ""
-                }
-                maxLength={30}
-                required
-              />
-            </label>
-            <label className="check">
-              <input name="consent" type="checkbox" required />
-              {t("contactConsent")}
-            </label>
-            <button className="button full" disabled={busy}>
-              {t("saveNewTerms")}
-            </button>
-          </form>
-        </Modal>
+      {revise && (
+        <ReservationTerms
+          request={revise}
+          close={() => setRevise(null)}
+          busy={busy}
+          mutate={mutate}
+        />
       )}
     </>
   );
