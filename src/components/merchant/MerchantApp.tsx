@@ -38,6 +38,10 @@ export default function MerchantApp() {
     [access, setAccess] = useState<"login" | "onboard" | null>(null),
     [view, setView] = useState<View>("home"),
     [capture, setCapture] = useState(false),
+    [captureDraft, setCaptureDraft] = useState<{
+      raw: string;
+      can_wait: boolean | null;
+    } | null>(null),
     [quote, setQuote] = useState(false),
     [editQuote, setEditQuote] = useState<QuoteView | null>(null),
     [agent, setAgent] = useState(false),
@@ -920,7 +924,12 @@ export default function MerchantApp() {
       {capture && (
         <Capture
           voice={data.voice}
-          close={() => setCapture(false)}
+          initial={captureDraft?.raw || ""}
+          initialWait={captureDraft?.can_wait === true}
+          close={() => {
+            setCapture(false);
+            setCaptureDraft(null);
+          }}
           saved={mutate}
         />
       )}{" "}
@@ -937,6 +946,15 @@ export default function MerchantApp() {
           configured={data.gemini}
           voice={data.voice}
           close={() => setAgent(false)}
+          onDraft={(draft) => {
+            setCaptureDraft(draft);
+            setAgent(false);
+            setCapture(true);
+          }}
+          navigate={(screen) => {
+            navigate(screen);
+            setAgent(false);
+          }}
         />
       )}{" "}
       {approval?.own && (

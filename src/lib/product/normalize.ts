@@ -1,3 +1,4 @@
+import { geminiFetch } from "./gemini";
 // This module is imported only by the authenticated server route.
 import { z } from "zod";
 import type { Intent } from "./types";
@@ -5,8 +6,8 @@ import { intentSchema, manualDraft, parseIntent } from "./intent";
 export async function normalize(raw: string, locale: string): Promise<Intent> {
   if (!process.env.GEMINI_API_KEY) return manualDraft(raw);
   const schema = z.toJSONSchema(intentSchema);
-  const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
-  const response = await fetch(
+  const model = process.env.GEMINI_MODEL || "gemini-3.5-flash";
+  const response = await geminiFetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
     {
       method: "POST",

@@ -51,7 +51,9 @@ export function manualDraft(raw: string): Intent {
   }
   const millet = /millet.*crunch|crunch.*millet/.test(lower),
     coke = /coke\s*zero|zero\s*coke/.test(lower);
-  const qty = lower.match(/(\d+)\s*(packets?|packs?|bottles?|units?)\b/),
+  const qty =
+      lower.match(/(?:quantity|qty)\s*[:=]?\s*(\d+)\b/) ||
+      lower.match(/(\d+)\s*(packets?|packs?|bottles?|units?)\b/),
     price = lower.match(/(?:under|budget|₹|rs\.?|below)\s*(\d+(?:\.\d{1,2})?)/);
   return {
     product: millet

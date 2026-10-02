@@ -29,10 +29,12 @@ export function Modal({
   title,
   children,
   close,
+  className = "",
 }: {
   title: string;
   children: React.ReactNode;
   close: () => void;
+  className?: string;
 }) {
   const t = useTranslations(),
     ref = useRef<HTMLDivElement>(null),
@@ -79,7 +81,7 @@ export function Modal({
       }}
     >
       <section
-        className="modal"
+        className={`modal ${className}`}
         role="dialog"
         aria-modal="true"
         aria-label={title}

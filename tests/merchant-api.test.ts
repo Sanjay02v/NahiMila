@@ -39,6 +39,10 @@ import {
 } from "../src/app/api/customer/[token]/route";
 import { POST as agentPOST } from "../src/app/api/agent/route";
 import { POST as voicePOST } from "../src/app/api/voice/transcribe/route";
+import {
+  POST as livePOST,
+  PUT as livePUT,
+} from "../src/app/api/voice/live/route";
 const as = (id: string) =>
   (user = network.shops.find((s) => s.id === id)!.user_id);
 const request = (b: unknown) =>
@@ -66,6 +70,10 @@ describe("Server-enforced account boundaries", () => {
     expect((await GET()).status).toBe(401);
     expect((await post({ action: "settings", cap_paise: 1 })).status).toBe(401);
     expect((await voicePOST(request({}))).status).toBe(401);
+    expect((await livePOST(request({}))).status).toBe(401);
+    expect(
+      (await livePUT(request({ session: "forged", action: "end" }))).status,
+    ).toBe(401);
   });
   it("returns a private snapshot and rejects a client-supplied shop identity", async () => {
     const v = await (await GET()).json();
@@ -172,11 +180,21 @@ describe("Server-enforced account boundaries", () => {
     expect((await agentPOST(request({ tool: "approve" }))).status).toBe(403);
     vi.unstubAllEnvs();
   });
-  it("routes Gemini questions through the REST JSON format and rejects denied actions", async () => {
+  it("grounds conversational replies in own records and explains denied actions", async () => {
     vi.stubEnv("GEMINI_API_KEY", "test-key");
     const fetch = vi.fn().mockResolvedValue(
       Response.json({
-        candidates: [{ content: { parts: [{ text: '{"tool":"requests"}' }] } }],
+        candidates: [
+          {
+            content: {
+              parts: [
+                {
+                  text: '{"tool":"requests","answer":"Your shop has eight requests.","draft_text":null,"can_wait":null}',
+                },
+              ],
+            },
+          },
+        ],
       }),
     );
     vi.stubGlobal("fetch", fetch);
@@ -192,13 +210,126 @@ describe("Server-enforced account boundaries", () => {
       ).toBe("application/json");
       fetch.mockResolvedValueOnce(
         Response.json({
-          candidates: [{ content: { parts: [{ text: '{"tool":"denied"}' }] } }],
+          candidates: [
+            {
+              content: {
+                parts: [
+                  {
+                    text: '{"tool":"denied","answer":"Please review and approve orders yourself.","draft_text":null,"can_wait":null}',
+                  },
+                ],
+              },
+            },
+          ],
         }),
       );
+      const denied = await (
+        await agentPOST(request({ question: "Approve a purchase for me" }))
+      ).json();
+      expect(denied.tool).toBe("denied");
+      expect(denied.draft).toBeNull();
+      expect(network.state.orders).toHaveLength(0);
+    } finally {
+      vi.unstubAllGlobals();
+      vi.unstubAllEnvs();
+    }
+  });
+});
+describe("Conversational assistant review boundaries", () => {
+  it("prepares a request draft without creating demand, reservation or order", async () => {
+    const before = structuredClone(network.state);
+    vi.stubEnv("GEMINI_API_KEY", "test-key");
+    const fetch = vi.fn().mockResolvedValue(
+      Response.json({
+        candidates: [
+          {
+            content: {
+              parts: [
+                {
+                  text: JSON.stringify({
+                    answer: "Review this draft before saving.",
+                    tool: "draft",
+                    draft_text:
+                      "Two Coke Zero 500ml bottles; customer cannot wait.",
+                    can_wait: false,
+                  }),
+                },
+              ],
+            },
+          },
+        ],
+      }),
+    );
+    vi.stubGlobal("fetch", fetch);
+    try {
+      const r = await agentPOST(
+        request({
+          question: "Record two Coke Zero 500ml bottles; customer cannot wait.",
+          history: [
+            { role: "user", text: "Can you prepare a request?" },
+            { role: "assistant", text: "Tell me the product." },
+          ],
+        }),
+      );
+      expect(r.status).toBe(200);
+      const j = await r.json();
+      expect(j.draft.can_wait).toBe(false);
+      expect(j.draft.raw).toContain("500ml");
+      expect(network.state.requests).toEqual(before.requests);
+      expect(network.state.reservations).toEqual(before.reservations);
+      expect(network.state.orders).toEqual(before.orders);
+      const outbound = JSON.parse(fetch.mock.calls[0][1].body);
+      const prompt = outbound.systemInstruction.parts[0].text;
+      expect(prompt).not.toContain(network.shops[1].user_id);
+      expect(prompt).not.toContain(network.state.requests[0].request_token);
+      expect(prompt).not.toContain("latitude");
+      expect(prompt).toContain("25–29");
+      expect(outbound.contents[0].parts[0].text).toContain(
+        "Tell me the product.",
+      );
+    } finally {
+      vi.unstubAllGlobals();
+      vi.unstubAllEnvs();
+    }
+  });
+  it("rejects malformed model actions and forged identities instead of performing a write", async () => {
+    vi.stubEnv("GEMINI_API_KEY", "test-key");
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        Response.json({
+          candidates: [
+            {
+              content: {
+                parts: [
+                  {
+                    text: JSON.stringify({
+                      answer: "Approved",
+                      tool: "approve",
+                      draft_text: null,
+                      can_wait: null,
+                    }),
+                  },
+                ],
+              },
+            },
+          ],
+        }),
+      ),
+    );
+    try {
       expect(
-        (await agentPOST(request({ question: "Approve a purchase for me" })))
+        (await agentPOST(request({ question: "Approve a supplier order" })))
           .status,
+      ).toBe(503);
+      expect(
+        (
+          await agentPOST(
+            request({ tool: "quotes", merchant_id: "m-gupta-002" }),
+          )
+        ).status,
       ).toBe(403);
+      expect(network.state.orders).toHaveLength(0);
     } finally {
       vi.unstubAllGlobals();
       vi.unstubAllEnvs();

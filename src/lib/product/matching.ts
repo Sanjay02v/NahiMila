@@ -1,3 +1,4 @@
+import { geminiFetch } from "./gemini";
 import { z } from "zod";
 import type { Intent } from "./types";
 import {
@@ -48,8 +49,8 @@ export async function resolveProduct(
     certainty: z.enum(["same_product", "uncertain", "different_product"]),
   });
   try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(process.env.GEMINI_MODEL || "gemini-2.5-flash")}:generateContent`,
+    const response = await geminiFetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(process.env.GEMINI_MODEL || "gemini-3.5-flash")}:generateContent`,
       {
         method: "POST",
         headers: {

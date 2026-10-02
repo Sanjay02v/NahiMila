@@ -11,11 +11,13 @@ import VoiceControls from "./VoiceControls";
 export default function Capture({
   voice,
   initial = "",
+  initialWait = false,
   close,
   saved,
 }: {
   voice: boolean;
   initial?: string;
+  initialWait?: boolean;
   close: () => void;
   saved: (b: Record<string, unknown>) => Promise<boolean>;
 }) {
@@ -23,14 +25,14 @@ export default function Capture({
     [raw, setRaw] = useState(initial),
     [intent, setIntent] = useState<Intent | null>(null),
     [match, setMatch] = useState<MatchReview | null>(null),
-    [wait, setWait] = useState(false),
+    [wait, setWait] = useState(initialWait),
     [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
     [notice, setNotice] = useState("");
   const submission = useRef(crypto.randomUUID());
-  const recording = useVoiceRecording((value) => {
+  const recording = useVoiceRecording((value, final) => {
     setRaw(value);
-    setNotice(t("recorded"));
+    setNotice(final ? t("recorded") : "");
   });
   const update = (field: keyof Intent, value: unknown) => {
     if (
@@ -88,6 +90,7 @@ export default function Capture({
             <textarea
               autoFocus
               rows={4}
+              readOnly={recording.recording || recording.working}
               value={raw}
               onChange={(e) => setRaw(e.target.value)}
               placeholder={t("rawPlaceholder")}

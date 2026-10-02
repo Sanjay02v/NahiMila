@@ -1,7 +1,7 @@
 export const en = {
   uploadAudio: "Use audio file",
   voicePermissionPending:
-    "Waiting for microphone permission. Check your browser’s permission prompt.",
+    "Starting live transcription. Allow microphone access if prompted.",
 
   matchFound:
     "Shared product: {product}. Check the brand, variant and pack before saving.",
@@ -56,8 +56,7 @@ export const en = {
   rawLabel: "What was the customer looking for?",
   rawPlaceholder: "e.g. Half-litre Coke Zero bottle under ₹50",
   interpret: "Review the details",
-  manual:
-    "Gemini isn’t configured. Review these manual suggestions or enter the details yourself.",
+  manual: "Manual suggestions. Check the details and fill anything missing.",
   aiReview:
     "Gemini suggested these details. Please check every important field.",
   aiFailed:
@@ -199,21 +198,47 @@ export const en = {
   demoLogin:
     "Local demo: use an assigned account. Example: sharma@demo.nahimila.local · password NahiMila-demo-2026",
   listen: "Recording… tap to stop",
-  transcribing: "Listening to your words…",
+  transcribing: "Finishing your transcript…",
   voiceOff: "Voice isn’t configured. Typed entry works.",
   voiceConsent:
-    "Your short recording goes to Sarvam for transcription. Review it before saving.",
+    "Your voice streams to Sarvam only while listening. Check the transcript before continuing.",
   recorded: "Transcript ready. Check the words.",
+  voiceLive: "Listening · words appear as you speak",
+  voiceWelcome: "Speak naturally",
+  agentWelcome: "Your shop assistant",
+  agentWelcomeQuestion: "What can I help you with?",
+  agentWelcomeDetail:
+    "Tell me what a customer asked for, or ask what your shop’s demand is showing.",
+  agentConversation: "Conversation with your shop assistant",
+  agentDraftExample:
+    "A customer wanted two Coke Zero 500ml bottles but couldn’t wait.",
+  agentYou: "You",
+  agentThinking: "Checking your shop…",
+  agentQuoteEvidence: "Current supplier cases · costs may change",
+  agentEvidence: "From your shop records",
+  agentNearbyEvidence: "Anonymous nearby request bands",
+  agentStockEvidence: "Your recorded requests · interest, not confirmed sales",
+  agentMoreRecords: "Open the section to see the remaining records.",
+  agentDraftLabel: "Request draft · not saved",
+  agentDraftNotice:
+    "Review the product and whether the customer can wait before saving.",
+  agentReviewDraft: "Review this request",
+  agentOpenRequests: "Open requests",
+  agentOpenNearby: "Explore nearby demand",
+  agentOpenOrders: "Review orders and supplier cases",
+  agentStock: "What should I consider stocking?",
+  agentQuotes: "Explain shared order readiness",
   agentHint:
-    "Ask about your requests, nearby demand, orders or pickups. Spending always requires your confirmation.",
-  agentPlaceholder: "What did customers ask for today?",
+    "Understand demand, review orders or prepare a request. Ask in your own words.",
+  agentPlaceholder: "Ask a question or tell me what a customer wanted…",
   send: "Ask",
   agentOff: "Gemini isn’t configured. Use the quick actions below.",
   agentRequests: "Show my requests",
   agentNearby: "Show nearby demand",
   agentOrders: "Show my orders",
   agentPickups: "Show pickups",
-  agentReadOnly: "Private, read-only assistance. No automatic spending.",
+  agentReadOnly:
+    "Your shop stays private. Requests need review; orders need your approval.",
   customerTitle: "Your local shop has an offer",
   price: "Price per unit",
   pickupShop: "Pick up from",
@@ -230,21 +255,25 @@ export const en = {
   needsDetails: "Needs details",
   unknownPack: "Pack not specified",
   error: {
+    VOICE_SESSION_EXPIRED:
+      "The live recording ended. Start another or continue by typing.",
+    VOICE_ALREADY_ACTIVE:
+      "A recording is already active for your shop. Stop it before starting another.",
     MICROPHONE_PERMISSION:
-      "Microphone access was blocked. Allow it in your browser and device settings, then retry. If the in-app preview blocks it, open this page in Chrome or Safari, or use an audio file.",
+      "Microphone access was blocked. Allow it in your browser and device settings, then retry. If the in-app preview blocks it, open this page in Chrome or Safari. You can still type.",
     MICROPHONE_UNSUPPORTED:
-      "This browser cannot record audio here. Open this page in Chrome or Safari, or use an audio file. Typed entry still works.",
+      "This browser does not support live recording here. Open the page in Chrome or Safari. You can still type.",
     MICROPHONE_INSECURE:
-      "Microphone recording needs HTTPS or localhost. Open the secure website, or use an audio file.",
+      "Microphone access needs HTTPS or localhost. Open the secure website or type your request.",
     MICROPHONE_NOT_FOUND:
-      "No microphone was found. Connect one, or use an audio file.",
+      "No microphone was found. Connect one or type your request.",
     MICROPHONE_BUSY:
       "The microphone could not be read. Check device access and close other apps using it, then retry.",
     MICROPHONE_FAILED:
-      "Recording could not start. Try again, use an audio file, or type the request.",
-    VOICE_EMPTY_AUDIO:
-      "No audio was recorded. Speak for a moment before stopping, or choose a recording.",
-    VOICE_FILE_TOO_LARGE: "Please use a short recording smaller than 3 MB.",
+      "Live recording could not start. Retry or type your request.",
+    VOICE_EMPTY_AUDIO: "No audio was recorded. Speak before stopping.",
+    VOICE_FILE_TOO_LARGE:
+      "The recording reached its limit. Keep requests under 20 seconds.",
     VOICE_UNSUPPORTED_FORMAT:
       "Choose a supported audio file, such as WAV, MP3, M4A, OGG or WebM.",
     VOICE_NOT_CONFIGURED:
@@ -258,7 +287,7 @@ export const en = {
     VOICE_SERVICE_BUSY:
       "Sarvam is busy or its usage limit was reached. Retry shortly, or type the request.",
     VOICE_AUDIO_REJECTED:
-      "Sarvam could not read this recording. Try a short WAV, MP3 or M4A file, or record again.",
+      "The speech service could not read your recording. Retry or type your request.",
     VOICE_UNAVAILABLE:
       "Speech transcription is temporarily unavailable. Retry, or type the request.",
     VOICE_TIMEOUT:
@@ -302,7 +331,7 @@ export const hi: Messages = {
   ...en,
   uploadAudio: "ऑडियो फ़ाइल चुनें",
   voicePermissionPending:
-    "माइक्रोफ़ोन की अनुमति की प्रतीक्षा है। ब्राउज़र का अनुमति संदेश देखें।",
+    "लाइव ट्रांसक्रिप्शन शुरू हो रहा है। पूछे जाने पर माइक्रोफ़ोन की अनुमति दें।",
 
   matchFound:
     "साझा उत्पाद: {product}। सहेजने से पहले ब्रांड, प्रकार और पैक जाँचें।",
@@ -353,7 +382,7 @@ export const hi: Messages = {
   rawLabel: "ग्राहक क्या ढूँढ रहा था?",
   rawPlaceholder: "जैसे ₹50 तक की आधा लीटर Coke Zero बोतल",
   interpret: "जानकारी जाँचें",
-  manual: "Gemini सेट नहीं है। सुझाव जाँचें या जानकारी खुद भरें।",
+  manual: "ये मैन्युअल सुझाव हैं। विवरण जाँचें और जो जानकारी बाकी है उसे भरें।",
   aiReview: "Gemini के सुझाव हैं। ज़रूरी जानकारी जाँचें।",
   aiFailed: "भाषा सेवा उपलब्ध नहीं है। जानकारी खुद भर सकते हैं।",
   review: "अनुरोध जाँचें",
@@ -485,21 +514,47 @@ export const hi: Messages = {
   demoLogin:
     "स्थानीय डेमो: दिया गया खाता प्रयोग करें। sharma@demo.nahimila.local · पासवर्ड NahiMila-demo-2026",
   listen: "रिकॉर्ड हो रहा है… रोकने के लिए दबाएँ",
-  transcribing: "आपकी बात लिखी जा रही है…",
+  transcribing: "आपके शब्द पूरे कर रहे हैं…",
   voiceOff: "वॉइस सेट नहीं है। टाइप कर सकते हैं।",
   voiceConsent:
-    "छोटी रिकॉर्डिंग Sarvam को लिखने के लिए भेजी जाएगी। सहेजने से पहले जाँचें।",
+    "केवल सुनते समय आपकी आवाज़ Sarvam को जाती है। आगे बढ़ने से पहले शब्द जाँचें।",
   recorded: "बात लिखी गई। शब्द जाँचें।",
+  voiceLive: "सुन रहे हैं · बोलते समय शब्द दिखेंगे",
+  voiceWelcome: "स्वाभाविक रूप से बोलें",
+  agentWelcome: "आपकी दुकान का सहायक",
+  agentWelcomeQuestion: "मैं आपकी कैसे मदद करूँ?",
+  agentWelcomeDetail:
+    "बताएँ ग्राहक ने क्या माँगा, या पूछें आपकी दुकान की माँग क्या दिखा रही है।",
+  agentConversation: "दुकान के सहायक से बातचीत",
+  agentDraftExample:
+    "ग्राहक को Coke Zero की दो 500ml बोतलें चाहिए थीं लेकिन वह इंतज़ार नहीं कर सकता था।",
+  agentYou: "आप",
+  agentThinking: "आपकी दुकान की जानकारी देख रहे हैं…",
+  agentQuoteEvidence: "वर्तमान सप्लायर प्रस्ताव · लागत बदल सकती है",
+  agentEvidence: "आपकी दुकान के रिकॉर्ड से",
+  agentNearbyEvidence: "आसपास की गुमनाम माँग की सीमाएँ",
+  agentStockEvidence: "आपकी दर्ज माँगें · रुचि, पक्की खरीद नहीं",
+  agentMoreRecords: "बाकी रिकॉर्ड देखने के लिए संबंधित पेज खोलें।",
+  agentDraftLabel: "माँग का ड्राफ्ट · अभी सहेजा नहीं गया",
+  agentDraftNotice:
+    "सहेजने से पहले उत्पाद और ग्राहक इंतज़ार कर सकता है या नहीं, जाँचें।",
+  agentReviewDraft: "इस माँग की समीक्षा करें",
+  agentOpenRequests: "माँगें खोलें",
+  agentOpenNearby: "पास की माँग देखें",
+  agentOpenOrders: "ऑर्डर और सप्लायर प्रस्ताव देखें",
+  agentStock: "किस उत्पाद को रखने पर विचार करूँ?",
+  agentQuotes: "साझा ऑर्डर की तैयारी समझाएँ",
   agentHint:
-    "अपने अनुरोध, माँग, ऑर्डर या पिकअप पूछें। खर्च के लिए आपकी पुष्टि ज़रूरी है।",
-  agentPlaceholder: "आज ग्राहकों ने क्या माँगा?",
+    "माँग समझें, ऑर्डर देखें या माँग का ड्राफ्ट बनाएँ। अपने शब्दों में पूछें।",
+  agentPlaceholder: "सवाल पूछें या बताएँ ग्राहक को क्या चाहिए था…",
   send: "पूछें",
   agentOff: "Gemini सेट नहीं है। नीचे के विकल्प चुनें।",
   agentRequests: "मेरे अनुरोध दिखाएँ",
   agentNearby: "आसपास की माँग दिखाएँ",
   agentOrders: "मेरे ऑर्डर दिखाएँ",
   agentPickups: "पिकअप दिखाएँ",
-  agentReadOnly: "निजी जानकारी पढ़ने में मदद। अपने आप खर्च नहीं।",
+  agentReadOnly:
+    "आपकी दुकान की जानकारी निजी है। माँग की समीक्षा और ऑर्डर की मंज़ूरी आप देंगे।",
   customerTitle: "आपकी दुकान का प्रस्ताव",
   price: "प्रति इकाई कीमत",
   pickupShop: "यहाँ से लें",
@@ -516,21 +571,23 @@ export const hi: Messages = {
   needsDetails: "जानकारी चाहिए",
   unknownPack: "पैक नहीं बताया",
   error: {
+    VOICE_SESSION_EXPIRED: "लाइव रिकॉर्डिंग खत्म हो गई। नई शुरू करें या लिखें।",
+    VOICE_ALREADY_ACTIVE:
+      "आपकी दुकान में एक रिकॉर्डिंग चल रही है। दूसरी शुरू करने से पहले उसे रोकें।",
     MICROPHONE_PERMISSION:
-      "माइक्रोफ़ोन की अनुमति बंद है। ब्राउज़र और डिवाइस में अनुमति देकर फिर कोशिश करें। ऐप प्रीव्यू में न चले तो Chrome या Safari में खोलें या ऑडियो फ़ाइल चुनें।",
+      "माइक्रोफ़ोन की अनुमति नहीं मिली। ब्राउज़र और डिवाइस में अनुमति दें। इन-ऐप में दिक्कत हो तो Chrome या Safari खोलें। आप लिख भी सकते हैं।",
     MICROPHONE_UNSUPPORTED:
-      "इस ब्राउज़र में रिकॉर्डिंग नहीं चल सकती। Chrome या Safari में खोलें या ऑडियो फ़ाइल चुनें। टाइप कर सकते हैं।",
+      "यह ब्राउज़र यहाँ लाइव रिकॉर्डिंग नहीं कर सकता। Chrome या Safari खोलें, या लिखें।",
     MICROPHONE_INSECURE:
-      "रिकॉर्डिंग के लिए HTTPS या localhost चाहिए। सुरक्षित वेबसाइट खोलें या ऑडियो फ़ाइल चुनें।",
-    MICROPHONE_NOT_FOUND:
-      "माइक्रोफ़ोन नहीं मिला। माइक्रोफ़ोन जोड़ें या ऑडियो फ़ाइल चुनें।",
+      "माइक्रोफ़ोन के लिए HTTPS या localhost चाहिए। सुरक्षित वेबसाइट खोलें या लिखें।",
+    MICROPHONE_NOT_FOUND: "माइक्रोफ़ोन नहीं मिला। एक जोड़ें या लिखें।",
     MICROPHONE_BUSY:
       "माइक्रोफ़ोन उपलब्ध नहीं है। डिवाइस की अनुमति जाँचें और उसे इस्तेमाल कर रहे अन्य ऐप बंद करें।",
     MICROPHONE_FAILED:
-      "रिकॉर्डिंग शुरू नहीं हुई। फिर कोशिश करें, ऑडियो फ़ाइल चुनें या टाइप करें।",
-    VOICE_EMPTY_AUDIO:
-      "आवाज़ रिकॉर्ड नहीं हुई। रोकने से पहले कुछ बोलें या रिकॉर्डिंग चुनें।",
-    VOICE_FILE_TOO_LARGE: "3 MB से छोटी रिकॉर्डिंग चुनें।",
+      "लाइव रिकॉर्डिंग शुरू नहीं हुई। फिर कोशिश करें या लिखें।",
+    VOICE_EMPTY_AUDIO: "आवाज़ रिकॉर्ड नहीं हुई। रोकने से पहले बोलें।",
+    VOICE_FILE_TOO_LARGE:
+      "रिकॉर्डिंग की सीमा पूरी हुई। माँग 20 सेकंड से कम रखें।",
     VOICE_UNSUPPORTED_FORMAT:
       "WAV, MP3, M4A, OGG या WebM जैसी ऑडियो फ़ाइल चुनें।",
     VOICE_NOT_CONFIGURED: "इस सर्वर पर Sarvam सेट नहीं है। टाइप कर सकते हैं।",
@@ -541,8 +598,7 @@ export const hi: Messages = {
       "Sarvam खाते में क्रेडिट चाहिए। बैलेंस जाँचें या टाइप करें।",
     VOICE_SERVICE_BUSY:
       "Sarvam व्यस्त है या उपयोग सीमा पूरी हुई है। थोड़ी देर बाद कोशिश करें या टाइप करें।",
-    VOICE_AUDIO_REJECTED:
-      "Sarvam रिकॉर्डिंग नहीं पढ़ सका। छोटी WAV, MP3 या M4A फ़ाइल चुनें या फिर रिकॉर्ड करें।",
+    VOICE_AUDIO_REJECTED: "सेवा रिकॉर्डिंग नहीं समझ पाई। फिर बोलें या लिखें।",
     VOICE_UNAVAILABLE:
       "आवाज़ लिखने की सेवा अभी उपलब्ध नहीं है। फिर कोशिश करें या टाइप करें।",
     VOICE_TIMEOUT:
@@ -580,7 +636,7 @@ export const kn: Messages = {
   ...en,
   uploadAudio: "ಆಡಿಯೊ ಫೈಲ್ ಬಳಸಿ",
   voicePermissionPending:
-    "ಮೈಕ್ರೊಫೋನ್ ಅನುಮತಿಗಾಗಿ ಕಾಯುತ್ತಿದೆ. ಬ್ರೌಸರ್ ಅನುಮತಿ ಸಂದೇಶ ನೋಡಿ.",
+    "ನೇರ ಧ್ವನಿ ಪಠ್ಯ ಪ್ರಾರಂಭವಾಗುತ್ತಿದೆ. ಕೇಳಿದರೆ ಮೈಕ್ರೋಫೋನ್ ಅನುಮತಿ ನೀಡಿ.",
 
   matchFound:
     "ಹಂಚಿದ ಉತ್ಪನ್ನ: {product}. ಉಳಿಸುವ ಮೊದಲು ಬ್ರ್ಯಾಂಡ್, ವಿಧ ಮತ್ತು ಪ್ಯಾಕ್ ಪರಿಶೀಲಿಸಿ.",
@@ -632,7 +688,8 @@ export const kn: Messages = {
   rawLabel: "ಗ್ರಾಹಕರು ಏನು ಹುಡುಕುತ್ತಿದ್ದರು?",
   rawPlaceholder: "ಉದಾ. ₹50 ಒಳಗೆ ಅರ್ಧ ಲೀಟರ್ Coke Zero ಬಾಟಲಿ",
   interpret: "ವಿವರ ಪರಿಶೀಲಿಸಿ",
-  manual: "Gemini ಸಿದ್ಧವಾಗಿಲ್ಲ. ಸೂಚನೆಗಳನ್ನು ಪರಿಶೀಲಿಸಿ ಅಥವಾ ನೀವೇ ವಿವರ ತುಂಬಿ.",
+  manual:
+    "ಇವು ಕೈಯಾರೆ ನೀಡಿದ ಸಲಹೆಗಳು. ವಿವರಗಳನ್ನು ಪರಿಶೀಲಿಸಿ ಮತ್ತು ಬಾಕಿ ಮಾಹಿತಿಯನ್ನು ತುಂಬಿ.",
   aiReview: "Gemini ಸೂಚಿಸಿದ ವಿವರಗಳು. ಮುಖ್ಯ ವಿವರಗಳನ್ನು ಪರಿಶೀಲಿಸಿ.",
   aiFailed: "ಭಾಷಾ ಸೇವೆ ಲಭ್ಯವಿಲ್ಲ. ನೀವೇ ವಿವರ ತುಂಬಬಹುದು.",
   review: "ಕೋರಿಕೆ ಪರಿಶೀಲಿಸಿ",
@@ -765,21 +822,47 @@ export const kn: Messages = {
   demoLogin:
     "ಸ್ಥಳೀಯ ಡೆಮೋ: ನೀಡಿದ ಖಾತೆ ಬಳಸಿ. sharma@demo.nahimila.local · ಪಾಸ್‌ವರ್ಡ್ NahiMila-demo-2026",
   listen: "ದಾಖಲಿಸುತ್ತಿದೆ… ನಿಲ್ಲಿಸಲು ಒತ್ತಿ",
-  transcribing: "ನಿಮ್ಮ ಮಾತನ್ನು ಬರೆಯುತ್ತಿದೆ…",
+  transcribing: "ನಿಮ್ಮ ಪಠ್ಯವನ್ನು ಪೂರ್ಣಗೊಳಿಸುತ್ತಿದೆ…",
   voiceOff: "ಧ್ವನಿ ಸೇವೆ ಸಿದ್ಧವಾಗಿಲ್ಲ. ಟೈಪ್ ಮಾಡಬಹುದು.",
   voiceConsent:
-    "ಚಿಕ್ಕ ಧ್ವನಿ ದಾಖಲೆಯನ್ನು Sarvam ಗೆ ಬರವಣಿಗೆಗಾಗಿ ಕಳುಹಿಸಲಾಗುತ್ತದೆ. ಉಳಿಸುವ ಮೊದಲು ಪರಿಶೀಲಿಸಿ.",
+    "ಆಲಿಸುತ್ತಿರುವಾಗ ಮಾತ್ರ ನಿಮ್ಮ ಧ್ವನಿ Sarvamಗೆ ಹೋಗುತ್ತದೆ. ಮುಂದುವರಿಯುವ ಮೊದಲು ಪದಗಳನ್ನು ಪರಿಶೀಲಿಸಿ.",
   recorded: "ಮಾತು ಬರೆಯಲಾಗಿದೆ. ಪದ ಪರಿಶೀಲಿಸಿ.",
+  voiceLive: "ಆಲಿಸುತ್ತಿದೆ · ನೀವು ಮಾತನಾಡಿದಂತೆ ಪದಗಳು ಕಾಣಿಸುತ್ತವೆ",
+  voiceWelcome: "ಸಹಜವಾಗಿ ಮಾತನಾಡಿ",
+  agentWelcome: "ನಿಮ್ಮ ಅಂಗಡಿ ಸಹಾಯಕ",
+  agentWelcomeQuestion: "ನಾನು ಹೇಗೆ ಸಹಾಯ ಮಾಡಲಿ?",
+  agentWelcomeDetail:
+    "ಗ್ರಾಹಕರು ಏನು ಕೇಳಿದರು ಎಂದು ಹೇಳಿ, ಅಥವಾ ನಿಮ್ಮ ಅಂಗಡಿಯ ಬೇಡಿಕೆಯ ಬಗ್ಗೆ ಕೇಳಿ.",
+  agentConversation: "ಅಂಗಡಿ ಸಹಾಯಕನೊಂದಿಗೆ ಸಂಭಾಷಣೆ",
+  agentDraftExample:
+    "ಗ್ರಾಹಕರಿಗೆ Coke Zero ಎರಡು 500ml ಬಾಟಲಿಗಳು ಬೇಕಿದ್ದವು ಆದರೆ ಕಾಯಲು ಸಾಧ್ಯವಿರಲಿಲ್ಲ.",
+  agentYou: "ನೀವು",
+  agentThinking: "ನಿಮ್ಮ ಅಂಗಡಿಯ ಮಾಹಿತಿ ಪರಿಶೀಲಿಸುತ್ತಿದೆ…",
+  agentQuoteEvidence: "ಪ್ರಸ್ತುತ ಪೂರೈಕೆದಾರ ಪ್ರಸ್ತಾಪಗಳು · ವೆಚ್ಚ ಬದಲಾಗಬಹುದು",
+  agentEvidence: "ನಿಮ್ಮ ಅಂಗಡಿಯ ದಾಖಲೆಗಳಿಂದ",
+  agentNearbyEvidence: "ಹತ್ತಿರದ ಅನಾಮಧೇಯ ಬೇಡಿಕೆ ಶ್ರೇಣಿಗಳು",
+  agentStockEvidence: "ನಿಮ್ಮ ದಾಖಲಾದ ಬೇಡಿಕೆಗಳು · ಆಸಕ್ತಿ, ಖಚಿತ ಮಾರಾಟವಲ್ಲ",
+  agentMoreRecords: "ಉಳಿದ ದಾಖಲೆಗಳನ್ನು ನೋಡಲು ಸಂಬಂಧಿತ ವಿಭಾಗ ತೆರೆಯಿರಿ.",
+  agentDraftLabel: "ಬೇಡಿಕೆಯ ಕರಡು · ಇನ್ನೂ ಉಳಿಸಿಲ್ಲ",
+  agentDraftNotice:
+    "ಉಳಿಸುವ ಮೊದಲು ಉತ್ಪನ್ನ ಮತ್ತು ಗ್ರಾಹಕರು ಕಾಯಬಹುದೇ ಎಂದು ಪರಿಶೀಲಿಸಿ.",
+  agentReviewDraft: "ಈ ಬೇಡಿಕೆ ಪರಿಶೀಲಿಸಿ",
+  agentOpenRequests: "ಬೇಡಿಕೆಗಳನ್ನು ತೆರೆಯಿರಿ",
+  agentOpenNearby: "ಹತ್ತಿರದ ಬೇಡಿಕೆ ನೋಡಿ",
+  agentOpenOrders: "ಆರ್ಡರ್ ಮತ್ತು ಪೂರೈಕೆದಾರ ಪ್ರಸ್ತಾಪ ಪರಿಶೀಲಿಸಿ",
+  agentStock: "ಯಾವ ಉತ್ಪನ್ನವನ್ನು ಇಡುವುದನ್ನು ಪರಿಗಣಿಸಲಿ?",
+  agentQuotes: "ಹಂಚಿದ ಆರ್ಡರ್ ಸಿದ್ಧತೆ ವಿವರಿಸಿ",
   agentHint:
-    "ನಿಮ್ಮ ಕೋರಿಕೆ, ಬೇಡಿಕೆ, ಆರ್ಡರ್ ಅಥವಾ ಸಂಗ್ರಹದ ಬಗ್ಗೆ ಕೇಳಿ. ಖರ್ಚಿಗೆ ನಿಮ್ಮ ದೃಢೀಕರಣ ಬೇಕು.",
-  agentPlaceholder: "ಇಂದು ಗ್ರಾಹಕರು ಏನು ಕೇಳಿದರು?",
+    "ಬೇಡಿಕೆ ತಿಳಿಯಿರಿ, ಆರ್ಡರ್ ಪರಿಶೀಲಿಸಿ ಅಥವಾ ಬೇಡಿಕೆಯ ಕರಡು ತಯಾರಿಸಿ. ನಿಮ್ಮ ಮಾತಿನಲ್ಲಿ ಕೇಳಿ.",
+  agentPlaceholder: "ಪ್ರಶ್ನೆ ಕೇಳಿ ಅಥವಾ ಗ್ರಾಹಕರಿಗೆ ಏನು ಬೇಕಿತ್ತು ಎಂದು ಹೇಳಿ…",
   send: "ಕೇಳಿ",
   agentOff: "Gemini ಸಿದ್ಧವಾಗಿಲ್ಲ. ಕೆಳಗಿನ ಆಯ್ಕೆ ಬಳಸಿ.",
   agentRequests: "ನನ್ನ ಕೋರಿಕೆ ತೋರಿಸಿ",
   agentNearby: "ಹತ್ತಿರದ ಬೇಡಿಕೆ ತೋರಿಸಿ",
   agentOrders: "ನನ್ನ ಆರ್ಡರ್ ತೋರಿಸಿ",
   agentPickups: "ಸಂಗ್ರಹ ತೋರಿಸಿ",
-  agentReadOnly: "ಖಾಸಗಿ ಮಾಹಿತಿ ಓದುವ ಸಹಾಯ. ಸ್ವಯಂ ಖರ್ಚಿಲ್ಲ.",
+  agentReadOnly:
+    "ನಿಮ್ಮ ಅಂಗಡಿಯ ಮಾಹಿತಿ ಖಾಸಗಿಯಾಗಿದೆ. ಬೇಡಿಕೆ ಪರಿಶೀಲನೆ ಮತ್ತು ಆರ್ಡರ್ ಅನುಮೋದನೆ ನಿಮ್ಮದು.",
   customerTitle: "ನಿಮ್ಮ ಅಂಗಡಿಯ ಪ್ರಸ್ತಾವ",
   price: "ಒಂದರ ಬೆಲೆ",
   pickupShop: "ಇಲ್ಲಿ ಪಡೆದುಕೊಳ್ಳಿ",
@@ -796,21 +879,25 @@ export const kn: Messages = {
   needsDetails: "ವಿವರ ಬೇಕು",
   unknownPack: "ಪ್ಯಾಕ್ ತಿಳಿಸಿಲ್ಲ",
   error: {
+    VOICE_SESSION_EXPIRED:
+      "ನೇರ ರೆಕಾರ್ಡಿಂಗ್ ಮುಗಿದಿದೆ. ಮತ್ತೊಂದು ಪ್ರಾರಂಭಿಸಿ ಅಥವಾ ಟೈಪ್ ಮಾಡಿ.",
+    VOICE_ALREADY_ACTIVE:
+      "ನಿಮ್ಮ ಅಂಗಡಿಗೆ ಈಗಾಗಲೇ ರೆಕಾರ್ಡಿಂಗ್ ಸಕ್ರಿಯವಾಗಿದೆ. ಇನ್ನೊಂದನ್ನು ಆರಂಭಿಸುವ ಮೊದಲು ನಿಲ್ಲಿಸಿ.",
     MICROPHONE_PERMISSION:
-      "ಮೈಕ್ರೊಫೋನ್ ಅನುಮತಿ ತಡೆಯಲಾಗಿದೆ. ಬ್ರೌಸರ್ ಮತ್ತು ಸಾಧನದಲ್ಲಿ ಅನುಮತಿ ನೀಡಿ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ. ಆ್ಯಪ್ ಪ್ರಿವ್ಯೂನಲ್ಲಿ ಆಗದಿದ್ದರೆ Chrome ಅಥವಾ Safariಯಲ್ಲಿ ತೆರೆಯಿರಿ ಅಥವಾ ಆಡಿಯೊ ಫೈಲ್ ಬಳಸಿ.",
+      "ಮೈಕ್ರೋಫೋನ್ ಅನುಮತಿ ಸಿಗಲಿಲ್ಲ. ಬ್ರೌಸರ್ ಮತ್ತು ಸಾಧನದಲ್ಲಿ ಅನುಮತಿ ನೀಡಿ. ಆ್ಯಪ್‌ನಲ್ಲಿ ತೊಂದರೆ ಇದ್ದರೆ Chrome ಅಥವಾ Safari ತೆರೆಯಿರಿ. ಟೈಪ್ ಮಾಡಬಹುದು.",
     MICROPHONE_UNSUPPORTED:
-      "ಈ ಬ್ರೌಸರ್‌ನಲ್ಲಿ ಆಡಿಯೊ ದಾಖಲಿಸಲಾಗುವುದಿಲ್ಲ. Chrome ಅಥವಾ Safariಯಲ್ಲಿ ತೆರೆಯಿರಿ ಅಥವಾ ಆಡಿಯೊ ಫೈಲ್ ಬಳಸಿ. ಟೈಪ್ ಮಾಡಬಹುದು.",
+      "ಈ ಬ್ರೌಸರ್ ಇಲ್ಲಿ ನೇರ ರೆಕಾರ್ಡಿಂಗ್ ಬೆಂಬಲಿಸುವುದಿಲ್ಲ. Chrome ಅಥವಾ Safari ತೆರೆಯಿರಿ, ಅಥವಾ ಟೈಪ್ ಮಾಡಿ.",
     MICROPHONE_INSECURE:
-      "ಮೈಕ್ರೊಫೋನ್‌ಗೆ HTTPS ಅಥವಾ localhost ಬೇಕು. ಸುರಕ್ಷಿತ ವೆಬ್‌ಸೈಟ್ ತೆರೆಯಿರಿ ಅಥವಾ ಆಡಿಯೊ ಫೈಲ್ ಬಳಸಿ.",
+      "ಮೈಕ್ರೋಫೋನ್‌ಗೆ HTTPS ಅಥವಾ localhost ಅಗತ್ಯ. ಸುರಕ್ಷಿತ ವೆಬ್‌ಸೈಟ್ ತೆರೆಯಿರಿ ಅಥವಾ ಟೈಪ್ ಮಾಡಿ.",
     MICROPHONE_NOT_FOUND:
-      "ಮೈಕ್ರೊಫೋನ್ ಕಂಡುಬಂದಿಲ್ಲ. ಒಂದು ಸಂಪರ್ಕಿಸಿ ಅಥವಾ ಆಡಿಯೊ ಫೈಲ್ ಬಳಸಿ.",
+      "ಮೈಕ್ರೋಫೋನ್ ಕಂಡುಬಂದಿಲ್ಲ. ಒಂದನ್ನು ಸಂಪರ್ಕಿಸಿ ಅಥವಾ ಟೈಪ್ ಮಾಡಿ.",
     MICROPHONE_BUSY:
       "ಮೈಕ್ರೊಫೋನ್ ಓದಲು ಆಗಲಿಲ್ಲ. ಸಾಧನದ ಅನುಮತಿ ಪರಿಶೀಲಿಸಿ ಮತ್ತು ಅದನ್ನು ಬಳಸುವ ಇತರ ಆ್ಯಪ್ ಮುಚ್ಚಿ.",
     MICROPHONE_FAILED:
-      "ರೆಕಾರ್ಡಿಂಗ್ ಆರಂಭವಾಗಲಿಲ್ಲ. ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ, ಆಡಿಯೊ ಫೈಲ್ ಬಳಸಿ ಅಥವಾ ಟೈಪ್ ಮಾಡಿ.",
-    VOICE_EMPTY_AUDIO:
-      "ಆಡಿಯೊ ದಾಖಲಾಗಿಲ್ಲ. ನಿಲ್ಲಿಸುವ ಮೊದಲು ಸ್ವಲ್ಪ ಮಾತನಾಡಿ ಅಥವಾ ರೆಕಾರ್ಡಿಂಗ್ ಆಯ್ಕೆಮಾಡಿ.",
-    VOICE_FILE_TOO_LARGE: "3 MB ಗಿಂತ ಚಿಕ್ಕ ರೆಕಾರ್ಡಿಂಗ್ ಬಳಸಿ.",
+      "ನೇರ ರೆಕಾರ್ಡಿಂಗ್ ಪ್ರಾರಂಭವಾಗಲಿಲ್ಲ. ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ ಅಥವಾ ಟೈಪ್ ಮಾಡಿ.",
+    VOICE_EMPTY_AUDIO: "ಧ್ವನಿ ದಾಖಲಾಗಲಿಲ್ಲ. ನಿಲ್ಲಿಸುವ ಮೊದಲು ಮಾತನಾಡಿ.",
+    VOICE_FILE_TOO_LARGE:
+      "ರೆಕಾರ್ಡಿಂಗ್ ಮಿತಿ ತಲುಪಿದೆ. ಬೇಡಿಕೆಯನ್ನು 20 ಸೆಕೆಂಡಿಗಿಂತ ಕಡಿಮೆ ಇರಿಸಿ.",
     VOICE_UNSUPPORTED_FORMAT:
       "WAV, MP3, M4A, OGG ಅಥವಾ WebM ಆಡಿಯೊ ಫೈಲ್ ಆಯ್ಕೆಮಾಡಿ.",
     VOICE_NOT_CONFIGURED: "ಈ ಸರ್ವರ್‌ನಲ್ಲಿ Sarvam ಸಿದ್ಧವಾಗಿಲ್ಲ. ಟೈಪ್ ಮಾಡಬಹುದು.",
@@ -823,7 +910,7 @@ export const kn: Messages = {
     VOICE_SERVICE_BUSY:
       "Sarvam ವ್ಯಸ್ತವಾಗಿದೆ ಅಥವಾ ಬಳಕೆ ಮಿತಿ ಮುಗಿದಿದೆ. ಸ್ವಲ್ಪ ಸಮಯದ ನಂತರ ಪ್ರಯತ್ನಿಸಿ ಅಥವಾ ಟೈಪ್ ಮಾಡಿ.",
     VOICE_AUDIO_REJECTED:
-      "Sarvam ಈ ರೆಕಾರ್ಡಿಂಗ್ ಓದಲಿಲ್ಲ. ಚಿಕ್ಕ WAV, MP3 ಅಥವಾ M4A ಫೈಲ್ ಬಳಸಿ ಅಥವಾ ಮತ್ತೆ ದಾಖಲಿಸಿ.",
+      "ಸೇವೆಗೆ ರೆಕಾರ್ಡಿಂಗ್ ಓದಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ. ಮತ್ತೆ ಮಾತನಾಡಿ ಅಥವಾ ಟೈಪ್ ಮಾಡಿ.",
     VOICE_UNAVAILABLE:
       "ಮಾತನ್ನು ಬರೆಯುವ ಸೇವೆ ಈಗ ಲಭ್ಯವಿಲ್ಲ. ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ ಅಥವಾ ಟೈಪ್ ಮಾಡಿ.",
     VOICE_TIMEOUT:

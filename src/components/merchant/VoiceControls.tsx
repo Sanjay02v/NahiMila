@@ -1,7 +1,6 @@
 "use client";
-import { Mic, Square, Upload } from "lucide-react";
+import { Mic, Square, LoaderCircle } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useRef } from "react";
 import type { useVoiceRecording } from "@/hooks/useVoiceRecording";
 export default function VoiceControls({
   voice,
@@ -13,10 +12,8 @@ export default function VoiceControls({
   disabled?: boolean;
 }) {
   const t = useTranslations();
-  const input = useRef<HTMLInputElement>(null);
-  const busy = disabled || voice.working || voice.requesting;
   return (
-    <>
+    <div className="voice-section">
       {voice.error && (
         <p className="error" role="alert">
           {t.has(`error.${voice.error}`)
@@ -27,35 +24,36 @@ export default function VoiceControls({
       <div className="voice-controls">
         <button
           type="button"
-          className={`button secondary ${voice.recording ? "recording" : ""}`}
-          disabled={!configured || busy || !!voice.support}
+          className={`button secondary small ${voice.recording ? "recording" : ""}`}
+          disabled={
+            !configured ||
+            disabled ||
+            voice.working ||
+            voice.requesting ||
+            !!voice.support
+          }
           onClick={voice.toggle}
         >
-          {voice.recording ? <Square size={18} /> : <Mic size={18} />}{" "}
+          {voice.recording ? (
+            <Square size={16} />
+          ) : voice.requesting || voice.working ? (
+            <LoaderCircle size={16} className="spin" />
+          ) : (
+            <Mic size={16} />
+          )}{" "}
           {t(voice.recording ? "listen" : "speak")}
         </button>
-        <button
-          type="button"
-          className="button secondary small"
-          disabled={!configured || busy || voice.recording}
-          onClick={() => input.current?.click()}
-        >
-          <Upload size={16} />
-          {t("uploadAudio")}
-        </button>
-        <input
-          ref={input}
-          hidden
-          type="file"
-          disabled={!configured || busy || voice.recording}
-          accept="audio/*,.m4a,.webm,.wav,.mp3,.ogg,.flac"
-          aria-label={t("uploadAudio")}
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) void voice.upload(file, file.name);
-            e.target.value = "";
-          }}
-        />
+        {voice.recording && (
+          <span className="live-voice" role="status">
+            <span className="voice-wave" aria-hidden="true">
+              <i />
+              <i />
+              <i />
+              <i />
+            </span>
+            {t("voiceLive")}
+          </span>
+        )}
       </div>
       <p className="fine voice-hint">
         {t(
@@ -71,6 +69,6 @@ export default function VoiceControls({
       {configured && voice.support && !voice.error && (
         <p className="note">{t(`error.${voice.support}`)}</p>
       )}
-    </>
+    </div>
   );
 }

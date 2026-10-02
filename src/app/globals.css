@@ -1974,3 +1974,329 @@ input[type="checkbox"] {
 .voice-hint {
   margin-top: 10px;
 }
+
+/* Merchant conversation and live speech */
+.assistant-shell {
+  display: grid;
+  gap: 16px;
+}
+.assistant-intro {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.assistant-emblem {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: #edf3e8;
+  color: #355d47;
+}
+.assistant-intro strong {
+  font-size: 15px;
+}
+.assistant-intro p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.assistant-thread {
+  min-height: 220px;
+  max-height: 38vh;
+  overflow: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 8px 4px;
+}
+.assistant-welcome {
+  padding: 18px 8px;
+}
+.assistant-welcome h3 {
+  margin: 0 0 8px;
+  font-size: 24px;
+  letter-spacing: -0.7px;
+}
+.assistant-welcome p {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+.assistant-example {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  text-align: left;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #f8faf6;
+  color: var(--ink);
+  font-size: 13px;
+  line-height: 1.5;
+  width: 100%;
+}
+.chat-message {
+  max-width: 94%;
+  padding: 16px 18px;
+  border-radius: 18px;
+  font-size: 14px;
+  line-height: 1.65;
+}
+.chat-message.user {
+  align-self: flex-end;
+  background: #edf2e9;
+  border-bottom-right-radius: 5px;
+}
+.chat-message.assistant {
+  align-self: flex-start;
+  background: #fafbf8;
+  border: 1px solid var(--line);
+  border-bottom-left-radius: 5px;
+  width: 100%;
+}
+.chat-speaker {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.chat-message > p {
+  white-space: pre-wrap;
+  margin: 6px 0 0;
+  overflow-wrap: anywhere;
+}
+.assistant-evidence {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+.assistant-evidence-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  padding: 9px 0;
+}
+.assistant-evidence-row strong {
+  font-size: 13px;
+}
+.assistant-evidence-row small {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+}
+.assistant-evidence-row > b {
+  white-space: nowrap;
+  font-size: 14px;
+}
+.assistant-open {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 14px;
+  color: #355d47;
+  background: none;
+  border: 0;
+  padding: 0;
+  font-size: 13px;
+  font-weight: 650;
+}
+.assistant-draft {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 16px;
+  background: white;
+  border: 1px solid #d4e2cd;
+  border-radius: 14px;
+}
+.assistant-draft p {
+  margin: 0;
+}
+.assistant-draft small {
+  color: var(--muted);
+}
+.assistant-draft button {
+  justify-self: start;
+}
+.assistant-thinking {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.assistant-chip {
+  padding: 7px 11px;
+  border: 1px solid var(--line);
+  background: white;
+  border-radius: 100px;
+  color: #496251;
+  font-size: 11px;
+}
+.assistant-chip:hover {
+  background: #f1f5ec;
+}
+.assistant-composer {
+  position: relative;
+  border: 1px solid #cfdbca;
+  border-radius: 18px;
+  background: white;
+}
+.assistant-composer:focus-within {
+  border-color: #78936f;
+  box-shadow: 0 0 0 3px #eaf0e5;
+}
+.assistant-composer textarea {
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+  margin: 0;
+  padding: 14px 56px 14px 16px;
+  min-height: 76px;
+  resize: none;
+  font-size: 14px;
+}
+.assistant-composer textarea:focus {
+  box-shadow: none;
+}
+.assistant-send {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 12px;
+  background: #355d47;
+  color: white;
+}
+.assistant-send:disabled {
+  background: #e7ece3;
+  color: #84907e;
+}
+.assistant-footnote {
+  margin: 0;
+  font-size: 11px;
+  text-align: center;
+}
+.voice-section .voice-hint {
+  margin: 8px 0 0;
+  font-size: 11px;
+}
+.live-voice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #355d47;
+  font-size: 12px;
+}
+.voice-wave {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 20px;
+}
+.voice-wave i {
+  width: 3px;
+  height: 10px;
+  border-radius: 4px;
+  background: #628452;
+  animation: voice-wave 0.85s ease-in-out infinite alternate;
+}
+.voice-wave i:nth-child(2) {
+  animation-delay: 0.2s;
+  height: 17px;
+}
+.voice-wave i:nth-child(3) {
+  animation-delay: 0.4s;
+  height: 14px;
+}
+.voice-wave i:nth-child(4) {
+  animation-delay: 0.1s;
+}
+@keyframes voice-wave {
+  to {
+    transform: scaleY(0.35);
+  }
+}
+@media (max-width: 640px) {
+  .assistant-thread {
+    max-height: 36vh;
+    min-height: 170px;
+  }
+  .assistant-welcome h3 {
+    font-size: 21px;
+  }
+  .chat-message {
+    padding: 12px;
+    max-width: 96%;
+  }
+  .assistant-shell {
+    gap: 12px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .voice-wave i {
+    animation: none;
+  }
+}
+
+.modal.assistant-modal {
+  height: min(800px, 90dvh);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.assistant-modal > header {
+  flex-shrink: 0;
+  margin-bottom: 18px;
+}
+.assistant-modal .assistant-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+  gap: 12px;
+}
+.assistant-shell > :not(.assistant-thread) {
+  flex-shrink: 0;
+}
+.assistant-modal .assistant-thread {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
+}
+.assistant-shell .agent-quick {
+  margin: 0;
+  gap: 6px;
+}
+.voice-section .voice-controls {
+  margin: 0;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+}
+@media (max-width: 640px) {
+  .modal.assistant-modal {
+    height: 94dvh;
+    max-height: 94dvh;
+  }
+  .assistant-modal > header {
+    margin-bottom: 14px;
+  }
+  .assistant-modal .assistant-shell {
+    gap: 10px;
+  }
+}
+
+.assistant-thread > * {
+  flex-shrink: 0;
+}
