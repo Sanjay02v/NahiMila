@@ -1,12 +1,12 @@
 # NahiMila on Render Free and Supabase Free
 
-Deployment files are prepared. No cloud accounts, database or public site have been created yet.
+Deployment files are prepared and pushed to [Sanjay02v/NahiMila](https://github.com/Sanjay02v/NahiMila) on `main`. The configured Supabase project is reachable with the server credentials, but its product tables have not yet been created. No public Render deployment has been verified yet.
 
 ## What you need to provide
 
-1. A GitHub repository containing this **Solution** Git repository. It can be private. There is currently no Git remote connected; send the repository URL once it exists. Never upload `.env.local`, `.data` or API keys.
-2. A new Supabase Free project. Choose a nearby region such as Singapore. Enter the project URL, publishable key and server service-role key in the matching fields of your local `.env.local`. Do not send secret keys in chat. Existing Gemini and Sarvam keys can be used.
-3. A Render account. Sign up/sign in yourself and select the Free web-service plan. Connect only the repository needed for this website.
+1. The GitHub repository is connected. It contains Solution's contents directly, so leave Render's Root Directory blank. `.env.local`, `.data` and API keys are excluded.
+2. All three Supabase settings are configured locally. Sign in to the project's dashboard to apply the two migrations below. Do not send secret keys in chat. Existing Gemini and Sarvam keys can be used.
+3. Sign in to Render and select the Free web-service plan. Connect only the repository needed for this website.
 
 ## Prepare Supabase
 
