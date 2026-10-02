@@ -1,4 +1,8 @@
 export const en = {
+  uploadAudio: "Use audio file",
+  voicePermissionPending:
+    "Waiting for microphone permission. Check your browser’s permission prompt.",
+
   matchFound:
     "Shared product: {product}. Check the brand, variant and pack before saving.",
   matchNew:
@@ -226,6 +230,44 @@ export const en = {
   needsDetails: "Needs details",
   unknownPack: "Pack not specified",
   error: {
+    MICROPHONE_PERMISSION:
+      "Microphone access was blocked. Allow it in your browser and device settings, then retry. If the in-app preview blocks it, open this page in Chrome or Safari, or use an audio file.",
+    MICROPHONE_UNSUPPORTED:
+      "This browser cannot record audio here. Open this page in Chrome or Safari, or use an audio file. Typed entry still works.",
+    MICROPHONE_INSECURE:
+      "Microphone recording needs HTTPS or localhost. Open the secure website, or use an audio file.",
+    MICROPHONE_NOT_FOUND:
+      "No microphone was found. Connect one, or use an audio file.",
+    MICROPHONE_BUSY:
+      "The microphone could not be read. Check device access and close other apps using it, then retry.",
+    MICROPHONE_FAILED:
+      "Recording could not start. Try again, use an audio file, or type the request.",
+    VOICE_EMPTY_AUDIO:
+      "No audio was recorded. Speak for a moment before stopping, or choose a recording.",
+    VOICE_FILE_TOO_LARGE: "Please use a short recording smaller than 3 MB.",
+    VOICE_UNSUPPORTED_FORMAT:
+      "Choose a supported audio file, such as WAV, MP3, M4A, OGG or WebM.",
+    VOICE_NOT_CONFIGURED:
+      "Sarvam is not configured on this server. Typed entry still works.",
+    VOICE_RATE_LIMIT:
+      "Too many recordings. Wait a minute, or type the request.",
+    VOICE_AUTH_FAILED:
+      "Sarvam rejected the server’s API credentials. Check the key and account access. Typed entry still works.",
+    VOICE_QUOTA_EXCEEDED:
+      "The Sarvam account needs available credits. Check its balance, or type the request.",
+    VOICE_SERVICE_BUSY:
+      "Sarvam is busy or its usage limit was reached. Retry shortly, or type the request.",
+    VOICE_AUDIO_REJECTED:
+      "Sarvam could not read this recording. Try a short WAV, MP3 or M4A file, or record again.",
+    VOICE_UNAVAILABLE:
+      "Speech transcription is temporarily unavailable. Retry, or type the request.",
+    VOICE_TIMEOUT:
+      "Transcription took too long. Try a shorter recording, or type the request.",
+    VOICE_NETWORK:
+      "Could not reach speech transcription. Check the connection and retry, or type the request.",
+    VOICE_NO_SPEECH:
+      "No clear speech was recognised. Try speaking clearly for a few seconds, or type the request.",
+
     UNAUTHENTICATED: "Please sign in to your shop.",
     ONBOARDING_REQUIRED: "Please finish setting up your shop.",
     NOT_FOUND: "That item is unavailable for your account.",
@@ -258,6 +300,10 @@ export const en = {
 type Messages = typeof en;
 export const hi: Messages = {
   ...en,
+  uploadAudio: "ऑडियो फ़ाइल चुनें",
+  voicePermissionPending:
+    "माइक्रोफ़ोन की अनुमति की प्रतीक्षा है। ब्राउज़र का अनुमति संदेश देखें।",
+
   matchFound:
     "साझा उत्पाद: {product}। सहेजने से पहले ब्रांड, प्रकार और पैक जाँचें।",
   matchNew: "नया उत्पाद: {product}। समान जाँची गई माँग इससे जुड़ सकती है।",
@@ -470,6 +516,42 @@ export const hi: Messages = {
   needsDetails: "जानकारी चाहिए",
   unknownPack: "पैक नहीं बताया",
   error: {
+    MICROPHONE_PERMISSION:
+      "माइक्रोफ़ोन की अनुमति बंद है। ब्राउज़र और डिवाइस में अनुमति देकर फिर कोशिश करें। ऐप प्रीव्यू में न चले तो Chrome या Safari में खोलें या ऑडियो फ़ाइल चुनें।",
+    MICROPHONE_UNSUPPORTED:
+      "इस ब्राउज़र में रिकॉर्डिंग नहीं चल सकती। Chrome या Safari में खोलें या ऑडियो फ़ाइल चुनें। टाइप कर सकते हैं।",
+    MICROPHONE_INSECURE:
+      "रिकॉर्डिंग के लिए HTTPS या localhost चाहिए। सुरक्षित वेबसाइट खोलें या ऑडियो फ़ाइल चुनें।",
+    MICROPHONE_NOT_FOUND:
+      "माइक्रोफ़ोन नहीं मिला। माइक्रोफ़ोन जोड़ें या ऑडियो फ़ाइल चुनें।",
+    MICROPHONE_BUSY:
+      "माइक्रोफ़ोन उपलब्ध नहीं है। डिवाइस की अनुमति जाँचें और उसे इस्तेमाल कर रहे अन्य ऐप बंद करें।",
+    MICROPHONE_FAILED:
+      "रिकॉर्डिंग शुरू नहीं हुई। फिर कोशिश करें, ऑडियो फ़ाइल चुनें या टाइप करें।",
+    VOICE_EMPTY_AUDIO:
+      "आवाज़ रिकॉर्ड नहीं हुई। रोकने से पहले कुछ बोलें या रिकॉर्डिंग चुनें।",
+    VOICE_FILE_TOO_LARGE: "3 MB से छोटी रिकॉर्डिंग चुनें।",
+    VOICE_UNSUPPORTED_FORMAT:
+      "WAV, MP3, M4A, OGG या WebM जैसी ऑडियो फ़ाइल चुनें।",
+    VOICE_NOT_CONFIGURED: "इस सर्वर पर Sarvam सेट नहीं है। टाइप कर सकते हैं।",
+    VOICE_RATE_LIMIT: "बहुत रिकॉर्डिंग हुईं। एक मिनट रुकें या टाइप करें।",
+    VOICE_AUTH_FAILED:
+      "Sarvam ने सर्वर की API कुंजी स्वीकार नहीं की। कुंजी और खाते की अनुमति जाँचें। टाइप कर सकते हैं।",
+    VOICE_QUOTA_EXCEEDED:
+      "Sarvam खाते में क्रेडिट चाहिए। बैलेंस जाँचें या टाइप करें।",
+    VOICE_SERVICE_BUSY:
+      "Sarvam व्यस्त है या उपयोग सीमा पूरी हुई है। थोड़ी देर बाद कोशिश करें या टाइप करें।",
+    VOICE_AUDIO_REJECTED:
+      "Sarvam रिकॉर्डिंग नहीं पढ़ सका। छोटी WAV, MP3 या M4A फ़ाइल चुनें या फिर रिकॉर्ड करें।",
+    VOICE_UNAVAILABLE:
+      "आवाज़ लिखने की सेवा अभी उपलब्ध नहीं है। फिर कोशिश करें या टाइप करें।",
+    VOICE_TIMEOUT:
+      "आवाज़ लिखने में अधिक समय लगा। छोटी रिकॉर्डिंग चुनें या टाइप करें।",
+    VOICE_NETWORK:
+      "आवाज़ की सेवा से संपर्क नहीं हुआ। कनेक्शन जाँचें या टाइप करें।",
+    VOICE_NO_SPEECH:
+      "स्पष्ट आवाज़ नहीं मिली। कुछ सेकंड साफ़ बोलें या टाइप करें।",
+
     UNAUTHENTICATED: "अपनी दुकान में साइन इन करें।",
     ONBOARDING_REQUIRED: "दुकान का सेटअप पूरा करें।",
     NOT_FOUND: "यह जानकारी आपके खाते में उपलब्ध नहीं।",
@@ -496,6 +578,10 @@ export const hi: Messages = {
 };
 export const kn: Messages = {
   ...en,
+  uploadAudio: "ಆಡಿಯೊ ಫೈಲ್ ಬಳಸಿ",
+  voicePermissionPending:
+    "ಮೈಕ್ರೊಫೋನ್ ಅನುಮತಿಗಾಗಿ ಕಾಯುತ್ತಿದೆ. ಬ್ರೌಸರ್ ಅನುಮತಿ ಸಂದೇಶ ನೋಡಿ.",
+
   matchFound:
     "ಹಂಚಿದ ಉತ್ಪನ್ನ: {product}. ಉಳಿಸುವ ಮೊದಲು ಬ್ರ್ಯಾಂಡ್, ವಿಧ ಮತ್ತು ಪ್ಯಾಕ್ ಪರಿಶೀಲಿಸಿ.",
   matchNew:
@@ -710,6 +796,43 @@ export const kn: Messages = {
   needsDetails: "ವಿವರ ಬೇಕು",
   unknownPack: "ಪ್ಯಾಕ್ ತಿಳಿಸಿಲ್ಲ",
   error: {
+    MICROPHONE_PERMISSION:
+      "ಮೈಕ್ರೊಫೋನ್ ಅನುಮತಿ ತಡೆಯಲಾಗಿದೆ. ಬ್ರೌಸರ್ ಮತ್ತು ಸಾಧನದಲ್ಲಿ ಅನುಮತಿ ನೀಡಿ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ. ಆ್ಯಪ್ ಪ್ರಿವ್ಯೂನಲ್ಲಿ ಆಗದಿದ್ದರೆ Chrome ಅಥವಾ Safariಯಲ್ಲಿ ತೆರೆಯಿರಿ ಅಥವಾ ಆಡಿಯೊ ಫೈಲ್ ಬಳಸಿ.",
+    MICROPHONE_UNSUPPORTED:
+      "ಈ ಬ್ರೌಸರ್‌ನಲ್ಲಿ ಆಡಿಯೊ ದಾಖಲಿಸಲಾಗುವುದಿಲ್ಲ. Chrome ಅಥವಾ Safariಯಲ್ಲಿ ತೆರೆಯಿರಿ ಅಥವಾ ಆಡಿಯೊ ಫೈಲ್ ಬಳಸಿ. ಟೈಪ್ ಮಾಡಬಹುದು.",
+    MICROPHONE_INSECURE:
+      "ಮೈಕ್ರೊಫೋನ್‌ಗೆ HTTPS ಅಥವಾ localhost ಬೇಕು. ಸುರಕ್ಷಿತ ವೆಬ್‌ಸೈಟ್ ತೆರೆಯಿರಿ ಅಥವಾ ಆಡಿಯೊ ಫೈಲ್ ಬಳಸಿ.",
+    MICROPHONE_NOT_FOUND:
+      "ಮೈಕ್ರೊಫೋನ್ ಕಂಡುಬಂದಿಲ್ಲ. ಒಂದು ಸಂಪರ್ಕಿಸಿ ಅಥವಾ ಆಡಿಯೊ ಫೈಲ್ ಬಳಸಿ.",
+    MICROPHONE_BUSY:
+      "ಮೈಕ್ರೊಫೋನ್ ಓದಲು ಆಗಲಿಲ್ಲ. ಸಾಧನದ ಅನುಮತಿ ಪರಿಶೀಲಿಸಿ ಮತ್ತು ಅದನ್ನು ಬಳಸುವ ಇತರ ಆ್ಯಪ್ ಮುಚ್ಚಿ.",
+    MICROPHONE_FAILED:
+      "ರೆಕಾರ್ಡಿಂಗ್ ಆರಂಭವಾಗಲಿಲ್ಲ. ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ, ಆಡಿಯೊ ಫೈಲ್ ಬಳಸಿ ಅಥವಾ ಟೈಪ್ ಮಾಡಿ.",
+    VOICE_EMPTY_AUDIO:
+      "ಆಡಿಯೊ ದಾಖಲಾಗಿಲ್ಲ. ನಿಲ್ಲಿಸುವ ಮೊದಲು ಸ್ವಲ್ಪ ಮಾತನಾಡಿ ಅಥವಾ ರೆಕಾರ್ಡಿಂಗ್ ಆಯ್ಕೆಮಾಡಿ.",
+    VOICE_FILE_TOO_LARGE: "3 MB ಗಿಂತ ಚಿಕ್ಕ ರೆಕಾರ್ಡಿಂಗ್ ಬಳಸಿ.",
+    VOICE_UNSUPPORTED_FORMAT:
+      "WAV, MP3, M4A, OGG ಅಥವಾ WebM ಆಡಿಯೊ ಫೈಲ್ ಆಯ್ಕೆಮಾಡಿ.",
+    VOICE_NOT_CONFIGURED: "ಈ ಸರ್ವರ್‌ನಲ್ಲಿ Sarvam ಸಿದ್ಧವಾಗಿಲ್ಲ. ಟೈಪ್ ಮಾಡಬಹುದು.",
+    VOICE_RATE_LIMIT:
+      "ಹೆಚ್ಚು ರೆಕಾರ್ಡಿಂಗ್‌ಗಳಾಗಿವೆ. ಒಂದು ನಿಮಿಷ ಕಾಯಿರಿ ಅಥವಾ ಟೈಪ್ ಮಾಡಿ.",
+    VOICE_AUTH_FAILED:
+      "Sarvam ಸರ್ವರ್ API ಕೀಲಿಯನ್ನು ಸ್ವೀಕರಿಸಲಿಲ್ಲ. ಕೀಲಿ ಮತ್ತು ಖಾತೆಯ ಅನುಮತಿ ಪರಿಶೀಲಿಸಿ. ಟೈಪ್ ಮಾಡಬಹುದು.",
+    VOICE_QUOTA_EXCEEDED:
+      "Sarvam ಖಾತೆಯಲ್ಲಿ ಕ್ರೆಡಿಟ್ ಬೇಕು. ಬ್ಯಾಲೆನ್ಸ್ ಪರಿಶೀಲಿಸಿ ಅಥವಾ ಟೈಪ್ ಮಾಡಿ.",
+    VOICE_SERVICE_BUSY:
+      "Sarvam ವ್ಯಸ್ತವಾಗಿದೆ ಅಥವಾ ಬಳಕೆ ಮಿತಿ ಮುಗಿದಿದೆ. ಸ್ವಲ್ಪ ಸಮಯದ ನಂತರ ಪ್ರಯತ್ನಿಸಿ ಅಥವಾ ಟೈಪ್ ಮಾಡಿ.",
+    VOICE_AUDIO_REJECTED:
+      "Sarvam ಈ ರೆಕಾರ್ಡಿಂಗ್ ಓದಲಿಲ್ಲ. ಚಿಕ್ಕ WAV, MP3 ಅಥವಾ M4A ಫೈಲ್ ಬಳಸಿ ಅಥವಾ ಮತ್ತೆ ದಾಖಲಿಸಿ.",
+    VOICE_UNAVAILABLE:
+      "ಮಾತನ್ನು ಬರೆಯುವ ಸೇವೆ ಈಗ ಲಭ್ಯವಿಲ್ಲ. ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ ಅಥವಾ ಟೈಪ್ ಮಾಡಿ.",
+    VOICE_TIMEOUT:
+      "ಮಾತನ್ನು ಬರೆಯಲು ಹೆಚ್ಚು ಸಮಯವಾಯಿತು. ಚಿಕ್ಕ ರೆಕಾರ್ಡಿಂಗ್ ಬಳಸಿ ಅಥವಾ ಟೈಪ್ ಮಾಡಿ.",
+    VOICE_NETWORK:
+      "ಮಾತಿನ ಸೇವೆಯನ್ನು ಸಂಪರ್ಕಿಸಲಾಗಲಿಲ್ಲ. ಸಂಪರ್ಕ ಪರಿಶೀಲಿಸಿ ಅಥವಾ ಟೈಪ್ ಮಾಡಿ.",
+    VOICE_NO_SPEECH:
+      "ಸ್ಪಷ್ಟ ಮಾತು ಗುರುತಿಸಲಾಗಲಿಲ್ಲ. ಕೆಲವು ಸೆಕೆಂಡುಗಳು ಸ್ಪಷ್ಟವಾಗಿ ಮಾತನಾಡಿ ಅಥವಾ ಟೈಪ್ ಮಾಡಿ.",
+
     UNAUTHENTICATED: "ನಿಮ್ಮ ಅಂಗಡಿಗೆ ಸೈನ್ ಇನ್ ಮಾಡಿ.",
     ONBOARDING_REQUIRED: "ಅಂಗಡಿ ಸಿದ್ಧತೆ ಪೂರ್ಣಗೊಳಿಸಿ.",
     NOT_FOUND: "ಈ ಮಾಹಿತಿ ನಿಮ್ಮ ಖಾತೆಗೆ ಲಭ್ಯವಿಲ್ಲ.",

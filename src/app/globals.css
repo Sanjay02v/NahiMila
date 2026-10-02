@@ -1967,3 +1967,10 @@ input[type="checkbox"] {
   font-size: 14px;
   margin: 12px 0 20px;
 }
+
+.voice-controls {
+  flex-wrap: wrap;
+}
+.voice-hint {
+  margin-top: 10px;
+}

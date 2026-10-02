@@ -1,11 +1,13 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Mic, Square, ArrowRight, LoaderCircle } from "lucide-react";
+import { ArrowRight, LoaderCircle } from "lucide-react";
 import type { Intent } from "@/lib/product/types";
 import type { MatchReview } from "@/lib/product/matching";
 import { manualDraft } from "@/lib/product/intent";
 import { api, Modal } from "./common";
+import { useVoiceRecording } from "@/hooks/useVoiceRecording";
+import VoiceControls from "./VoiceControls";
 export default function Capture({
   voice,
   initial = "",
@@ -24,20 +26,12 @@ export default function Capture({
     [wait, setWait] = useState(false),
     [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
-    [recording, setRecording] = useState(false),
     [notice, setNotice] = useState("");
-  const recorder = useRef<MediaRecorder | null>(null),
-    stream = useRef<MediaStream | null>(null),
-    timer = useRef<ReturnType<typeof setTimeout> | null>(null),
-    submission = useRef(crypto.randomUUID());
-  useEffect(
-    () => () => {
-      if (timer.current) clearTimeout(timer.current);
-      if (recorder.current?.state === "recording") recorder.current.stop();
-      stream.current?.getTracks().forEach((t) => t.stop());
-    },
-    [],
-  );
+  const submission = useRef(crypto.randomUUID());
+  const recording = useVoiceRecording((value) => {
+    setRaw(value);
+    setNotice(t("recorded"));
+  });
   const update = (field: keyof Intent, value: unknown) => {
     if (
       [
@@ -65,57 +59,6 @@ export default function Capture({
       setNotice(t("aiFailed"));
     } finally {
       setBusy(false);
-    }
-  }
-  async function record() {
-    if (recording) {
-      recorder.current?.stop();
-      return;
-    }
-    setError("");
-    try {
-      stream.current = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-      });
-      const r = new MediaRecorder(stream.current);
-      recorder.current = r;
-      const chunks: BlobPart[] = [];
-      r.ondataavailable = (e) => {
-        if (e.data.size) chunks.push(e.data);
-      };
-      r.onstop = async () => {
-        setRecording(false);
-        stream.current?.getTracks().forEach((t) => t.stop());
-        setBusy(true);
-        try {
-          const f = new FormData();
-          f.append(
-            "file",
-            new Blob(chunks, { type: r.mimeType }),
-            "request.webm",
-          );
-          const response = await fetch("/api/voice/transcribe", {
-            method: "POST",
-            body: f,
-          });
-          const j = await response.json();
-          if (!response.ok) throw new Error("AI_UNAVAILABLE");
-          setRaw(j.transcript);
-          setNotice(t("recorded"));
-        } catch {
-          setError(t("voiceOff"));
-        } finally {
-          setBusy(false);
-        }
-      };
-      r.start();
-      setRecording(true);
-      timer.current = setTimeout(() => {
-        if (r.state === "recording") r.stop();
-      }, 20000);
-    } catch {
-      stream.current?.getTracks().forEach((t) => t.stop());
-      setError(t("voiceOff"));
     }
   }
   const localDate = (value: string | null) =>
@@ -151,20 +94,16 @@ export default function Capture({
               maxLength={1200}
             />
           </label>
-          <div className="voice-controls">
-            <button
-              className={`button secondary ${recording ? "recording" : ""}`}
-              disabled={!voice || busy}
-              onClick={record}
-            >
-              {recording ? <Square size={18} /> : <Mic size={18} />}{" "}
-              {recording ? t("listen") : t("speak")}
-            </button>
-            <p>{voice ? t("voiceConsent") : t("voiceOff")}</p>
-          </div>
+          <VoiceControls voice={recording} configured={voice} disabled={busy} />
           <button
             className="button full"
-            disabled={busy || !raw.trim()}
+            disabled={
+              busy ||
+              recording.working ||
+              recording.requesting ||
+              recording.recording ||
+              !raw.trim()
+            }
             onClick={interpret}
           >
             {busy ? (

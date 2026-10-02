@@ -1,7 +1,8 @@
 "use client";
-import { useRef, useState, useEffect } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { Mic, Square } from "lucide-react";
+import { useVoiceRecording } from "@/hooks/useVoiceRecording";
+import VoiceControls from "./VoiceControls";
 import { api, Modal } from "./common";
 export default function Agent({
   configured,
@@ -18,18 +19,11 @@ export default function Agent({
     [error, setError] = useState(""),
     [rows, setRows] = useState<
       { title: string; detail: string; count: number | string }[] | null
-    >(null),
-    [recording, setRecording] = useState(false);
-  const recorder = useRef<MediaRecorder | null>(null),
-    stream = useRef<MediaStream | null>(null),
-    timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(
-    () => () => {
-      stream.current?.getTracks().forEach((t) => t.stop());
-      if (timer.current) clearTimeout(timer.current);
-    },
-    [],
-  );
+    >(null);
+  const recording = useVoiceRecording((value) => {
+    setQuestion(value);
+    setError("");
+  });
   async function ask(tool?: string) {
     setBusy(true);
     setError("");
@@ -40,52 +34,6 @@ export default function Agent({
       setError(t.has(`error.${code}`) ? t(`error.${code}`) : t("errorGeneric"));
     } finally {
       setBusy(false);
-    }
-  }
-  async function record() {
-    if (recording) {
-      recorder.current?.stop();
-      return;
-    }
-    try {
-      stream.current = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-      });
-      const r = new MediaRecorder(stream.current);
-      recorder.current = r;
-      const chunks: BlobPart[] = [];
-      r.ondataavailable = (e) => chunks.push(e.data);
-      r.onstop = async () => {
-        stream.current?.getTracks().forEach((t) => t.stop());
-        setRecording(false);
-        setBusy(true);
-        try {
-          const form = new FormData();
-          form.append(
-            "file",
-            new Blob(chunks, { type: r.mimeType }),
-            "question.webm",
-          );
-          const response = await fetch("/api/voice/transcribe", {
-            method: "POST",
-            body: form,
-          });
-          const j = await response.json();
-          if (!response.ok) throw new Error();
-          setQuestion(j.transcript);
-        } catch {
-          setError(t("voiceOff"));
-        } finally {
-          setBusy(false);
-        }
-      };
-      r.start();
-      setRecording(true);
-      timer.current = setTimeout(() => {
-        if (r.state === "recording") r.stop();
-      }, 20000);
-    } catch {
-      setError(t("voiceOff"));
     }
   }
   return (
@@ -102,18 +50,18 @@ export default function Agent({
         onChange={(e) => setQuestion(e.target.value)}
         placeholder={t("agentPlaceholder")}
       />
+      <VoiceControls voice={recording} configured={voice} disabled={busy} />
       <div className="modal-actions">
         <button
-          className="button secondary"
-          onClick={record}
-          disabled={busy || !voice}
-        >
-          {recording ? <Square size={17} /> : <Mic size={17} />}{" "}
-          {t(recording ? "listen" : "speak")}
-        </button>
-        <button
           className="button"
-          disabled={busy || !configured || !question.trim()}
+          disabled={
+            busy ||
+            recording.working ||
+            recording.requesting ||
+            recording.recording ||
+            !configured ||
+            !question.trim()
+          }
           onClick={() => ask()}
         >
           {t("send")}
@@ -124,7 +72,12 @@ export default function Agent({
         {(["requests", "nearby", "orders", "pickups"] as const).map((tool) => (
           <button
             className="button secondary small"
-            disabled={busy}
+            disabled={
+              busy ||
+              recording.working ||
+              recording.recording ||
+              recording.requesting
+            }
             key={tool}
             onClick={() => ask(tool)}
           >
