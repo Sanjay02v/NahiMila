@@ -18,11 +18,12 @@ import {
   LoaderCircle,
 } from "lucide-react";
 import type { MerchantView, QuoteView } from "@/lib/product/types";
-import { api, Brand, Language, Modal, Money, OfferActions } from "./common";
+import { api, Brand, Language, Modal, Money, WhatsAppAction } from "./common";
 import Access from "./Access";
 import Capture from "./Capture";
 import QuoteForm from "./QuoteForm";
 import Agent from "./Agent";
+import DemandBook from "./DemandBook";
 import { quoteActions, quoteBlockers } from "@/lib/product/quote-actions";
 type View = "home" | "requests" | "nearby" | "orders" | "settings";
 const navigation = [
@@ -152,18 +153,6 @@ export default function MerchantApp() {
     (n, o) => n + o.pickups.filter((p) => !p.outcome).length,
     0,
   );
-  const status = (s: string) =>
-    (
-      ({
-        MISSED_DEMAND: "observed",
-        OFFER_CREATED: "awaiting",
-        CUSTOMER_CONFIRMED: "confirmed",
-        CANCELLED: "withdrawn",
-        READY_FOR_PICKUP: "committed",
-        PICKED_UP: "collected",
-        NO_SHOW: "noShow",
-      }) as Record<string, string>
-    )[s] || "observed";
   const date = (s: string) =>
     new Intl.DateTimeFormat(`${locale}-IN`, {
       day: "numeric",
@@ -172,12 +161,6 @@ export default function MerchantApp() {
       minute: "2-digit",
       timeZone: "Asia/Kolkata",
     }).format(new Date(s));
-  const grouped = Array.from(
-    new Map(data.requests.map((r) => [r.product.id, r.product])).values(),
-  ).map((p) => ({
-    product: p,
-    rows: data.requests.filter((r) => r.product.id === p.id),
-  }));
   const displayPack = (s: string) =>
     s === "Unspecified pack" ? t("unknownPack") : s;
   const signals = (
@@ -476,7 +459,7 @@ export default function MerchantApp() {
               }}
             >
               <Plus size={17} />
-              {t("newRequest")}
+              {t("recordRequest")}
             </button>
           </div>
         </header>
@@ -582,111 +565,17 @@ export default function MerchantApp() {
             </>
           )}
           {view === "requests" && (
-            <>
-              <div className="page-heading">
-                <div>
-                  <h1>{t("privateBook")}</h1>
-                  <p>{t("bookHint")}</p>
-                </div>
-                <button
-                  className="button secondary"
-                  onClick={() => {
-                    setCaptureMode("type");
-                    setCapture(true);
-                  }}
-                >
-                  <Plus size={18} />
-                  {t("newRequest")}
-                </button>
-              </div>
-              {!data.requests.length ? (
-                <div className="empty">
-                  <ClipboardList size={38} />
-                  <h2>{t("emptyRequests")}</h2>
-                  <p>{t("emptyHint")}</p>
-                </div>
-              ) : (
-                <>
-                  <h2 className="book-label">{t("groupedTitle")}</h2>
-                  <div className="book-summary">
-                    {grouped.map((g) => (
-                      <article key={g.product.id}>
-                        <strong>{g.rows.length}</strong>
-                        <div>
-                          <b>{g.product.name}</b>
-                          <p>{displayPack(g.product.pack_size)}</p>
-                          <small>
-                            {
-                              g.rows.filter((r) => r.status === "MISSED_DEMAND")
-                                .length
-                            }{" "}
-                            {t("observed")} ·{" "}
-                            {
-                              g.rows.filter((r) =>
-                                [
-                                  "CUSTOMER_CONFIRMED",
-                                  "READY_FOR_PICKUP",
-                                  "PICKED_UP",
-                                  "NO_SHOW",
-                                ].includes(r.status),
-                              ).length
-                            }{" "}
-                            {t("confirmed")}
-                          </small>
-                        </div>
-                      </article>
-                    ))}
-                  </div>
-                  <div className="request-list">
-                    {[...data.requests].reverse().map((r) => (
-                      <article className="request-row" key={r.id}>
-                        <div className="request-row-main">
-                          <span className="card-symbol">
-                            <ShoppingBag size={23} />
-                          </span>
-                          <div>
-                            <h3>{r.product.name}</h3>
-                            <p>
-                              {displayPack(r.product.pack_size)} · {r.quantity}{" "}
-                              {t("units")} ·{" "}
-                              {r.customer_name === "Walk-in Customer"
-                                ? ""
-                                : r.customer_name}
-                            </p>
-                            <small>{date(r.created_at)}</small>
-                          </div>
-                          <span
-                            className={`status ${r.status === "CUSTOMER_CONFIRMED" ? "positive" : ""}`}
-                          >
-                            {t(status(r.status))}
-                          </span>
-                        </div>
-                        {r.detail && (
-                          <details className="details">
-                            <summary>
-                              {t("view")}
-                              <ChevronRight size={16} />
-                            </summary>
-                            <p>“{r.detail.raw_text}”</p>
-                            {r.detail.intent.hard_constraints.length > 0 && (
-                              <p>
-                                {r.detail.intent.hard_constraints.join(" · ")}
-                              </p>
-                            )}
-                          </details>
-                        )}
-                        {r.offer && (
-                          <OfferActions
-                            token={r.offer.token}
-                            onNotice={setNotice}
-                          />
-                        )}
-                      </article>
-                    ))}
-                  </div>
-                </>
-              )}
-            </>
+            <DemandBook
+              requests={data.requests}
+              shop={data.shop.name}
+              busy={busy}
+              mutate={mutate}
+              onNotice={setNotice}
+              onRecord={() => {
+                setCaptureMode("type");
+                setCapture(true);
+              }}
+            />
           )}
           {view === "nearby" && (
             <>
@@ -803,6 +692,26 @@ export default function MerchantApp() {
                             </span>
                           ) : (
                             <div>
+                              {p.phone && !p.can_no_show && (
+                                <WhatsAppAction
+                                  phone={p.phone}
+                                  label={t("notifyWhatsApp")}
+                                  message={() =>
+                                    t("pickupMessage", {
+                                      shop: data.shop.name,
+                                      product: o.product.name,
+                                      pack: o.product.pack_size,
+                                      quantity: p.quantity,
+                                      price: new Intl.NumberFormat(
+                                        `${locale}-IN`,
+                                        { style: "currency", currency: "INR" },
+                                      ).format(p.price / 100),
+                                      deadline: date(p.deadline),
+                                      link: `${window.location.origin}/confirm/${p.token}`,
+                                    })
+                                  }
+                                />
+                              )}
                               <button
                                 className="button secondary small"
                                 disabled={busy}

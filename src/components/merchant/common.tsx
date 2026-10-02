@@ -1,7 +1,7 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import { ShoppingBag, X, ArrowUpRight } from "lucide-react";
+import { ShoppingBag, X, Copy, MessageCircle } from "lucide-react";
 export function Brand() {
   return (
     <span className="brand">
@@ -114,91 +114,71 @@ export async function api(url: string, payload?: unknown) {
   if (!r.ok) throw new Error(j.error || "UNKNOWN");
   return j;
 }
-function OfferQr({ token }: { token: string }) {
-  const ref = useRef<HTMLCanvasElement>(null),
-    [error, setError] = useState(false),
-    t = useTranslations();
-  useEffect(() => {
-    let active = true;
-    import("qrcode")
-      .then((q) =>
-        q.toCanvas(ref.current!, `${window.location.origin}/confirm/${token}`, {
-          width: 240,
-          margin: 2,
-          errorCorrectionLevel: "M",
-        }),
-      )
-      .catch(() => {
-        if (active) setError(true);
-      });
-    return () => {
-      active = false;
-    };
-  }, [token]);
+export function WhatsAppAction({
+  phone,
+  message,
+  label,
+}: {
+  phone: string;
+  message: () => string;
+  label: string;
+}) {
   return (
-    <div className="offer-qr">
-      <canvas ref={ref} role="img" aria-label={t("showQr")} />
-      {error && <p className="error">{t("errorGeneric")}</p>}
-      <p>{t("offerHint")}</p>
-    </div>
+    <button
+      className="button secondary small"
+      onClick={() =>
+        window.open(
+          `https://wa.me/${phone}?text=${encodeURIComponent(message())}`,
+          "_blank",
+          "noopener,noreferrer",
+        )
+      }
+    >
+      <MessageCircle size={15} />
+      {label}
+    </button>
   );
 }
 export function OfferActions({
   token,
+  phone,
+  pending,
+  message,
   onNotice,
 }: {
   token: string;
+  phone?: string;
+  pending: boolean;
+  message: (link: string) => string;
   onNotice: (s: string) => void;
 }) {
-  const t = useTranslations(),
-    [qr, setQr] = useState(false);
+  const t = useTranslations();
   return (
-    <>
-      <div className="offer-actions">
-        <span>{t("offerReady")}</span>
-        <div>
-          <button
-            className="button secondary small"
-            onClick={() => setQr(true)}
-          >
-            {t("showQr")}
-          </button>
-          <button
-            className="button secondary small"
-            onClick={async () => {
-              try {
-                await navigator.clipboard.writeText(
-                  `${window.location.origin}/confirm/${token}`,
-                );
-                onNotice(t("copied"));
-              } catch {
-                window.open(
-                  `/confirm/${token}`,
-                  "_blank",
-                  "noopener,noreferrer",
-                );
-              }
-            }}
-          >
-            {t("copy")}
-          </button>
-          <a
-            className="button secondary small"
-            href={`/confirm/${token}`}
-            target="_blank"
-            rel="noreferrer"
-          >
-            {t("preview")}
-            <ArrowUpRight size={14} />
-          </a>
-        </div>
-      </div>
-      {qr && (
-        <Modal title={t("offerReady")} close={() => setQr(false)}>
-          <OfferQr token={token} />
-        </Modal>
+    <div className="demand-share">
+      <button
+        className="button secondary small"
+        onClick={async () => {
+          try {
+            await navigator.clipboard.writeText(
+              `${window.location.origin}/confirm/${token}`,
+            );
+            onNotice(t("copied"));
+          } catch {
+            onNotice(t("copyFailed"));
+          }
+        }}
+      >
+        <Copy size={15} />
+        {t(pending ? "copyConfirmation" : "copyDetails")}
+      </button>
+      {phone && (
+        <WhatsAppAction
+          phone={phone}
+          label={t("shareWhatsApp")}
+          message={() => message(`${window.location.origin}/confirm/${token}`)}
+        />
       )}
-    </>
+    </div>
   );
 }
 export function Language({ persistShop = false }: { persistShop?: boolean }) {

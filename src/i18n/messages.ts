@@ -1,4 +1,67 @@
 export const en = {
+  pendingUnits: "Pending units",
+  demandUnits: "Demand units",
+  reviewFailure:
+    "Couldn’t save. Close this dialog, review the latest entry and check the details before trying again.",
+
+  demandBookHint:
+    "Your shop’s unmet demand, grouped by exact product and pack.",
+  searchDemand: "Search product or pack",
+  filterDemand: "Filter entries",
+  filter_all: "All entries",
+  filter_demand: "Demand only",
+  filter_pending: "Awaiting confirmation",
+  filter_confirmed: "Confirmed for ordering",
+  filter_history: "Order and past history",
+  demandRule:
+    "Only active, customer-confirmed reservations support a shared order. Collection is still uncertain.",
+  noMatchingDemand: "No matching products",
+  adjustFilters: "Try another search or filter.",
+  entryCount: "{count, plural, one {# entry} other {# entries}}",
+  requestedUnits: "Requested units · all history",
+  demandOnly: "Demand only",
+  confirmedUnits: "Confirmed units for ordering",
+  walkIn: "Walk-in customer",
+  waitNoContact:
+    "Willing to wait, without contact details. Demand signal only; excluded from orders.",
+  demandSignalHint: "Recorded interest, not a reservation.",
+  customerPhone: "Customer phone · optional for demand",
+  noContactHint:
+    "Without a phone number, save this as demand only. No reservation or order commitment is created.",
+  offerPrice: "Exact offered price per unit (₹)",
+  acceptedPrice: "Accepted price per unit",
+  contact: "Contact",
+  contactConsent:
+    "Customer agrees to receive reservation and pickup messages at this number.",
+  confirmationPath: "How will the customer confirm?",
+  confirmByLink: "Send a link for confirmation",
+  confirmedInStore: "Confirmed in-store",
+  confirmedByLink: "Confirmed through customer link",
+  confirmInStoreAction: "Record in-store confirmation",
+  termsAccepted:
+    "Customer explicitly accepted this exact pack, quantity, price and pickup deadline, subject to the shared order becoming viable.",
+  reservationRisk:
+    "A confirmed reservation is not a payment or guaranteed collection.",
+  copyConfirmation: "Copy confirmation link",
+  copyDetails: "Copy reservation details link",
+  copyFailed:
+    "Couldn’t copy the link. Please allow clipboard access and try again.",
+  shareWhatsApp: "Share on WhatsApp",
+  notifyWhatsApp: "Notify on WhatsApp",
+  confirmationMessage:
+    "{shop}: Please confirm {quantity} × {product} ({pack}) at {price} per unit, pickup by {deadline}. Supply depends on a viable shared order; no payment has been taken. {link}",
+  reservationMessage:
+    "{shop}: Your reservation is confirmed: {quantity} × {product} ({pack}) at {price} per unit, pickup by {deadline}. No further confirmation is needed. Supply depends on a viable shared order; this is not an arrival notice. Details: {link}",
+  pickupMessage:
+    "{shop}: Your {quantity} × {product} ({pack}) has arrived. Price: {price} per unit. Please collect by {deadline}. Reservation details: {link}",
+  reviseTerms: "Change reservation terms",
+  reconfirmHint:
+    "Saving replaces the old link and removes any previous confirmation. The customer must accept the new terms before this can support an order.",
+  saveNewTerms: "Save and request confirmation again",
+  showMoreProducts: "Show more products",
+  showMoreEntries: "Show more entries",
+  expired: "Expired",
+
   uploadAudio: "Use audio file",
   voicePermissionPending:
     "Starting live transcription. Allow microphone access if prompted.",
@@ -267,6 +330,13 @@ export const en = {
   needsDetails: "Needs details",
   unknownPack: "Pack not specified",
   error: {
+    INVALID_PHONE:
+      "Enter a valid Indian mobile number or a full international number starting with +.",
+    CONTACT_CONSENT_REQUIRED:
+      "Reservations need a phone number and the customer’s agreement to receive updates.",
+    CONFIRMATION_REQUIRED:
+      "Record explicit acceptance of the exact reservation terms.",
+
     VOICE_SESSION_EXPIRED:
       "The live recording ended. Start another or continue by typing.",
     VOICE_ALREADY_ACTIVE:
@@ -341,6 +411,66 @@ export const en = {
 type Messages = typeof en;
 export const hi: Messages = {
   ...en,
+  pendingUnits: "पुष्टि बाकी इकाइयाँ",
+  demandUnits: "माँग की इकाइयाँ",
+  reviewFailure:
+    "सहेजा नहीं गया। यह विंडो बंद करें, नवीनतम प्रविष्टि और विवरण जाँचकर फिर प्रयास करें।",
+
+  demandBookHint: "आपकी दुकान की अधूरी माँग, सटीक उत्पाद और पैक के अनुसार।",
+  searchDemand: "उत्पाद या पैक खोजें",
+  filterDemand: "प्रविष्टियाँ फ़िल्टर करें",
+  filter_all: "सभी प्रविष्टियाँ",
+  filter_demand: "केवल माँग",
+  filter_pending: "पुष्टि बाकी",
+  filter_confirmed: "ऑर्डर के लिए पुष्ट",
+  filter_history: "ऑर्डर और पुराना इतिहास",
+  demandRule:
+    "केवल सक्रिय, ग्राहक द्वारा पुष्ट आरक्षण साझा ऑर्डर में गिने जाते हैं। ग्राहक का सामान लेना अभी भी निश्चित नहीं है।",
+  noMatchingDemand: "कोई उत्पाद नहीं मिला",
+  adjustFilters: "दूसरी खोज या फ़िल्टर आज़माएँ।",
+  entryCount: "{count} प्रविष्टियाँ",
+  requestedUnits: "माँगी गई इकाइयाँ · पूरा इतिहास",
+  demandOnly: "केवल माँग",
+  confirmedUnits: "ऑर्डर के लिए पुष्ट इकाइयाँ",
+  walkIn: "दुकान पर आया ग्राहक",
+  waitNoContact:
+    "इंतज़ार को तैयार, पर संपर्क विवरण नहीं। केवल माँग; ऑर्डर में नहीं गिना जाएगा।",
+  demandSignalHint: "दर्ज रुचि, आरक्षण नहीं।",
+  customerPhone: "ग्राहक का फ़ोन · माँग दर्ज करने के लिए वैकल्पिक",
+  noContactHint:
+    "फ़ोन नंबर के बिना केवल माँग दर्ज होगी। आरक्षण या ऑर्डर की प्रतिबद्धता नहीं बनेगी।",
+  offerPrice: "प्रति इकाई सटीक प्रस्तावित कीमत (₹)",
+  acceptedPrice: "प्रति इकाई स्वीकृत कीमत",
+  contact: "संपर्क",
+  contactConsent:
+    "ग्राहक इस नंबर पर आरक्षण और पिकअप संदेश पाने के लिए सहमत है।",
+  confirmationPath: "ग्राहक पुष्टि कैसे करेगा?",
+  confirmByLink: "पुष्टि के लिए लिंक भेजें",
+  confirmedInStore: "दुकान में पुष्टि हुई",
+  confirmedByLink: "ग्राहक लिंक से पुष्टि हुई",
+  confirmInStoreAction: "दुकान में हुई पुष्टि दर्ज करें",
+  termsAccepted:
+    "ग्राहक ने साझा ऑर्डर संभव होने की शर्त पर यही पैक, मात्रा, कीमत और पिकअप समय स्पष्ट रूप से स्वीकार किया है।",
+  reservationRisk: "पुष्ट आरक्षण भुगतान या सामान लेने की गारंटी नहीं है।",
+  copyConfirmation: "पुष्टि लिंक कॉपी करें",
+  copyDetails: "आरक्षण विवरण लिंक कॉपी करें",
+  copyFailed: "लिंक कॉपी नहीं हुआ। क्लिपबोर्ड की अनुमति देकर फिर कोशिश करें।",
+  shareWhatsApp: "WhatsApp पर साझा करें",
+  notifyWhatsApp: "WhatsApp पर सूचना दें",
+  confirmationMessage:
+    "{shop}: कृपया {quantity} × {product} ({pack}), प्रति इकाई {price}, पिकअप {deadline} तक, की पुष्टि करें। आपूर्ति साझा ऑर्डर संभव होने पर निर्भर है; भुगतान नहीं लिया गया है। {link}",
+  reservationMessage:
+    "{shop}: आपका आरक्षण पुष्ट है: {quantity} × {product} ({pack}), प्रति इकाई {price}, पिकअप {deadline} तक। फिर पुष्टि की ज़रूरत नहीं। आपूर्ति साझा ऑर्डर संभव होने पर निर्भर है; यह सामान आने की सूचना नहीं है। विवरण: {link}",
+  pickupMessage:
+    "{shop}: आपका {quantity} × {product} ({pack}) आ गया है। प्रति इकाई कीमत {price}। कृपया {deadline} तक ले जाएँ। आरक्षण विवरण: {link}",
+  reviseTerms: "आरक्षण की शर्तें बदलें",
+  reconfirmHint:
+    "सहेजने पर पुराना लिंक और पिछली पुष्टि अमान्य होंगे। ऑर्डर में गिनने से पहले ग्राहक को नई शर्तें स्वीकार करनी होंगी।",
+  saveNewTerms: "सहेजें और दोबारा पुष्टि माँगें",
+  showMoreProducts: "और उत्पाद दिखाएँ",
+  showMoreEntries: "और प्रविष्टियाँ दिखाएँ",
+  expired: "समय समाप्त",
+
   uploadAudio: "ऑडियो फ़ाइल चुनें",
   voicePermissionPending:
     "लाइव ट्रांसक्रिप्शन शुरू हो रहा है। पूछे जाने पर माइक्रोफ़ोन की अनुमति दें।",
@@ -594,6 +724,13 @@ export const hi: Messages = {
   needsDetails: "जानकारी चाहिए",
   unknownPack: "पैक नहीं बताया",
   error: {
+    INVALID_PHONE:
+      "सही भारतीय मोबाइल नंबर या + से शुरू पूरा अंतरराष्ट्रीय नंबर डालें।",
+    CONTACT_CONSENT_REQUIRED:
+      "आरक्षण के लिए फ़ोन नंबर और संदेश पाने की ग्राहक की सहमति चाहिए।",
+    CONFIRMATION_REQUIRED:
+      "आरक्षण की सटीक शर्तों की स्पष्ट स्वीकृति दर्ज करें।",
+
     VOICE_SESSION_EXPIRED: "लाइव रिकॉर्डिंग खत्म हो गई। नई शुरू करें या लिखें।",
     VOICE_ALREADY_ACTIVE:
       "आपकी दुकान में एक रिकॉर्डिंग चल रही है। दूसरी शुरू करने से पहले उसे रोकें।",
@@ -657,6 +794,68 @@ export const hi: Messages = {
 };
 export const kn: Messages = {
   ...en,
+  pendingUnits: "ದೃಢೀಕರಣ ಬಾಕಿ ಘಟಕಗಳು",
+  demandUnits: "ಬೇಡಿಕೆಯ ಘಟಕಗಳು",
+  reviewFailure:
+    "ಉಳಿಸಲಾಗಲಿಲ್ಲ. ಈ ಕಿಟಕಿ ಮುಚ್ಚಿ, ಇತ್ತೀಚಿನ ದಾಖಲೆ ಮತ್ತು ವಿವರ ಪರಿಶೀಲಿಸಿ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+
+  demandBookHint:
+    "ನಿಮ್ಮ ಅಂಗಡಿಯ ಈಡೇರದ ಬೇಡಿಕೆ, ನಿಖರ ಉತ್ಪನ್ನ ಮತ್ತು ಪ್ಯಾಕ್ ಪ್ರಕಾರ.",
+  searchDemand: "ಉತ್ಪನ್ನ ಅಥವಾ ಪ್ಯಾಕ್ ಹುಡುಕಿ",
+  filterDemand: "ದಾಖಲೆಗಳನ್ನು ಆಯ್ಕೆಮಾಡಿ",
+  filter_all: "ಎಲ್ಲಾ ದಾಖಲೆಗಳು",
+  filter_demand: "ಬೇಡಿಕೆ ಮಾತ್ರ",
+  filter_pending: "ದೃಢೀಕರಣ ಬಾಕಿ",
+  filter_confirmed: "ಆರ್ಡರ್‌ಗೆ ದೃಢಪಟ್ಟಿದೆ",
+  filter_history: "ಆರ್ಡರ್ ಮತ್ತು ಹಿಂದಿನ ದಾಖಲೆಗಳು",
+  demandRule:
+    "ಸಕ್ರಿಯ, ಗ್ರಾಹಕರು ದೃಢಪಡಿಸಿದ ಕಾಯ್ದಿರಿಸುವಿಕೆಗಳು ಮಾತ್ರ ಹಂಚಿಕೆ ಆರ್ಡರ್‌ಗೆ ಸೇರುತ್ತವೆ. ಗ್ರಾಹಕರು ಬಂದು ಪಡೆಯುವುದು ಖಚಿತವಲ್ಲ.",
+  noMatchingDemand: "ಹೊಂದುವ ಉತ್ಪನ್ನಗಳಿಲ್ಲ",
+  adjustFilters: "ಬೇರೆ ಹುಡುಕಾಟ ಅಥವಾ ಆಯ್ಕೆ ಪ್ರಯತ್ನಿಸಿ.",
+  entryCount: "{count} ದಾಖಲೆಗಳು",
+  requestedUnits: "ಕೇಳಿದ ಘಟಕಗಳು · ಎಲ್ಲಾ ದಾಖಲೆಗಳು",
+  demandOnly: "ಬೇಡಿಕೆ ಮಾತ್ರ",
+  confirmedUnits: "ಆರ್ಡರ್‌ಗೆ ದೃಢಪಟ್ಟ ಘಟಕಗಳು",
+  walkIn: "ಅಂಗಡಿಗೆ ಬಂದ ಗ್ರಾಹಕ",
+  waitNoContact:
+    "ಕಾಯಲು ಸಿದ್ಧ, ಸಂಪರ್ಕ ವಿವರಗಳಿಲ್ಲ. ಬೇಡಿಕೆ ಮಾತ್ರ; ಆರ್ಡರ್‌ಗೆ ಸೇರುವುದಿಲ್ಲ.",
+  demandSignalHint: "ದಾಖಲಿಸಿದ ಆಸಕ್ತಿ, ಕಾಯ್ದಿರಿಸುವಿಕೆ ಅಲ್ಲ.",
+  customerPhone: "ಗ್ರಾಹಕರ ಫೋನ್ · ಬೇಡಿಕೆಗೆ ಐಚ್ಛಿಕ",
+  noContactHint:
+    "ಫೋನ್ ಸಂಖ್ಯೆ ಇಲ್ಲದೆ ಬೇಡಿಕೆ ಮಾತ್ರ ಉಳಿಯುತ್ತದೆ. ಕಾಯ್ದಿರಿಸುವಿಕೆ ಅಥವಾ ಆರ್ಡರ್ ಬದ್ಧತೆ ರಚಿಸುವುದಿಲ್ಲ.",
+  offerPrice: "ಪ್ರತಿ ಘಟಕದ ನಿಖರ ಪ್ರಸ್ತಾವಿತ ಬೆಲೆ (₹)",
+  acceptedPrice: "ಒಪ್ಪಿದ ಪ್ರತಿ ಘಟಕದ ಬೆಲೆ",
+  contact: "ಸಂಪರ್ಕ",
+  contactConsent:
+    "ಈ ಸಂಖ್ಯೆಗೆ ಕಾಯ್ದಿರಿಸುವಿಕೆ ಮತ್ತು ಪಡೆಯುವ ಸಂದೇಶಗಳನ್ನು ಸ್ವೀಕರಿಸಲು ಗ್ರಾಹಕರು ಒಪ್ಪಿದ್ದಾರೆ.",
+  confirmationPath: "ಗ್ರಾಹಕರು ಹೇಗೆ ದೃಢಪಡಿಸುತ್ತಾರೆ?",
+  confirmByLink: "ದೃಢೀಕರಣಕ್ಕೆ ಲಿಂಕ್ ಕಳುಹಿಸಿ",
+  confirmedInStore: "ಅಂಗಡಿಯಲ್ಲಿ ದೃಢಪಡಿಸಲಾಗಿದೆ",
+  confirmedByLink: "ಗ್ರಾಹಕರ ಲಿಂಕ್ ಮೂಲಕ ದೃಢಪಡಿಸಲಾಗಿದೆ",
+  confirmInStoreAction: "ಅಂಗಡಿಯ ದೃಢೀಕರಣ ದಾಖಲಿಸಿ",
+  termsAccepted:
+    "ಹಂಚಿಕೆ ಆರ್ಡರ್ ಸಾಧ್ಯವಾಗುವ ಷರತ್ತಿನೊಂದಿಗೆ ಈ ನಿಖರ ಪ್ಯಾಕ್, ಪ್ರಮಾಣ, ಬೆಲೆ ಮತ್ತು ಪಡೆಯುವ ಸಮಯವನ್ನು ಗ್ರಾಹಕರು ಸ್ಪಷ್ಟವಾಗಿ ಒಪ್ಪಿದ್ದಾರೆ.",
+  reservationRisk: "ದೃಢಪಟ್ಟ ಕಾಯ್ದಿರಿಸುವಿಕೆ ಪಾವತಿ ಅಥವಾ ಪಡೆಯುವ ಖಾತರಿಯಲ್ಲ.",
+  copyConfirmation: "ದೃಢೀಕರಣ ಲಿಂಕ್ ನಕಲಿಸಿ",
+  copyDetails: "ಕಾಯ್ದಿರಿಸುವಿಕೆ ವಿವರಗಳ ಲಿಂಕ್ ನಕಲಿಸಿ",
+  copyFailed:
+    "ಲಿಂಕ್ ನಕಲಿಸಲಾಗಲಿಲ್ಲ. ಕ್ಲಿಪ್‌ಬೋರ್ಡ್ ಅನುಮತಿ ನೀಡಿ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+  shareWhatsApp: "WhatsApp ಮೂಲಕ ಹಂಚಿಕೊಳ್ಳಿ",
+  notifyWhatsApp: "WhatsApp ಮೂಲಕ ತಿಳಿಸಿ",
+  confirmationMessage:
+    "{shop}: {quantity} × {product} ({pack}), ಪ್ರತಿ ಘಟಕ {price}, {deadline} ಒಳಗೆ ಪಡೆಯಲು ದಯವಿಟ್ಟು ದೃಢಪಡಿಸಿ. ಪೂರೈಕೆ ಸಾಧ್ಯವಾದ ಹಂಚಿಕೆ ಆರ್ಡರ್ ಅವಲಂಬಿತ; ಪಾವತಿ ಪಡೆದಿಲ್ಲ. {link}",
+  reservationMessage:
+    "{shop}: ನಿಮ್ಮ ಕಾಯ್ದಿರಿಸುವಿಕೆ ದೃಢಪಟ್ಟಿದೆ: {quantity} × {product} ({pack}), ಪ್ರತಿ ಘಟಕ {price}, {deadline} ಒಳಗೆ ಪಡೆಯಿರಿ. ಮತ್ತೆ ದೃಢೀಕರಣ ಅಗತ್ಯವಿಲ್ಲ. ಪೂರೈಕೆ ಹಂಚಿಕೆ ಆರ್ಡರ್ ಅವಲಂಬಿತ; ಇದು ಆಗಮನದ ಸೂಚನೆಯಲ್ಲ. ವಿವರಗಳು: {link}",
+  pickupMessage:
+    "{shop}: ನಿಮ್ಮ {quantity} × {product} ({pack}) ಬಂದಿದೆ. ಪ್ರತಿ ಘಟಕದ ಬೆಲೆ {price}. ದಯವಿಟ್ಟು {deadline} ಒಳಗೆ ಪಡೆಯಿರಿ. ಕಾಯ್ದಿರಿಸುವಿಕೆ ವಿವರಗಳು: {link}",
+  reviseTerms: "ಕಾಯ್ದಿರಿಸುವಿಕೆಯ ಷರತ್ತು ಬದಲಿಸಿ",
+  reconfirmHint:
+    "ಉಳಿಸಿದಾಗ ಹಳೆಯ ಲಿಂಕ್ ಮತ್ತು ಹಿಂದಿನ ದೃಢೀಕರಣ ಅಮಾನ್ಯವಾಗುತ್ತವೆ. ಆರ್ಡರ್‌ಗೆ ಸೇರುವ ಮೊದಲು ಗ್ರಾಹಕರು ಹೊಸ ಷರತ್ತು ಒಪ್ಪಬೇಕು.",
+  saveNewTerms: "ಉಳಿಸಿ ಮತ್ತೆ ದೃಢೀಕರಣ ಕೇಳಿ",
+  showMoreProducts: "ಇನ್ನಷ್ಟು ಉತ್ಪನ್ನಗಳನ್ನು ತೋರಿಸಿ",
+  showMoreEntries: "ಇನ್ನಷ್ಟು ದಾಖಲೆಗಳನ್ನು ತೋರಿಸಿ",
+  expired: "ಅವಧಿ ಮುಗಿದಿದೆ",
+
   uploadAudio: "ಆಡಿಯೊ ಫೈಲ್ ಬಳಸಿ",
   voicePermissionPending:
     "ನೇರ ಧ್ವನಿ ಪಠ್ಯ ಪ್ರಾರಂಭವಾಗುತ್ತಿದೆ. ಕೇಳಿದರೆ ಮೈಕ್ರೋಫೋನ್ ಅನುಮತಿ ನೀಡಿ.",
@@ -914,6 +1113,13 @@ export const kn: Messages = {
   needsDetails: "ವಿವರ ಬೇಕು",
   unknownPack: "ಪ್ಯಾಕ್ ತಿಳಿಸಿಲ್ಲ",
   error: {
+    INVALID_PHONE:
+      "ಸರಿಯಾದ ಭಾರತೀಯ ಮೊಬೈಲ್ ಸಂಖ್ಯೆ ಅಥವಾ + ಆರಂಭದ ಪೂರ್ಣ ಅಂತರರಾಷ್ಟ್ರೀಯ ಸಂಖ್ಯೆ ನಮೂದಿಸಿ.",
+    CONTACT_CONSENT_REQUIRED:
+      "ಕಾಯ್ದಿರಿಸುವಿಕೆಗೆ ಫೋನ್ ಸಂಖ್ಯೆ ಮತ್ತು ಮಾಹಿತಿ ಪಡೆಯಲು ಗ್ರಾಹಕರ ಒಪ್ಪಿಗೆ ಬೇಕು.",
+    CONFIRMATION_REQUIRED:
+      "ಕಾಯ್ದಿರಿಸುವಿಕೆಯ ನಿಖರ ಷರತ್ತುಗಳಿಗೆ ಸ್ಪಷ್ಟ ಒಪ್ಪಿಗೆ ದಾಖಲಿಸಿ.",
+
     VOICE_SESSION_EXPIRED:
       "ನೇರ ರೆಕಾರ್ಡಿಂಗ್ ಮುಗಿದಿದೆ. ಮತ್ತೊಂದು ಪ್ರಾರಂಭಿಸಿ ಅಥವಾ ಟೈಪ್ ಮಾಡಿ.",
     VOICE_ALREADY_ACTIVE:

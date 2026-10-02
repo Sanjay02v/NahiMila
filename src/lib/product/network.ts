@@ -221,12 +221,12 @@ export function merchantView(n: Network, shopId: string): MerchantView {
     ...r,
     product: s.products.find((p) => p.id === r.product_id)!,
     detail: n.details[r.id] || null,
-    offer: s.offers.find((o) => o.request_id === r.id)
+    offer: s.offers.find((o) => o.request_token === r.request_token)
       ? {
           token: r.request_token,
-          price: s.offers.find((o) => o.request_id === r.id)!
+          price: s.offers.find((o) => o.request_token === r.request_token)!
             .proposed_price_paise,
-          deadline: s.offers.find((o) => o.request_id === r.id)!
+          deadline: s.offers.find((o) => o.request_token === r.request_token)!
             .pickup_deadline,
         }
       : null,
@@ -367,6 +367,10 @@ export function merchantView(n: Network, shopId: string): MerchantView {
           name:
             mine.find((q) => q.id === r.request_id)?.customer_name ||
             "Customer",
+          phone:
+            mine.find((q) => q.id === r.request_id)?.customer_phone || null,
+          token: r.request_token,
+          deadline: s.offers.find((o) => o.id === r.offer_id)!.pickup_deadline,
           quantity: r.quantity,
           price: r.confirmed_price_paise,
           can_no_show:
@@ -409,7 +413,10 @@ export function customerView(n: Network, token: string): CustomerView {
     area: m.neighborhood,
     deadline: o.pickup_deadline,
     status: reserved?.status || r.status,
-    can_confirm: !reserved && Date.parse(o.pickup_deadline) > Date.now(),
+    can_confirm:
+      !reserved &&
+      r.status === "OFFER_CREATED" &&
+      Date.parse(o.pickup_deadline) > Date.now(),
     can_cancel: reserved?.status === "ACTIVE",
   };
 }
@@ -428,7 +435,16 @@ export function saveRequest(
   const i = canonicalIdentity(parseIntent(body.intent));
   const qty = i.quantity ?? 1;
   if (typeof body.can_wait !== "boolean") throw new Error("INVALID_REQUEST");
-  const canWait = body.can_wait === true;
+  const willing = body.can_wait === true;
+  const phone = normalizePhone(body.customer_phone);
+  const canWait = willing && !!phone;
+  if (phone && (!willing || body.contact_consent !== true))
+    throw new Error("CONTACT_CONSENT_REQUIRED");
+  if (
+    body.confirm_in_store === true &&
+    (!canWait || body.terms_accepted !== true)
+  )
+    throw new Error("CONFIRMATION_REQUIRED");
   if (canWait && (!i.size || !i.unit || !i.budget_paise || !i.deadline))
     throw new Error("OFFER_DETAILS_REQUIRED");
   const identity = productKey(i);
@@ -476,19 +492,67 @@ export function saveRequest(
     can_wait: canWait,
     pickup_deadline: canWait ? i.deadline! : undefined,
     customer_name: String(body.customer_name || "").slice(0, 80) || undefined,
+    customer_phone: canWait ? phone! : undefined,
   });
   if (offer) {
     if (Date.parse(i.deadline!) <= Date.now())
       throw new Error("INVALID_DEADLINE");
     offer.pickup_deadline = i.deadline!;
+    const price =
+      body.offer_price_paise === undefined
+        ? i.budget_paise!
+        : body.offer_price_paise;
+    if (
+      typeof price !== "number" ||
+      !Number.isSafeInteger(price) ||
+      price < 1 ||
+      price > i.budget_paise!
+    )
+      throw new Error("INVALID_REQUEST");
+    offer.proposed_price_paise = price;
   }
   n.details[request.id] = {
     raw_text: raw,
     intent: i,
     revision: 1,
     submission_key: key,
+    willing_to_wait: willing,
+    contact_consent: canWait,
+    confirmation: null,
   };
+  if (canWait && body.confirm_in_store === true) {
+    s.confirmCustomerOffer(request.request_token);
+    n.details[request.id].confirmation = {
+      method: "in_store",
+      at: new Date().toISOString(),
+    };
+    s.logAudit("RESERVATION", request.id, "IN_STORE_CONFIRMATION", {
+      merchant_id: shopId,
+      quantity: qty,
+      price: offer!.proposed_price_paise,
+      deadline: offer!.pickup_deadline,
+    });
+  }
   n.submissions[`${shopId}:${key}`] = request.id;
   n.state = s.exportState();
   return request;
+}
+
+export function normalizePhone(value: unknown): string | null {
+  if (value === undefined || value === null || value === "") return null;
+  if (
+    typeof value !== "string" ||
+    value.length > 30 ||
+    !/^[+\d\s()-]+$/.test(value)
+  )
+    throw new Error("INVALID_PHONE");
+  let digits = value.replace(/\D/g, "");
+  if (digits.length === 10 && /^[6-9]/.test(digits)) digits = "91" + digits;
+  else if (
+    !value.trim().startsWith("+") &&
+    !(digits.length === 12 && digits.startsWith("91"))
+  )
+    throw new Error("INVALID_PHONE");
+  if (!/^[1-9]\d{7,14}$/.test(digits)) throw new Error("INVALID_PHONE");
+  return digits;
 }

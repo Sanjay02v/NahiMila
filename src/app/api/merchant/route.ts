@@ -6,6 +6,7 @@ import {
   saveRequest,
   ownRequest,
   fingerprint,
+  normalizePhone,
 } from "@/lib/product/network";
 import { body, failure, ok, text, integer } from "@/lib/product/http";
 import { locales, type Locale, type Shop } from "@/lib/product/types";
@@ -86,9 +87,134 @@ export async function POST(req: Request) {
             n.state = s.exportState();
             break;
           }
+          case "confirm_in_store": {
+            const r = ownRequest(s, shop.id, text(b.request_id, 100));
+            const o = s.offers.find((o) => o.request_token === r.request_token);
+            if (
+              !o ||
+              !r.customer_phone ||
+              n.details[r.id]?.contact_consent !== true ||
+              b.terms_accepted !== true
+            )
+              throw new Error("CONFIRMATION_REQUIRED");
+            if (
+              b.quantity !== r.quantity ||
+              b.price_paise !== o.proposed_price_paise ||
+              b.deadline !== o.pickup_deadline
+            )
+              throw new Error("CONFLICT");
+            if (
+              r.status !== "OFFER_CREATED" &&
+              r.status !== "CUSTOMER_CONFIRMED"
+            )
+              throw new Error("INVALID_REQUEST");
+            const result = s.confirmCustomerOffer(r.request_token);
+            if (!result.isDuplicate) {
+              n.details[r.id].confirmation = {
+                method: "in_store",
+                at: new Date().toISOString(),
+              };
+              s.logAudit(
+                "RESERVATION",
+                result.reservation.id,
+                "IN_STORE_CONFIRMATION",
+                {
+                  merchant_id: shop.id,
+                  quantity: r.quantity,
+                  price: o.proposed_price_paise,
+                  deadline: o.pickup_deadline,
+                },
+              );
+            }
+            n.state = s.exportState();
+            break;
+          }
+          case "revise_offer": {
+            const r = ownRequest(s, shop.id, text(b.request_id, 100));
+            const old = s.offers.find(
+              (o) => o.request_token === r.request_token,
+            );
+            if (
+              !old ||
+              !["OFFER_CREATED", "CUSTOMER_CONFIRMED"].includes(r.status)
+            )
+              throw new Error("INVALID_REQUEST");
+            if (b.token !== r.request_token) throw new Error("CONFLICT");
+            const phone = normalizePhone(b.customer_phone ?? r.customer_phone);
+            if (!phone || b.contact_consent !== true)
+              throw new Error("CONTACT_CONSENT_REQUIRED");
+            const quantity = integer(b.quantity, 1, 100),
+              price = integer(b.price_paise, 1),
+              budget = integer(b.budget_paise, 1),
+              deadline = text(b.deadline, 50);
+            if (price > budget) throw new Error("INVALID_REQUEST");
+            if (
+              !Number.isFinite(Date.parse(deadline)) ||
+              Date.parse(deadline) <= Date.now()
+            )
+              throw new Error("INVALID_DEADLINE");
+            const active = s.reservations.find(
+              (x) =>
+                x.request_token === r.request_token && x.status !== "CANCELLED",
+            );
+            if (active && active.status !== "ACTIVE")
+              throw new Error("INVALID_REQUEST");
+            if (active)
+              s.cancelCustomerReservation(
+                r.request_token,
+                "Customer terms changed; confirmation required again",
+              );
+            s.invalidateAllApprovals("Customer terms changed");
+            const token = `NML-${crypto.randomUUID()}`;
+            Object.assign(r, {
+              quantity,
+              max_retail_price_paise: budget,
+              required_by_date: new Intl.DateTimeFormat("en-CA", {
+                timeZone: "Asia/Kolkata",
+              }).format(new Date(deadline)),
+              customer_phone: phone,
+              request_token: token,
+              status: "OFFER_CREATED",
+              updated_at: new Date().toISOString(),
+            });
+            s.offers.push({
+              ...old,
+              id: `off-${crypto.randomUUID()}`,
+              request_token: token,
+              proposed_price_paise: price,
+              pickup_deadline: deadline,
+              created_at: new Date().toISOString(),
+            });
+            const d = n.details[r.id];
+            if (d) {
+              d.revision += 1;
+              d.confirmation = null;
+              d.contact_consent = true;
+              d.intent = {
+                ...d.intent,
+                quantity,
+                budget_paise: budget,
+                deadline,
+              };
+            }
+            s.logAudit("REQUEST", r.id, "TERMS_REVISED", {
+              merchant_id: shop.id,
+              quantity,
+              price,
+              deadline,
+            });
+            n.state = s.exportState();
+            break;
+          }
           case "cancel": {
             const r = ownRequest(s, shop.id, text(b.request_id, 100));
-            s.cancelCustomerReservation(r.request_token);
+            if (r.status === "OFFER_CREATED") {
+              r.status = "CANCELLED";
+              r.updated_at = new Date().toISOString();
+              s.logAudit("REQUEST", r.id, "PENDING_WITHDRAWN", {
+                merchant_id: shop.id,
+              });
+            } else s.cancelCustomerReservation(r.request_token);
             n.state = s.exportState();
             break;
           }

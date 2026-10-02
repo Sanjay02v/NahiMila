@@ -2514,3 +2514,245 @@ input[type="checkbox"] {
 .assistant-panel .assistant-composer textarea {
   outline: none;
 }
+
+/* Demand Book: product overview with individual entries on demand. */
+.demand-toolbar {
+  display: flex;
+  gap: 12px;
+  margin: 24px 0 12px;
+}
+.demand-search {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: white;
+  border: 1px solid var(--line, #dde5db);
+  border-radius: 14px;
+  padding: 0 14px;
+  margin: 0;
+  color: #748271;
+}
+.demand-search input {
+  border: 0;
+  background: transparent;
+  margin: 0;
+  width: 100%;
+  padding: 14px 0;
+  box-shadow: none;
+}
+.demand-search:focus-within {
+  outline: 2px solid #9fb99f;
+  outline-offset: 2px;
+}
+.demand-search input:focus {
+  outline: none;
+  box-shadow: none;
+}
+.demand-filter {
+  margin: 0;
+  min-width: 220px;
+}
+.demand-filter select {
+  margin: 0;
+  height: 100%;
+  background: white;
+}
+.demand-book-rule {
+  margin-bottom: 24px;
+}
+.demand-groups {
+  display: grid;
+  gap: 14px;
+}
+.demand-group {
+  background: white;
+  border: 1px solid #dfe7dc;
+  border-radius: 20px;
+  overflow: hidden;
+}
+.demand-group > summary {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 24px;
+  cursor: pointer;
+  list-style: none;
+}
+.demand-group > summary::-webkit-details-marker {
+  display: none;
+}
+.demand-group > summary:hover {
+  background: #fafcf8;
+}
+.demand-group > summary:focus-visible {
+  outline: 2px solid #648f70;
+  outline-offset: -3px;
+  border-radius: 18px;
+}
+.demand-product {
+  flex: 1;
+  min-width: 150px;
+}
+.demand-product h2 {
+  font-size: 18px;
+  line-height: 1.35;
+  margin: 0 0 5px;
+}
+.demand-product p {
+  font-size: 12px;
+  color: #748074;
+  margin: 0;
+}
+.demand-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(70px, 110px));
+  gap: 16px;
+}
+.demand-metrics > div {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.demand-metrics b {
+  font-size: 22px;
+  line-height: 1.2;
+}
+.demand-metrics span {
+  font-size: 10px;
+  line-height: 1.4;
+  color: #69786e;
+}
+.confirmed-metric b {
+  color: #2a6049;
+}
+.demand-chevron {
+  flex-shrink: 0;
+  color: #788774;
+  transition: transform 0.18s;
+}
+.demand-group[open] > summary .demand-chevron {
+  transform: rotate(180deg);
+}
+.demand-group[open] > summary {
+  border-bottom: 1px solid #e5ebe1;
+}
+.demand-entries {
+  padding: 0 24px 12px;
+}
+.demand-entry {
+  padding: 20px 0;
+  border-bottom: 1px solid #e8ede4;
+}
+.demand-entry:last-child {
+  border-bottom: 0;
+}
+.demand-entry-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.demand-entry-heading b {
+  font-size: 14px;
+}
+.demand-entry-heading p {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: #748074;
+}
+.demand-original {
+  font-size: 13px;
+  color: #617269;
+  margin: 12px 0;
+}
+.demand-terms {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 20px;
+  font-size: 12px;
+  color: #586c5e;
+  margin: 12px 0;
+}
+.demand-share,
+.demand-entry-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+}
+.demand-entry-actions .text-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.pickup-row > div:last-child {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+@media (max-width: 1100px) {
+  .demand-group > summary {
+    flex-wrap: wrap;
+    gap: 16px;
+    position: relative;
+  }
+  .demand-product {
+    width: calc(100% - 36px);
+    flex: auto;
+  }
+  .demand-metrics {
+    width: 100%;
+    grid-template-columns: repeat(4, 1fr);
+    padding-right: 25px;
+  }
+  .demand-chevron {
+    position: absolute;
+    right: 24px;
+    top: 28px;
+  }
+}
+@media (max-width: 640px) {
+  .demand-toolbar {
+    flex-direction: column;
+  }
+  .demand-filter {
+    min-width: 0;
+  }
+  .demand-group > summary {
+    padding: 18px;
+  }
+  .demand-entries {
+    padding: 0 18px 10px;
+  }
+  .demand-metrics {
+    gap: 10px;
+    padding-right: 0;
+  }
+  .demand-metrics b {
+    font-size: 20px;
+  }
+  .demand-entry-heading {
+    align-items: flex-start;
+  }
+  .demand-entry-heading .status {
+    font-size: 10px;
+    max-width: 130px;
+    text-align: center;
+  }
+  .demand-share .button {
+    flex: 1;
+    font-size: 11px;
+    padding: 10px;
+  }
+}
+.demand-mobile-record {
+  display: none;
+}
+@media (max-width: 640px) {
+  .demand-mobile-record {
+    display: inline-flex;
+  }
+}

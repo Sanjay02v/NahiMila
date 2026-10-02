@@ -163,6 +163,8 @@ describe("Shared reviewed product identities", () => {
         raw_text: "Fictional alias " + i,
         intent: { ...intent, quantity: 8, budget_paise: 5000, deadline },
         can_wait: true,
+        customer_phone: "9876543210",
+        contact_consent: true,
       }),
     );
     expect(new Set(saved.map((r) => r.product_id)).size).toBe(1);

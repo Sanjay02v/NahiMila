@@ -295,8 +295,7 @@ export class MemoryStore {
     if (
       request.status !== 'OFFER_CREATED' &&
       request.status !== 'REQUEST_CAPTURED' &&
-      request.status !== 'CUSTOMER_CONFIRMED' &&
-      request.status !== 'CANCELLED'
+      request.status !== 'CUSTOMER_CONFIRMED'
     ) {
       throw new Error(`Cannot confirm offer in state: ${request.status}`);
     }

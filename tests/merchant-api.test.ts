@@ -468,3 +468,237 @@ describe("Approval, commitment and collection boundaries", () => {
     expect(v.orders[0].collected_cash).toBe(5000);
   });
 });
+
+describe("In-store confirmations and revised customer terms", () => {
+  const payload = () => ({
+    action: "create",
+    submission_key: crypto.randomUUID(),
+    raw_text: "Coke Zero 500ml",
+    intent: {
+      product: "Coke Zero",
+      category: "Drinks",
+      brand: "Coca-Cola",
+      variant: "Zero",
+      size: 500,
+      unit: "ml",
+      packaging: null,
+      quantity: 2,
+      budget_paise: 5000,
+      deadline: new Date(Date.now() + 3 * 86400000).toISOString(),
+      substitutions: false,
+      hard_constraints: [],
+      preferences: [],
+      missing: [],
+      evidence: {},
+      source: "manual",
+    },
+    can_wait: true,
+    customer_phone: "9876543210",
+    contact_consent: true,
+  });
+  it("records exact in-store acceptance once and keeps the customer page already confirmed", async () => {
+    await post({ ...payload(), confirm_in_store: true, terms_accepted: true });
+    const r = network.state.requests.at(-1)!;
+    expect(network.details[r.id].confirmation?.method).toBe("in_store");
+    const v = await (
+      await customerGET(request({}), context(r.request_token))
+    ).json();
+    expect(v.can_confirm).toBe(false);
+    await customerPOST(
+      request({ action: "confirm" }),
+      context(r.request_token),
+    );
+    expect(
+      network.state.reservations.filter((x) => x.request_id === r.id),
+    ).toHaveLength(1);
+    expect(network.details[r.id].confirmation?.method).toBe("in_store");
+  });
+  it("an owner can confirm a pending offer in-store only with current exact terms", async () => {
+    await post(payload());
+    const r = network.state.requests.at(-1)!,
+      o = network.state.offers.at(-1)!;
+    const b = {
+      action: "confirm_in_store",
+      request_id: r.id,
+      quantity: r.quantity,
+      price_paise: o.proposed_price_paise,
+      deadline: o.pickup_deadline,
+      terms_accepted: true,
+    };
+    as("m-gupta-002");
+    expect((await post(b)).status).toBe(404);
+    as("m-sharma-001");
+    expect((await post({ ...b, price_paise: 1 })).status).toBe(409);
+    expect((await post({ ...b, terms_accepted: false })).status).toBe(400);
+    expect((await post(b)).status).toBe(200);
+    expect((await post(b)).status).toBe(200);
+    expect(
+      network.state.reservations.filter((x) => x.request_id === r.id),
+    ).toHaveLength(1);
+  });
+  it("changed terms remove confirmation, revoke the old link and require fresh acceptance", async () => {
+    await post({ ...payload(), confirm_in_store: true, terms_accepted: true });
+    const r = network.state.requests.at(-1)!,
+      oldToken = r.request_token;
+    const b = {
+      action: "revise_offer",
+      request_id: r.id,
+      token: oldToken,
+      quantity: 3,
+      price_paise: 4500,
+      budget_paise: 5000,
+      deadline: new Date(Date.now() + 4 * 86400000).toISOString(),
+      contact_consent: true,
+    };
+    as("m-gupta-002");
+    expect((await post(b)).status).toBe(404);
+    as("m-sharma-001");
+    expect((await post(b)).status).toBe(200);
+    const updated = network.state.requests.find((x) => x.id === r.id)!;
+    expect(updated.status).toBe("OFFER_CREATED");
+    expect(network.details[r.id].confirmation).toBeNull();
+    expect((await customerGET(request({}), context(oldToken))).status).toBe(
+      404,
+    );
+    expect(
+      (await customerPOST(request({ action: "confirm" }), context(oldToken)))
+        .status,
+    ).toBe(404);
+    expect(
+      network.state.reservations.filter(
+        (x) => x.request_id === r.id && x.status === "ACTIVE",
+      ),
+    ).toHaveLength(0);
+    expect((await post(b)).status).toBe(409);
+    expect(
+      (
+        await customerPOST(
+          request({ action: "confirm" }),
+          context(updated.request_token),
+        )
+      ).status,
+    ).toBe(200);
+    expect(network.details[r.id].confirmation?.method).toBe("link");
+    const reservation = network.state.reservations.find(
+      (x) => x.request_id === r.id && x.status === "ACTIVE",
+    )!;
+    expect(reservation.quantity).toBe(3);
+    expect(reservation.confirmed_price_paise).toBe(4500);
+  });
+  it("withdrawn pending offers cannot be confirmed by their old links", async () => {
+    await post(payload());
+    const r = network.state.requests.at(-1)!;
+    expect((await post({ action: "cancel", request_id: r.id })).status).toBe(
+      200,
+    );
+    expect(
+      (
+        await customerPOST(
+          request({ action: "confirm" }),
+          context(r.request_token),
+        )
+      ).status,
+    ).toBe(400);
+    expect(
+      (await customerGET(request({}), context(r.request_token))).status,
+    ).toBe(200);
+    expect(
+      network.state.reservations.filter((x) => x.request_id === r.id),
+    ).toHaveLength(0);
+  });
+});
+
+describe("Revised reservations preserve procurement safeguards", () => {
+  it("changing a confirmed term invalidates approvals and removes that unit from readiness", async () => {
+    await confirm();
+    const q = merchantView(network, "m-sharma-001").quotes.find(
+      (q) => q.quote.id === "quote-b",
+    )!;
+    await post({
+      action: "approve",
+      quote_id: "quote-b",
+      fingerprint: q.fingerprint,
+    });
+    const r = network.state.requests.find(
+      (r) =>
+        r.merchant_id === "m-sharma-001" && r.status === "CUSTOMER_CONFIRMED",
+    )!;
+    const o = network.state.offers.find(
+      (o) => o.request_token === r.request_token,
+    )!;
+    expect(
+      (
+        await post({
+          action: "revise_offer",
+          request_id: r.id,
+          token: r.request_token,
+          quantity: 1,
+          price_paise: 4900,
+          budget_paise: 5000,
+          deadline: o.pickup_deadline,
+          customer_phone: "9876543210",
+          contact_consent: true,
+        })
+      ).status,
+    ).toBe(200);
+    expect(storeFor(network).evaluateQuote("quote-b").total_demand_units).toBe(
+      23,
+    );
+    expect(
+      storeFor(network)
+        .getApprovalsForQuote("quote-b")
+        .every((a) => a.status === "INVALIDATED"),
+    ).toBe(true);
+    expect(
+      (
+        await post({
+          action: "approve",
+          quote_id: "quote-b",
+          fingerprint: q.fingerprint,
+        })
+      ).status,
+    ).toBe(409);
+  });
+  it("cannot revise committed customer terms to erase supplier cost", async () => {
+    await confirm();
+    const q = merchantView(network, "m-sharma-001").quotes.find(
+      (q) => q.quote.id === "quote-b",
+    )!;
+    for (const id of ["m-sharma-001", "m-gupta-002", "m-lakshmi-003"]) {
+      as(id);
+      await post({
+        action: "approve",
+        quote_id: "quote-b",
+        fingerprint: q.fingerprint,
+      });
+    }
+    await post({
+      action: "commit",
+      quote_id: "quote-b",
+      fingerprint: q.fingerprint,
+    });
+    as("m-sharma-001");
+    const r = network.state.requests.find(
+      (r) => r.merchant_id === "m-sharma-001",
+    )!;
+    expect(
+      (
+        await post({
+          action: "revise_offer",
+          request_id: r.id,
+          token: r.request_token,
+          quantity: 1,
+          price_paise: 4900,
+          budget_paise: 5000,
+          deadline: new Date(Date.now() + 4 * 86400000).toISOString(),
+          customer_phone: "9876543210",
+          contact_consent: true,
+        })
+      ).status,
+    ).toBe(400);
+    expect(network.state.orders[0].total_cost_paise).toBe(103200);
+    expect(
+      network.state.reservations.filter((r) => r.status === "COMMITTED"),
+    ).toHaveLength(24);
+  });
+});

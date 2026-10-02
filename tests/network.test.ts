@@ -82,6 +82,8 @@ describe("Private demand and reviewed identities", () => {
         deadline,
       },
       can_wait: true,
+      customer_phone: "9876543210",
+      contact_consent: true,
     });
     expect(
       n.state.offers.find((o) => o.request_id === r.id)?.pickup_deadline,
@@ -94,6 +96,8 @@ describe("Private demand and reviewed identities", () => {
         raw_text: "charger",
         intent: manualDraft("charger"),
         can_wait: true,
+        customer_phone: "9876543210",
+        contact_consent: true,
       }),
     ).toThrow("OFFER_DETAILS_REQUIRED");
   });

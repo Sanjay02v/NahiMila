@@ -28,9 +28,12 @@ export default function Capture({
     [intent, setIntent] = useState<Intent | null>(null),
     [match, setMatch] = useState<MatchReview | null>(null),
     [wait, setWait] = useState(initialWait),
+    [phone, setPhone] = useState(""),
+    [inStore, setInStore] = useState(false),
     [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
     [notice, setNotice] = useState("");
+  const reserving = wait && !!phone.trim();
   const submission = useRef(crypto.randomUUID());
   const textInput = useRef<HTMLTextAreaElement>(null);
   useEffect(() => {
@@ -141,6 +144,14 @@ export default function Capture({
               intent: { ...intent, quantity: intent.quantity ?? 1 },
               can_wait: wait,
               customer_name: f.get("customer"),
+              customer_phone: wait ? phone.trim() : "",
+              contact_consent: reserving && f.get("consent") === "on",
+              confirm_in_store: reserving && inStore,
+              terms_accepted:
+                reserving && inStore && f.get("accepted") === "on",
+              offer_price_paise: reserving
+                ? Math.round(Number(f.get("offerPrice")) * 100)
+                : undefined,
               submission_key: submission.current,
             });
             setBusy(false);
@@ -198,7 +209,7 @@ export default function Capture({
                 onChange={(e) =>
                   update("size", e.target.value ? Number(e.target.value) : null)
                 }
-                required={wait}
+                required={reserving}
               />
             </label>
             <label>
@@ -206,7 +217,7 @@ export default function Capture({
               <select
                 value={intent.unit || ""}
                 onChange={(e) => update("unit", e.target.value || null)}
-                required={wait}
+                required={reserving}
               >
                 <option value="">—</option>
                 <option value="g">g</option>
@@ -227,7 +238,7 @@ export default function Capture({
                     e.target.value ? Number(e.target.value) : null,
                   )
                 }
-                required={wait}
+                required={reserving}
               />
             </label>
             <label>
@@ -247,7 +258,7 @@ export default function Capture({
                       : null,
                   )
                 }
-                required={wait}
+                required={reserving}
               />
             </label>
             <details className="span-two details">
@@ -313,6 +324,37 @@ export default function Capture({
           {wait && (
             <>
               <label>
+                {t("customerPhone")}
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="+91"
+                  maxLength={30}
+                />
+              </label>
+              {!reserving && <p className="note">{t("noContactHint")}</p>}
+            </>
+          )}
+          {reserving && (
+            <>
+              <label>
+                {t("offerPrice")}
+                <input
+                  name="offerPrice"
+                  type="number"
+                  min="0.01"
+                  step="0.01"
+                  max={
+                    intent.budget_paise ? intent.budget_paise / 100 : undefined
+                  }
+                  defaultValue={
+                    intent.budget_paise ? intent.budget_paise / 100 : ""
+                  }
+                  required
+                />
+              </label>
+              <label>
                 {t("deadline")}
                 <input
                   type="datetime-local"
@@ -332,7 +374,27 @@ export default function Capture({
                 {t("customerName")}
                 <input name="customer" maxLength={80} />
               </label>
-              <p className="fine">{t("offerHint")}</p>
+              <label className="check">
+                <input type="checkbox" name="consent" required />
+                {t("contactConsent")}
+              </label>
+              <label>
+                {t("confirmationPath")}
+                <select
+                  value={inStore ? "in_store" : "link"}
+                  onChange={(e) => setInStore(e.target.value === "in_store")}
+                >
+                  <option value="link">{t("confirmByLink")}</option>
+                  <option value="in_store">{t("confirmedInStore")}</option>
+                </select>
+              </label>
+              {inStore && (
+                <label className="check">
+                  <input name="accepted" type="checkbox" required />
+                  {t("termsAccepted")}
+                </label>
+              )}
+              <p className="fine">{t("reservationRisk")}</p>
             </>
           )}
           <div className="modal-actions">

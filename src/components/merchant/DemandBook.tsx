@@ -1,0 +1,479 @@
+"use client";
+import { useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
+import {
+  ChevronDown,
+  ClipboardList,
+  Search,
+  Check,
+  Pencil,
+  Plus,
+} from "lucide-react";
+import type { PrivateRequest } from "@/lib/product/types";
+import {
+  demandStatus,
+  groupDemand,
+  type DemandFilter,
+} from "@/lib/product/demand-book";
+import { Modal, Money, OfferActions } from "./common";
+const statusKeys: Record<string, string> = {
+  MISSED_DEMAND: "demandOnly",
+  OFFER_CREATED: "filter_pending",
+  CUSTOMER_CONFIRMED: "confirmed",
+  CANCELLED: "withdrawn",
+  EXPIRED: "expired",
+  READY_FOR_PICKUP: "committed",
+  SUPPLIER_COMMITTED: "committed",
+  PICKED_UP: "collected",
+  NO_SHOW: "noShow",
+};
+export default function DemandBook({
+  requests,
+  shop,
+  busy,
+  mutate,
+  onNotice,
+  onRecord,
+}: {
+  requests: PrivateRequest[];
+  shop: string;
+  busy: boolean;
+  mutate: (b: Record<string, unknown>) => Promise<boolean>;
+  onNotice: (s: string) => void;
+  onRecord: () => void;
+}) {
+  const t = useTranslations(),
+    locale = useLocale();
+  const [search, setSearch] = useState(""),
+    [filter, setFilter] = useState<DemandFilter>("all"),
+    [limit, setLimit] = useState(20);
+  const [modalError, setModalError] = useState(false);
+  const [confirm, setConfirm] = useState<PrivateRequest | null>(null),
+    [revise, setRevise] = useState<PrivateRequest | null>(null);
+  const groups = groupDemand(requests, search, filter);
+  const date = (value: string) =>
+    new Intl.DateTimeFormat(`${locale}-IN`, {
+      day: "numeric",
+      month: "short",
+      hour: "numeric",
+      minute: "2-digit",
+      timeZone: "Asia/Kolkata",
+    }).format(new Date(value));
+  const pack = (value: string) =>
+    value === "Unspecified pack" ? t("unknownPack") : value;
+  const price = (value: number) =>
+    new Intl.NumberFormat(`${locale}-IN`, {
+      style: "currency",
+      currency: "INR",
+    }).format(value / 100);
+  const localDate = (value: string) =>
+    new Date(Date.parse(value) - new Date(value).getTimezoneOffset() * 60000)
+      .toISOString()
+      .slice(0, 16);
+  return (
+    <>
+      <div className="page-heading">
+        <div>
+          <h1>{t("privateBook")}</h1>
+          <p>{t("demandBookHint")}</p>
+        </div>
+        <button className="button demand-mobile-record" onClick={onRecord}>
+          <Plus size={17} />
+          {t("recordRequest")}
+        </button>
+      </div>
+      <div className="demand-toolbar">
+        <label className="demand-search">
+          <Search size={18} />
+          <span className="sr-only">{t("searchDemand")}</span>
+          <input
+            value={search}
+            placeholder={t("searchDemand")}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setLimit(20);
+            }}
+          />
+        </label>
+        <label className="demand-filter">
+          <span className="sr-only">{t("filterDemand")}</span>
+          <select
+            value={filter}
+            onChange={(e) => {
+              setFilter(e.target.value as DemandFilter);
+              setLimit(20);
+            }}
+          >
+            {(
+              ["all", "demand", "pending", "confirmed", "history"] as const
+            ).map((key) => (
+              <option key={key} value={key}>
+                {t(`filter_${key}`)}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+      <p className="fine demand-book-rule">{t("demandRule")}</p>
+      {!groups.length ? (
+        <div className="empty">
+          <ClipboardList size={32} />
+          <h2>{t(requests.length ? "noMatchingDemand" : "emptyRequests")}</h2>
+          <p>{t(requests.length ? "adjustFilters" : "emptyHint")}</p>
+        </div>
+      ) : (
+        <div className="demand-groups">
+          {groups.slice(0, limit).map((g) => (
+            <details className="demand-group" key={g.key}>
+              <summary>
+                <div className="demand-product">
+                  <h2>{g.product.name}</h2>
+                  <p>
+                    {pack(g.product.pack_size)} ·{" "}
+                    {t("entryCount", { count: g.rows.length })}
+                  </p>
+                </div>
+                <div className="demand-metrics">
+                  <div>
+                    <b>{g.total}</b>
+                    <span>{t("requestedUnits")}</span>
+                  </div>
+                  <div>
+                    <b>{g.demand}</b>
+                    <span>{t("demandUnits")}</span>
+                  </div>
+                  <div>
+                    <b>{g.pending}</b>
+                    <span>{t("pendingUnits")}</span>
+                  </div>
+                  <div className="confirmed-metric">
+                    <b>{g.confirmed}</b>
+                    <span>{t("confirmedUnits")}</span>
+                  </div>
+                </div>
+                <ChevronDown className="demand-chevron" size={18} />
+              </summary>
+              <DemandEntries
+                rows={g.visible}
+                render={(r) => {
+                  const state = demandStatus(r),
+                    pending = state === "OFFER_CREATED",
+                    confirmed = state === "CUSTOMER_CONFIRMED",
+                    share =
+                      pending ||
+                      confirmed ||
+                      state === "READY_FOR_PICKUP" ||
+                      state === "SUPPLIER_COMMITTED";
+                  return (
+                    <article className="demand-entry" key={r.id}>
+                      <div className="demand-entry-heading">
+                        <div>
+                          <b>
+                            {r.customer_name &&
+                            r.customer_name !== "Walk-in Customer"
+                              ? r.customer_name
+                              : t("walkIn")}
+                          </b>
+                          <p>
+                            {r.quantity} {t("units")} · {date(r.created_at)}
+                          </p>
+                        </div>
+                        <span
+                          className={`status ${confirmed ? "positive" : ""}`}
+                        >
+                          {t(statusKeys[state] || "demandOnly")}
+                        </span>
+                      </div>
+                      {r.detail?.raw_text && (
+                        <p className="demand-original">“{r.detail.raw_text}”</p>
+                      )}
+                      {state === "MISSED_DEMAND" && (
+                        <p className="fine">
+                          {t(
+                            r.detail?.willing_to_wait
+                              ? "waitNoContact"
+                              : "demandSignalHint",
+                          )}
+                        </p>
+                      )}
+                      {r.offer && (
+                        <div className="demand-terms">
+                          <span>
+                            {t(confirmed ? "acceptedPrice" : "offerPrice")}:{" "}
+                            <Money value={r.offer.price} />
+                          </span>
+                          <span>
+                            {t("pickupBy")}: {date(r.offer.deadline)}
+                          </span>
+                          {r.customer_phone && (
+                            <span>
+                              {t("contact")}: +{r.customer_phone}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                      {r.detail?.confirmation && (
+                        <p className="fine">
+                          {t(
+                            r.detail.confirmation.method === "in_store"
+                              ? "confirmedInStore"
+                              : "confirmedByLink",
+                          )}{" "}
+                          · {date(r.detail.confirmation.at)}
+                        </p>
+                      )}
+                      {!!r.detail?.intent.hard_constraints.length && (
+                        <p className="fine">
+                          {r.detail.intent.hard_constraints.join(" · ")}
+                        </p>
+                      )}
+                      {share && r.offer && (
+                        <OfferActions
+                          token={r.offer.token}
+                          phone={r.customer_phone}
+                          pending={pending}
+                          onNotice={onNotice}
+                          message={(link) =>
+                            t(
+                              pending
+                                ? "confirmationMessage"
+                                : "reservationMessage",
+                              {
+                                shop,
+                                product: r.product.name,
+                                pack: pack(r.product.pack_size),
+                                quantity: r.quantity,
+                                price: price(r.offer!.price),
+                                deadline: date(r.offer!.deadline),
+                                link,
+                              },
+                            )
+                          }
+                        />
+                      )}
+                      {r.offer &&
+                        ["OFFER_CREATED", "CUSTOMER_CONFIRMED"].includes(
+                          r.status,
+                        ) && (
+                          <div className="demand-entry-actions">
+                            {pending &&
+                              r.customer_phone &&
+                              r.detail?.contact_consent && (
+                                <button
+                                  className="button secondary small"
+                                  disabled={busy}
+                                  onClick={() => {
+                                    setModalError(false);
+                                    setConfirm(r);
+                                  }}
+                                >
+                                  <Check size={15} />
+                                  {t("confirmInStoreAction")}
+                                </button>
+                              )}
+                            <button
+                              className="text-button small"
+                              disabled={busy}
+                              onClick={() => {
+                                setModalError(false);
+                                setRevise(r);
+                              }}
+                            >
+                              <Pencil size={14} />
+                              {t("reviseTerms")}
+                            </button>
+                            <button
+                              className="text-button small"
+                              disabled={busy}
+                              onClick={() =>
+                                mutate({ action: "cancel", request_id: r.id })
+                              }
+                            >
+                              {t("withdraw")}
+                            </button>
+                          </div>
+                        )}
+                    </article>
+                  );
+                }}
+              />
+            </details>
+          ))}
+          {groups.length > limit && (
+            <button
+              className="button secondary"
+              onClick={() => setLimit(limit + 20)}
+            >
+              {t("showMoreProducts")}
+            </button>
+          )}
+        </div>
+      )}
+      {confirm?.offer && (
+        <Modal title={t("confirmedInStore")} close={() => setConfirm(null)}>
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              if (
+                await mutate({
+                  action: "confirm_in_store",
+                  request_id: confirm.id,
+                  terms_accepted: true,
+                  quantity: confirm.quantity,
+                  price_paise: confirm.offer!.price,
+                  deadline: confirm.offer!.deadline,
+                })
+              )
+                setConfirm(null);
+              else setModalError(true);
+            }}
+          >
+            {modalError && (
+              <p className="error" role="alert">
+                {t("reviewFailure")}
+              </p>
+            )}
+            <h3>
+              {confirm.product.name} · {pack(confirm.product.pack_size)}
+            </h3>
+            <p>
+              {confirm.quantity} × <Money value={confirm.offer.price} />
+            </p>
+            <p>
+              {t("pickupBy")}: {date(confirm.offer.deadline)}
+            </p>
+            <label className="check">
+              <input type="checkbox" required />
+              {t("termsAccepted")}
+            </label>
+            <p className="fine">{t("reservationRisk")}</p>
+            <button className="button full" disabled={busy}>
+              {t("confirmInStoreAction")}
+            </button>
+          </form>
+        </Modal>
+      )}
+      {revise?.offer && (
+        <Modal title={t("reviseTerms")} close={() => setRevise(null)}>
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const f = new FormData(e.currentTarget);
+              if (
+                await mutate({
+                  action: "revise_offer",
+                  request_id: revise.id,
+                  token: revise.request_token,
+                  quantity: Number(f.get("quantity")),
+                  price_paise: Math.round(Number(f.get("price")) * 100),
+                  budget_paise: Math.round(Number(f.get("budget")) * 100),
+                  deadline: new Date(String(f.get("deadline"))).toISOString(),
+                  customer_phone: f.get("phone"),
+                  contact_consent: f.get("consent") === "on",
+                })
+              )
+                setRevise(null);
+              else setModalError(true);
+            }}
+          >
+            {modalError && (
+              <p className="error" role="alert">
+                {t("reviewFailure")}
+              </p>
+            )}
+            <p className="note">{t("reconfirmHint")}</p>
+            <h3>
+              {revise.product.name} · {pack(revise.product.pack_size)}
+            </h3>
+            <div className="form-grid">
+              <label>
+                {t("quantity")}
+                <input
+                  name="quantity"
+                  type="number"
+                  min="1"
+                  max="100"
+                  defaultValue={revise.quantity}
+                  required
+                />
+              </label>
+              <label>
+                {t("offerPrice")}
+                <input
+                  name="price"
+                  type="number"
+                  min="0.01"
+                  step="0.01"
+                  defaultValue={revise.offer.price / 100}
+                  required
+                />
+              </label>
+              <label>
+                {t("budget")}
+                <input
+                  name="budget"
+                  type="number"
+                  min="0.01"
+                  step="0.01"
+                  defaultValue={revise.max_retail_price_paise / 100}
+                  required
+                />
+              </label>
+              <label>
+                {t("deadline")}
+                <input
+                  name="deadline"
+                  type="datetime-local"
+                  defaultValue={localDate(revise.offer.deadline)}
+                  required
+                />
+              </label>
+            </div>
+            <label>
+              {t("customerPhone")}
+              <input
+                name="phone"
+                type="tel"
+                defaultValue={
+                  revise.customer_phone ? `+${revise.customer_phone}` : ""
+                }
+                maxLength={30}
+                required
+              />
+            </label>
+            <label className="check">
+              <input name="consent" type="checkbox" required />
+              {t("contactConsent")}
+            </label>
+            <button className="button full" disabled={busy}>
+              {t("saveNewTerms")}
+            </button>
+          </form>
+        </Modal>
+      )}
+    </>
+  );
+}
+function DemandEntries({
+  rows,
+  render,
+}: {
+  rows: PrivateRequest[];
+  render: (r: PrivateRequest) => React.ReactNode;
+}) {
+  const [limit, setLimit] = useState(20),
+    t = useTranslations();
+  return (
+    <div className="demand-entries">
+      {rows.slice(0, limit).map(render)}
+      {rows.length > limit && (
+        <button
+          className="button secondary small"
+          onClick={() => setLimit(limit + 20)}
+        >
+          {t("showMoreEntries")}
+        </button>
+      )}
+    </div>
+  );
+}

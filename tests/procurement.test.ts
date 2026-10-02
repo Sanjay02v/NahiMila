@@ -222,7 +222,7 @@ describe("Approvals, commitments and real cash outcomes", () => {
     fullCase();
     await expect(db.commitSupplierOrder("quote-b")).rejects.toThrow("approval");
   });
-  it("pre-commit cancellation lowers demand to 23 and clears approvals; reconfirmation needs fresh approval", async () => {
+  it("pre-commit cancellation lowers demand to 23 and clears approvals; a new offer needs fresh approval", async () => {
     fullCase();
     approve();
     db.cancelCustomerReservation("REQ-NML-8808");
@@ -232,7 +232,20 @@ describe("Approvals, commitments and real cash outcomes", () => {
         .getApprovalsForQuote("quote-b")
         .every((a) => a.status === "INVALIDATED"),
     ).toBe(true);
-    fullCase();
+    expect(() => db.confirmCustomerOffer("REQ-NML-8808")).toThrow("CANCELLED");
+    const cancelled = db.requests.find(
+      (r) => r.request_token === "REQ-NML-8808",
+    )!;
+    const { request } = db.createDemandRequest({
+      merchant_id: cancelled.merchant_id,
+      product_id: cancelled.product_id,
+      quantity: 1,
+      max_retail_price_paise: cancelled.max_retail_price_paise,
+      required_by_date: cancelled.required_by_date,
+      reason_unavailable: "not_stocked",
+      can_wait: true,
+    });
+    db.confirmCustomerOffer(request.request_token);
     await expect(db.commitSupplierOrder("quote-b")).rejects.toThrow(
       "Stale approval",
     );

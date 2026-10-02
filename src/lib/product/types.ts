@@ -40,6 +40,9 @@ export interface RequestDetail {
   intent: Intent;
   revision: number;
   submission_key: string;
+  willing_to_wait?: boolean;
+  contact_consent?: boolean;
+  confirmation?: { method: "link" | "in_store"; at: string } | null;
 }
 export type PrivateRequest = DemandRequest & {
   product: Product;
@@ -84,6 +87,9 @@ export interface OrderView {
   pickups: {
     id: string;
     name: string;
+    phone: string | null;
+    token: string;
+    deadline: string;
     quantity: number;
     price: number;
     can_no_show: boolean;
