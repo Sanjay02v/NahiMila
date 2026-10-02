@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useTranslations } from "next-intl";
 import {
   ArrowUp,
@@ -7,11 +7,23 @@ import {
   Sparkles,
   LoaderCircle,
   ClipboardCheck,
+  Mic,
+  Square,
+  Minus,
+  Maximize2,
+  Minimize2,
+  X,
 } from "lucide-react";
 import { useVoiceRecording } from "@/hooks/useVoiceRecording";
 import type { AssistantResult, ReadTool } from "@/lib/product/assistant";
-import VoiceControls from "./VoiceControls";
-import { Modal } from "./common";
+
+const mobileQuery = "(max-width: 640px)";
+const subscribeMobile = (notify: () => void) => {
+  const query = window.matchMedia(mobileQuery);
+  query.addEventListener("change", notify);
+  return () => query.removeEventListener("change", notify);
+};
+const mobileSnapshot = () => window.matchMedia(mobileQuery).matches;
 type Message = {
   id: string;
   role: "user" | "assistant";
@@ -19,33 +31,90 @@ type Message = {
   result?: AssistantResult;
 };
 export default function Agent({
+  open,
   configured,
   voice,
   close,
   onDraft,
   navigate,
 }: {
+  open: boolean;
   configured: boolean;
   voice: boolean;
   close: () => void;
   onDraft: (draft: { raw: string; can_wait: boolean | null }) => void;
   navigate: (screen: "requests" | "nearby" | "orders") => void;
 }) {
+  const mobile = useSyncExternalStore(
+    subscribeMobile,
+    mobileSnapshot,
+    () => false,
+  );
+  const dismiss = () => {
+    close();
+    document.querySelector<HTMLButtonElement>(".ask-button")?.focus();
+  };
   const t = useTranslations(),
     [question, setQuestion] = useState(""),
     [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
-    [messages, setMessages] = useState<Message[]>([]);
+    [messages, setMessages] = useState<Message[]>([]),
+    [expanded, setExpanded] = useState(false),
+    [starterTool, setStarterTool] = useState<ReadTool | null>(null);
   const tail = useRef<HTMLDivElement>(null),
-    abort = useRef<AbortController | null>(null);
+    abort = useRef<AbortController | null>(null),
+    panel = useRef<HTMLElement>(null),
+    composer = useRef<HTMLTextAreaElement>(null),
+    closeRef = useRef(close);
+  useEffect(() => {
+    closeRef.current = close;
+  }, [close]);
+  useEffect(() => {
+    if (!open) return;
+    const focus = setTimeout(() => composer.current?.focus(), 0);
+    const overflow = document.body.style.overflow;
+    if (mobile) document.body.style.overflow = "hidden";
+    const key = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        closeRef.current();
+        document.querySelector<HTMLButtonElement>(".ask-button")?.focus();
+      }
+      if (mobile && event.key === "Tab") {
+        const nodes = Array.from(
+          panel.current?.querySelectorAll<HTMLElement>(
+            "button:not(:disabled),textarea",
+          ) || [],
+        );
+        const first = nodes[0],
+          last = nodes.at(-1);
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last?.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first?.focus();
+        }
+      }
+    };
+    document.addEventListener("keydown", key);
+    return () => {
+      clearTimeout(focus);
+      document.removeEventListener("keydown", key);
+      if (mobile) document.body.style.overflow = overflow;
+    };
+  }, [open, mobile]);
   useEffect(() => () => abort.current?.abort(), []);
   useEffect(() => {
     tail.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-  }, [messages, busy]);
-  const recording = useVoiceRecording((value) => {
-    setQuestion(value);
-    setError("");
-  });
+  }, [messages, busy, open]);
+  const recording = useVoiceRecording(
+    (value) => {
+      setQuestion(value);
+      setStarterTool(null);
+      setError("");
+    },
+    { enabled: open },
+  );
   const disabled =
     busy || recording.working || recording.requesting || recording.recording;
   const labels = {
@@ -87,6 +156,7 @@ export default function Agent({
         },
       ]);
       setQuestion("");
+      setStarterTool(null);
     } catch (e) {
       if (!controller.signal.aborted) {
         const code = e instanceof Error ? e.message : "UNKNOWN";
@@ -99,17 +169,48 @@ export default function Agent({
     }
   }
   return (
-    <Modal title={t("ask")} close={close} className="assistant-modal">
-      <div className="assistant-shell">
-        <div className="assistant-intro">
-          <span className="assistant-emblem">
-            <Sparkles size={20} />
-          </span>
-          <div>
-            <strong>{t("agentWelcome")}</strong>
-            <p>{t("agentHint")}</p>
-          </div>
+    <section
+      id="merchant-assistant"
+      hidden={!open}
+      ref={panel}
+      className={`assistant-panel ${expanded ? "expanded" : ""}`}
+      role="dialog"
+      aria-label={t("ask")}
+      aria-modal={mobile || undefined}
+    >
+      <header className="assistant-panel-header">
+        <span className="assistant-emblem">
+          <Sparkles size={18} />
+        </span>
+        <div>
+          <h2>{t("ask")}</h2>
+          <small>{t("agentWelcome")}</small>
         </div>
+        <div className="assistant-panel-actions">
+          <button
+            className="icon-button assistant-expand"
+            aria-label={t(expanded ? "agentCollapse" : "agentExpand")}
+            onClick={() => setExpanded(!expanded)}
+          >
+            {expanded ? <Minimize2 size={17} /> : <Maximize2 size={17} />}
+          </button>
+          <button
+            className="icon-button"
+            aria-label={t("agentMinimize")}
+            onClick={dismiss}
+          >
+            <Minus size={18} />
+          </button>
+          <button
+            className="icon-button"
+            aria-label={t("close")}
+            onClick={dismiss}
+          >
+            <X size={18} />
+          </button>
+        </div>
+      </header>
+      <div className="assistant-shell">
         <div
           className="assistant-thread"
           role="log"
@@ -120,15 +221,30 @@ export default function Agent({
           {!messages.length && (
             <div className="assistant-welcome">
               <h3>{t("agentWelcomeQuestion")}</h3>
-              <p>{t("agentWelcomeDetail")}</p>
-              <button
-                className="assistant-example"
-                disabled={disabled || !configured}
-                onClick={() => setQuestion(t("agentDraftExample"))}
-              >
-                <ClipboardCheck size={18} />
-                <span>{t("agentDraftExample")}</span>
-              </button>
+              <p>{t("agentCompactHint")}</p>
+              <span className="assistant-try">{t("agentTry")}</span>
+              <div className="assistant-starters">
+                {(
+                  [
+                    { key: "agentStarterRequests", tool: "requests" },
+                    { key: "agentStarterQuotes", tool: "quotes" },
+                    { key: "agentStarterCapture", tool: null },
+                  ] as const
+                ).map((item) => (
+                  <button
+                    key={item.key}
+                    disabled={disabled || (!configured && !item.tool)}
+                    onClick={() => {
+                      setQuestion(t(item.key));
+                      setStarterTool(item.tool);
+                      composer.current?.focus();
+                    }}
+                  >
+                    {t(item.key)}
+                    <ArrowUpRight size={14} />
+                  </button>
+                ))}
+              </div>
             </div>
           )}
           {messages.map((m) => (
@@ -208,18 +324,6 @@ export default function Agent({
           )}
           <div ref={tail} />
         </div>
-        <div className="agent-quick">
-          {(["requests", "nearby", "stock", "quotes"] as const).map((tool) => (
-            <button
-              className="assistant-chip"
-              disabled={disabled}
-              key={tool}
-              onClick={() => ask(tool)}
-            >
-              {t(labels[tool])}
-            </button>
-          ))}
-        </div>
         {error && (
           <p className="error" role="alert">
             {error}
@@ -231,11 +335,15 @@ export default function Agent({
           </label>
           <textarea
             id="assistant-question"
+            ref={composer}
             rows={2}
             value={question}
             maxLength={1200}
             readOnly={recording.recording || recording.working}
-            onChange={(e) => setQuestion(e.target.value)}
+            onChange={(e) => {
+              setQuestion(e.target.value);
+              setStarterTool(null);
+            }}
             placeholder={t("agentPlaceholder")}
             onKeyDown={(e) => {
               if (
@@ -244,27 +352,87 @@ export default function Agent({
                 !e.nativeEvent.isComposing
               ) {
                 e.preventDefault();
-                if (!disabled && configured) void ask();
+                if (!disabled && (configured || starterTool))
+                  void ask(
+                    !configured && starterTool ? starterTool : undefined,
+                  );
               }
             }}
           />
-          <button
-            className="assistant-send"
-            aria-label={t("send")}
-            disabled={disabled || !configured || !question.trim()}
-            onClick={() => ask()}
-          >
-            {busy ? (
-              <LoaderCircle size={18} className="spin" />
-            ) : (
-              <ArrowUp size={20} />
-            )}
-          </button>
+          <div className="assistant-input-actions">
+            <button
+              type="button"
+              className={`assistant-mic ${recording.recording ? "recording" : ""}`}
+              aria-label={t(recording.recording ? "voiceStop" : "voiceStart")}
+              title={t(recording.recording ? "voiceStop" : "voiceStart")}
+              disabled={
+                !voice ||
+                busy ||
+                recording.working ||
+                recording.requesting ||
+                !!recording.support
+              }
+              onClick={recording.toggle}
+            >
+              {recording.recording ? (
+                <Square size={17} />
+              ) : recording.requesting || recording.working ? (
+                <LoaderCircle size={18} className="spin" />
+              ) : (
+                <Mic size={19} />
+              )}
+            </button>
+            <button
+              className="assistant-send"
+              aria-label={t("send")}
+              disabled={
+                disabled || (!configured && !starterTool) || !question.trim()
+              }
+              onClick={() =>
+                ask(!configured && starterTool ? starterTool : undefined)
+              }
+            >
+              {busy ? (
+                <LoaderCircle size={18} className="spin" />
+              ) : (
+                <ArrowUp size={20} />
+              )}
+            </button>
+          </div>
         </div>
-        <VoiceControls voice={recording} configured={voice} disabled={busy} />
+        {recording.error && (
+          <p className="error" role="alert">
+            {t.has(`error.${recording.error}`)
+              ? t(`error.${recording.error}`)
+              : t("errorGeneric")}
+          </p>
+        )}
+        {voice && recording.support && !recording.error && (
+          <p className="fine">{t(`error.${recording.support}`)}</p>
+        )}
+        <p
+          className="fine assistant-voice-status"
+          role={
+            recording.recording || recording.working || recording.requesting
+              ? "status"
+              : undefined
+          }
+        >
+          {t(
+            recording.recording
+              ? "voiceLive"
+              : recording.working
+                ? "transcribing"
+                : recording.requesting
+                  ? "voicePermissionPending"
+                  : voice
+                    ? "agentVoiceHint"
+                    : "voiceOff",
+          )}
+        </p>
         {!configured && <p className="fine">{t("agentOff")}</p>}
         <p className="fine assistant-footnote">{t("agentReadOnly")}</p>
       </div>
-    </Modal>
+    </section>
   );
 }

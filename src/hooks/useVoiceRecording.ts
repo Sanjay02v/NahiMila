@@ -2,6 +2,7 @@
 import {
   useCallback,
   useEffect,
+  useEffectEvent,
   useRef,
   useState,
   useSyncExternalStore,
@@ -36,6 +37,10 @@ type Session = {
 };
 export function useVoiceRecording(
   onTranscript: (value: string, final: boolean) => void,
+  {
+    enabled = true,
+    autoStart = false,
+  }: { enabled?: boolean; autoStart?: boolean } = {},
 ) {
   const support = useSyncExternalStore(subscribe, microphoneSupport, () => "");
   const [recording, setRecording] = useState(false),
@@ -270,6 +275,29 @@ export function useVoiceRecording(
         );
     }
   }
+  const automaticStart = useEffectEvent(() => {
+    void toggle();
+  });
+  const pause = useEffectEvent(() => {
+    cancel();
+    setRecording(false);
+    setWorking(false);
+    setRequesting(false);
+  });
+  const autoStarted = useRef(false);
+  useEffect(() => {
+    if (!enabled) {
+      cancel();
+      const timer = setTimeout(() => pause(), 0);
+      return () => clearTimeout(timer);
+    }
+    if (!autoStart || autoStarted.current) return;
+    const timer = setTimeout(() => {
+      autoStarted.current = true;
+      automaticStart();
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [enabled, autoStart, cancel]);
   return {
     recording,
     working,

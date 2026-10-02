@@ -2300,3 +2300,217 @@ input[type="checkbox"] {
 .assistant-thread > * {
   flex-shrink: 0;
 }
+
+/* Non-blocking merchant assistant */
+.assistant-panel {
+  position: fixed;
+  z-index: 70;
+  right: 24px;
+  bottom: 92px;
+  width: 420px;
+  height: min(620px, calc(100dvh - 122px));
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #dce5d7;
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: 0 16px 64px #17342524;
+  overflow: hidden;
+}
+.assistant-panel[hidden] {
+  display: none;
+}
+.assistant-panel.expanded {
+  width: min(680px, calc(100vw - 48px));
+  height: min(780px, calc(100dvh - 122px));
+}
+.assistant-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--line);
+  flex-shrink: 0;
+}
+.assistant-panel-header h2 {
+  font-size: 17px;
+  line-height: 1.4;
+  margin: 0;
+  letter-spacing: -0.4px;
+}
+.assistant-panel-header small {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  margin-top: 1px;
+}
+.assistant-panel-header .assistant-emblem {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+}
+.assistant-panel-actions {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+  margin-left: auto;
+}
+.assistant-panel-actions .icon-button {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 8px;
+}
+.assistant-panel .assistant-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 16px 16px;
+  flex: 1;
+  min-height: 0;
+}
+.assistant-panel .assistant-thread {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
+  gap: 12px;
+  padding: 4px 0;
+}
+.assistant-panel .assistant-welcome {
+  padding: 22px 10px 8px;
+  text-align: center;
+}
+.assistant-panel .assistant-welcome h3 {
+  font-size: 22px;
+  line-height: 1.3;
+  margin-bottom: 8px;
+}
+.assistant-panel .assistant-welcome > p {
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 0 0 24px;
+}
+.assistant-try {
+  display: block;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  text-align: left;
+  margin-bottom: 9px;
+}
+.assistant-starters {
+  display: grid;
+  gap: 8px;
+}
+.assistant-starters button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  text-align: left;
+  padding: 12px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #355d47;
+  background: #f8faf6;
+  border: 1px solid #e3eadd;
+  border-radius: 12px;
+}
+.assistant-starters svg {
+  flex-shrink: 0;
+}
+.assistant-starters button:hover {
+  background: #edf3e8;
+  border-color: #cfddc5;
+}
+.assistant-panel .chat-message {
+  font-size: 13px;
+  padding: 12px;
+}
+.assistant-panel .assistant-composer textarea {
+  padding: 13px 90px 13px 14px;
+  font-size: 13px;
+  min-height: 80px;
+  line-height: 1.55;
+  width: 100%;
+}
+.assistant-input-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  position: absolute;
+  right: 9px;
+  bottom: 9px;
+}
+.assistant-panel .assistant-send,
+.assistant-mic {
+  position: static;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 10px;
+  padding: 0;
+  flex-shrink: 0;
+}
+.assistant-mic {
+  color: #355d47;
+  background: #eff4ea;
+}
+.assistant-mic.recording {
+  background: #fbece4;
+  color: #a7472c;
+}
+.assistant-panel .assistant-voice-status {
+  font-size: 10px;
+  text-align: center;
+  margin: 0;
+  line-height: 1.5;
+}
+.assistant-panel .assistant-footnote {
+  font-size: 10px;
+  line-height: 1.5;
+}
+.assistant-panel .error {
+  font-size: 12px;
+  margin: 0;
+  max-height: 100px;
+  overflow: auto;
+  padding: 10px;
+}
+@media (max-width: 640px) {
+  .assistant-panel,
+  .assistant-panel.expanded {
+    right: 8px;
+    left: 8px;
+    bottom: 8px;
+    top: 8px;
+    width: auto;
+    height: auto;
+    max-height: none;
+    border-radius: 20px;
+    z-index: 75;
+  }
+  .assistant-panel-header {
+    padding: 15px 16px;
+  }
+  .assistant-expand {
+    display: none !important;
+  }
+  .assistant-panel .assistant-shell {
+    padding: 12px 14px 14px;
+  }
+  .assistant-panel .assistant-welcome {
+    padding: 18px 10px 8px;
+  }
+}
+
+.assistant-panel .assistant-composer textarea {
+  outline: none;
+}

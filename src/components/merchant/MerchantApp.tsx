@@ -38,6 +38,7 @@ export default function MerchantApp() {
     [access, setAccess] = useState<"login" | "onboard" | null>(null),
     [view, setView] = useState<View>("home"),
     [capture, setCapture] = useState(false),
+    [captureMode, setCaptureMode] = useState<"type" | "voice">("type"),
     [captureDraft, setCaptureDraft] = useState<{
       raw: string;
       can_wait: boolean | null;
@@ -442,10 +443,6 @@ export default function MerchantApp() {
           ))}
         </nav>
         <div className="nav-bottom">
-          <button onClick={() => setAgent(true)}>
-            <Mic size={20} />
-            {t("ask")}
-          </button>
           <button onClick={() => navigate("settings")}>
             <Settings size={20} />
             {t("settings")}
@@ -471,7 +468,13 @@ export default function MerchantApp() {
             >
               <Settings size={19} />
             </button>
-            <button className="button small" onClick={() => setCapture(true)}>
+            <button
+              className="button small"
+              onClick={() => {
+                setCaptureMode("type");
+                setCapture(true);
+              }}
+            >
               <Plus size={17} />
               {t("newRequest")}
             </button>
@@ -515,14 +518,20 @@ export default function MerchantApp() {
                   <div className="hero-actions">
                     <button
                       className="speak-button"
-                      onClick={() => setCapture(true)}
+                      onClick={() => {
+                        setCaptureMode("voice");
+                        setCapture(true);
+                      }}
                     >
                       <Mic size={31} />
                       <span>{t("speak")}</span>
                     </button>
                     <button
                       className="text-button"
-                      onClick={() => setCapture(true)}
+                      onClick={() => {
+                        setCaptureMode("type");
+                        setCapture(true);
+                      }}
                     >
                       {t("type")}
                       <ArrowRight size={17} />
@@ -581,7 +590,10 @@ export default function MerchantApp() {
                 </div>
                 <button
                   className="button secondary"
-                  onClick={() => setCapture(true)}
+                  onClick={() => {
+                    setCaptureMode("type");
+                    setCapture(true);
+                  }}
                 >
                   <Plus size={18} />
                   {t("newRequest")}
@@ -916,13 +928,19 @@ export default function MerchantApp() {
             <span>{t("demo")}</span>
           </footer>
         </main>
-        <button className="ask-button" onClick={() => setAgent(true)}>
+        <button
+          className="ask-button"
+          aria-expanded={agent}
+          aria-controls="merchant-assistant"
+          onClick={() => setAgent((open) => !open)}
+        >
           <Mic size={19} />
           <span>{t("ask")}</span>
         </button>
       </div>
       {capture && (
         <Capture
+          mode={captureMode}
           voice={data.voice}
           initial={captureDraft?.raw || ""}
           initialWait={captureDraft?.can_wait === true}
@@ -941,22 +959,22 @@ export default function MerchantApp() {
           save={mutate}
         />
       )}{" "}
-      {agent && (
-        <Agent
-          configured={data.gemini}
-          voice={data.voice}
-          close={() => setAgent(false)}
-          onDraft={(draft) => {
-            setCaptureDraft(draft);
-            setAgent(false);
-            setCapture(true);
-          }}
-          navigate={(screen) => {
-            navigate(screen);
-            setAgent(false);
-          }}
-        />
-      )}{" "}
+      <Agent
+        open={agent && !capture && !quote && !approval}
+        configured={data.gemini}
+        voice={data.voice}
+        close={() => setAgent(false)}
+        onDraft={(draft) => {
+          setCaptureDraft(draft);
+          setCaptureMode("type");
+          setAgent(false);
+          setCapture(true);
+        }}
+        navigate={(screen) => {
+          navigate(screen);
+          setAgent(false);
+        }}
+      />
       {approval?.own && (
         <Modal
           title={t(approval.eligible ? "approveTitle" : "previewShareTitle")}

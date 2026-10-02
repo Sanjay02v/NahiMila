@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { ArrowRight, LoaderCircle } from "lucide-react";
 import type { Intent } from "@/lib/product/types";
@@ -12,12 +12,14 @@ export default function Capture({
   voice,
   initial = "",
   initialWait = false,
+  mode = "type",
   close,
   saved,
 }: {
   voice: boolean;
   initial?: string;
   initialWait?: boolean;
+  mode?: "type" | "voice";
   close: () => void;
   saved: (b: Record<string, unknown>) => Promise<boolean>;
 }) {
@@ -30,10 +32,19 @@ export default function Capture({
     [error, setError] = useState(""),
     [notice, setNotice] = useState("");
   const submission = useRef(crypto.randomUUID());
-  const recording = useVoiceRecording((value, final) => {
-    setRaw(value);
-    setNotice(final ? t("recorded") : "");
-  });
+  const textInput = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    if (mode !== "type" || intent) return;
+    const timer = setTimeout(() => textInput.current?.focus(), 0);
+    return () => clearTimeout(timer);
+  }, [mode, intent]);
+  const recording = useVoiceRecording(
+    (value, final) => {
+      setRaw(value);
+      setNotice(final ? t("recorded") : "");
+    },
+    { autoStart: mode === "voice" && voice },
+  );
   const update = (field: keyof Intent, value: unknown) => {
     if (
       [
@@ -88,7 +99,8 @@ export default function Capture({
           <label>
             {t("rawLabel")}
             <textarea
-              autoFocus
+              ref={textInput}
+              autoFocus={mode === "type"}
               rows={4}
               readOnly={recording.recording || recording.working}
               value={raw}
