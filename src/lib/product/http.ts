@@ -13,7 +13,7 @@ export function failure(e: unknown) {
           ? 401
           : known === "FORBIDDEN"
             ? 403
-            : known === "RATE_LIMIT"
+            : known === "RATE_LIMIT" || known === "AI_RATE_LIMIT"
               ? 429
               : known === "NOT_FOUND"
                 ? 404

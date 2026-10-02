@@ -7,6 +7,46 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 describe("Language services remain evidence-limited", () => {
+  it("suggests an explicitly stated name separately from product matching fields", async () => {
+    vi.stubEnv("GEMINI_API_KEY", "test-key");
+    const raw = "Coke Zero bottle. Customer name: Ravi. Can wait.";
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        Response.json({
+          candidates: [
+            {
+              content: {
+                parts: [
+                  {
+                    text: JSON.stringify({
+                      ...manualDraft("Coke Zero bottle"),
+                      source: "gemini",
+                      customer_name: "Ravi",
+                      customer_name_evidence: "Customer name: Ravi",
+                    }),
+                  },
+                ],
+              },
+            },
+          ],
+        }),
+      ),
+    );
+    const { capture, ...intent } = await normalize(raw, "en");
+    expect(capture?.customer_name).toBe("Ravi");
+    expect(JSON.stringify(intent)).not.toContain("Ravi");
+    expect(Object.keys(parseIntent(intent))).not.toContain("customer_name");
+  });
+  it("reports provider quota/rate limits distinctly instead of claiming AI was removed", async () => {
+    vi.stubEnv("GEMINI_API_KEY", "test-key");
+    const fetch = vi
+      .fn()
+      .mockResolvedValue(new Response("quota", { status: 429 }));
+    vi.stubGlobal("fetch", fetch);
+    await expect(normalize("Coke Zero", "en")).rejects.toThrow("AI_RATE_LIMIT");
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
   it("missing credentials produce explicit manual suggestions and no provider call", async () => {
     vi.stubEnv("GEMINI_API_KEY", "");
     const fetch = vi.fn();

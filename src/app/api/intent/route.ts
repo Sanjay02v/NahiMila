@@ -10,7 +10,7 @@ export async function POST(req: Request) {
     throttle("intent:" + shop.id, 10);
     const b = await body(req);
     const raw = text(b.raw_text);
-    const extracted = await normalize(raw, shop.locale);
+    const { capture, ...extracted } = await normalize(raw, shop.locale);
     const catalog = await withNetwork((n) => productCatalog(n));
     const { intent, match } = await resolveProduct(extracted, catalog);
     await withNetwork((n) => {
@@ -35,7 +35,7 @@ export async function POST(req: Request) {
       });
       n.state.auditEvents = n.state.auditEvents.slice(-500);
     }, true);
-    return ok({ intent, match });
+    return ok({ intent, match, capture });
   } catch (e) {
     return failure(e);
   }

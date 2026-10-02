@@ -64,7 +64,23 @@ export function manualDraft(raw: string): Intent {
       ? "Millet Crunch"
       : coke
         ? "Coke Zero"
-        : withoutPhones(raw).slice(0, 160) || "",
+        : withoutPhones(raw)
+            .split(/;|\.(?!\d)/)
+            .filter(
+              (part) =>
+                !!part.trim() &&
+                !/^\s*(?:customer(?:'s)?\s+name\b|(?:phone|mobile|contact)\s*(?:number)?\s*[:=]?\s*$)/i.test(
+                  part,
+                ),
+            )
+            .join(". ")
+            .replace(
+              /\b(?:customer(?:'s)?\s+(?:(?:phone|mobile|contact)\s+)?(?:number|phone)|(?:phone|mobile|contact)\s+(?:number|no\.?))\b\s*(?:is|:|=)?/gi,
+              "",
+            )
+            .replace(/[\s,;:]+$/g, "")
+            .trim()
+            .slice(0, 160) || "",
     category: millet ? "Snacks" : coke ? "Soft drink" : "",
     brand: millet ? "Millet Crunch" : coke ? "Coca-Cola" : null,
     variant: millet

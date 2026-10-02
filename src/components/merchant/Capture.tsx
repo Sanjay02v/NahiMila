@@ -54,12 +54,23 @@ export default function Capture({
     setError("");
     setNotice("");
     let next: Intent;
+    let customerName = "";
     try {
       const j = await api("/api/intent", { raw_text: raw });
       next = parseIntent(j.intent);
-    } catch {
+      customerName =
+        typeof j.capture?.customer_name === "string"
+          ? j.capture.customer_name
+          : "";
+    } catch (e) {
       next = manualDraft(raw);
-      setNotice(t("aiFailed"));
+      setNotice(
+        t(
+          e instanceof Error && e.message === "AI_RATE_LIMIT"
+            ? "aiLimited"
+            : "aiFailed",
+        ),
+      );
     }
     const hints = captureHints(raw, next);
     const nextIntent = {
@@ -74,6 +85,7 @@ export default function Capture({
     setQuantity(String(next.quantity ?? 1));
     setWait(hints.can_wait ?? (initialWait ? true : null));
     setPhone(hints.phone ? `+${hints.phone}` : "");
+    setCustomer(customerName);
     setBusy(false);
   }
   const save = async () => {
@@ -158,7 +170,7 @@ export default function Capture({
             ) : (
               <ArrowRight size={18} />
             )}
-            {t("interpret")}
+            {t(busy ? "understandingRequest" : "interpret")}
           </button>
         </>
       ) : (
@@ -169,7 +181,11 @@ export default function Capture({
           }}
           className="simple-capture"
         >
-          <p className="fine">{t("simpleReviewHint")}</p>
+          <p className="fine">
+            {t(
+              intent.source === "gemini" ? "aiFilledHint" : "simpleReviewHint",
+            )}
+          </p>
           <label>
             {t("itemLabel")}
             <input
@@ -193,7 +209,7 @@ export default function Capture({
           <fieldset className="wait-choices">
             <legend>{t("canCustomerWait")}</legend>
             <div className="wait-options">
-              {([true, false, null] as const).map((choice) => (
+              {([true, false] as const).map((choice) => (
                 <label
                   className={`wait-choice ${wait === choice ? "selected" : ""}`}
                   key={String(choice)}
@@ -204,13 +220,7 @@ export default function Capture({
                     checked={wait === choice}
                     onChange={() => setWait(choice)}
                   />
-                  {t(
-                    choice === true
-                      ? "waitYes"
-                      : choice === false
-                        ? "waitNo"
-                        : "waitUnsure",
-                  )}
+                  {t(choice ? "waitYes" : "waitNo")}
                 </label>
               ))}
             </div>

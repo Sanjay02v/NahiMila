@@ -33,13 +33,28 @@ describe("Simple item review", () => {
     expect(result.budget_paise).toBe(5000);
   });
   it("rejects a blank item and failed normalization without silently saving a different identity", async () => {
-    const base = manualDraft("Coke Zero 500ml bottle");
+    const base = {
+      ...manualDraft("Coke Zero 500ml bottle"),
+      source: "gemini" as const,
+    };
     await expect(reviewEditedItem(" ", base, vi.fn())).rejects.toThrow(
       "ITEM_REQUIRED",
     );
     await expect(
       reviewEditedItem("Vim bar", base, async () => ({ product: "" })),
     ).rejects.toThrow();
+  });
+  it("manual review edits remain saveable without recontacting a rate-limited provider", async () => {
+    const normalize = vi.fn().mockRejectedValue(new Error("AI_RATE_LIMIT"));
+    const result = await reviewEditedItem(
+      "Diet Coke can",
+      manualDraft("diet cooke can customer number"),
+      normalize,
+    );
+    expect(result.product).toBe("Diet Coke can");
+    expect(result.source).toBe("manual");
+    expect(result.brand).toBeNull();
+    expect(normalize).not.toHaveBeenCalled();
   });
   it("recording complete extracted demand still creates no offer until actual terms are arranged", () => {
     const n = seedNetwork();

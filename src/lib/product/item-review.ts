@@ -1,6 +1,6 @@
 import type { Intent } from "./types";
 import { productLabel } from "./canonical";
-import { parseIntent } from "./intent";
+import { manualDraft, parseIntent } from "./intent";
 
 export function itemDescription(i: Intent) {
   return [
@@ -20,7 +20,10 @@ export async function reviewEditedItem(
   if (!value.trim()) throw new Error("ITEM_REQUIRED");
   if (value.trim() === itemDescription(base)) return base;
   // Re-extract changed item text, never attach the old pack/brand to a new item.
-  const reviewed = parseIntent(await normalize(value.trim()));
+  const reviewed =
+    base.source === "manual"
+      ? manualDraft(value.trim())
+      : parseIntent(await normalize(value.trim()));
   return {
     ...reviewed,
     quantity: base.quantity,

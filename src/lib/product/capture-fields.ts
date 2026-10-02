@@ -50,6 +50,27 @@ export function phoneFromText(raw: string): string | null {
   const valid = new Set(phoneCandidates(raw).map((v) => v.phone));
   return valid.size === 1 ? [...valid][0] : null;
 }
+export function groundedCustomerName(
+  raw: string,
+  name: unknown,
+  evidence: unknown,
+): string | null {
+  if (typeof name !== "string" || typeof evidence !== "string") return null;
+  const value = name.trim();
+  if (!value || value.length > 80 || !/^[\p{L}\p{M} .'-]+$/u.test(value))
+    return null;
+  // Verbatim evidence must explicitly identify a customer, never a brand/item name.
+  if (
+    !raw.includes(evidence) ||
+    !evidence.includes(value) ||
+    !/(?:\bcustomer(?:'s)?\s+(?:name\b|is\b|called\b|named\b)|\bname\s*(?:is|:)|नाम|ಹೆಸರು)/i.test(
+      evidence,
+    ) ||
+    /\b(?:product|brand|item)\s+name\b/i.test(evidence)
+  )
+    return null;
+  return value;
+}
 export function dayFromDeadline(value: string | null): string {
   return value && Number.isFinite(Date.parse(value))
     ? new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(

@@ -1,4 +1,9 @@
 export const en = {
+  understandingRequest: "Understanding your request…",
+  aiFilledHint: "AI filled this in. Please check the item and quantity.",
+  aiLimited:
+    "AI is temporarily rate-limited. Check or edit these manual suggestions.",
+
   itemLabel: "Item",
   simpleReviewHint: "Check the item and quantity. You can change either.",
   canCustomerWait: "Can the customer wait?",
@@ -479,6 +484,10 @@ export const en = {
 type Messages = typeof en;
 export const hi: Messages = {
   ...en,
+  understandingRequest: "आपकी बात समझ रहे हैं…",
+  aiFilledHint: "AI ने विवरण भरा है। सामान और संख्या जाँचें।",
+  aiLimited: "अभी AI की उपयोग सीमा लागू है। ये मैनुअल सुझाव जाँचें या बदलें।",
+
   itemLabel: "सामान",
   simpleReviewHint: "सामान और संख्या जाँचें। दोनों बदल सकते हैं।",
   canCustomerWait: "क्या ग्राहक इंतज़ार कर सकता है?",
@@ -930,6 +939,11 @@ export const hi: Messages = {
 };
 export const kn: Messages = {
   ...en,
+  understandingRequest: "ನಿಮ್ಮ ವಿನಂತಿಯನ್ನು ಅರ್ಥಮಾಡಿಕೊಳ್ಳುತ್ತಿದೆ…",
+  aiFilledHint: "AI ವಿವರಗಳನ್ನು ತುಂಬಿದೆ. ವಸ್ತು ಮತ್ತು ಸಂಖ್ಯೆಯನ್ನು ಪರಿಶೀಲಿಸಿ.",
+  aiLimited:
+    "ಈಗ AI ಬಳಕೆಯ ಮಿತಿ ಇದೆ. ಈ ಕೈಯಾರೆ ಸಲಹೆಗಳನ್ನು ಪರಿಶೀಲಿಸಿ ಅಥವಾ ಬದಲಾಯಿಸಿ.",
+
   itemLabel: "ವಸ್ತು",
   simpleReviewHint: "ವಸ್ತು ಮತ್ತು ಸಂಖ್ಯೆಯನ್ನು ಪರಿಶೀಲಿಸಿ. ಎರಡನ್ನೂ ಬದಲಾಯಿಸಬಹುದು.",
   canCustomerWait: "ಗ್ರಾಹಕರು ಕಾಯಬಹುದೇ?",

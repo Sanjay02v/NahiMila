@@ -6,6 +6,7 @@ import {
   detailsText,
   phoneFromText,
   withDetails,
+  groundedCustomerName,
 } from "../src/lib/product/capture-fields";
 import { manualDraft, parseIntent } from "../src/lib/product/intent";
 import {
@@ -17,6 +18,55 @@ import {
 import { groupDemand } from "../src/lib/product/demand-book";
 const shop = "m-sharma-001";
 describe("Simple capture fields preserve exact specifications", () => {
+  it("manual fallback removes contact labels without erasing mobile-phone products", () => {
+    expect(
+      manualDraft("diet cooke can customer number 9876543210").product,
+    ).toBe("diet cooke can");
+    expect(
+      manualDraft("Moto mobile phone, customer number 9876543210").product,
+    ).toBe("Moto mobile phone");
+    expect(
+      manualDraft("Diet Coke can. Customer name: Ravi. Phone +44 7700 900123.")
+        .product,
+    ).toBe("Diet Coke can");
+    expect(manualDraft("Water 0.5L").product).toBe("Water 0.5L");
+  });
+  it("name suggestions require verbatim customer evidence, never an inferred brand name", () => {
+    expect(
+      groundedCustomerName(
+        "Customer name: Ravi. Cola",
+        "Ravi",
+        "Customer name: Ravi",
+      ),
+    ).toBe("Ravi");
+    expect(
+      groundedCustomerName("ग्राहक का नाम: राहुल", "राहुल", "नाम: राहुल"),
+    ).toBe("राहुल");
+    expect(
+      groundedCustomerName(
+        "Feastables chocolate",
+        "Ravi",
+        "Customer name: Ravi",
+      ),
+    ).toBeNull();
+    expect(
+      groundedCustomerName(
+        "Product name: Feastables",
+        "Feastables",
+        "Product name: Feastables",
+      ),
+    ).toBeNull();
+    expect(
+      groundedCustomerName(
+        "Customer name: Ravi",
+        "Rahul",
+        "Customer name: Ravi",
+      ),
+    ).toBeNull();
+    expect(
+      groundedCustomerName("Customer name: Ravi", "Ravi", undefined),
+    ).toBeNull();
+  });
   it("one details field retains variant, size and packaging without conflating packs", () => {
     const i = manualDraft("Millet Crunch Masala 100g");
     const small = withDetails(i, "Masala, 100g pouch"),
