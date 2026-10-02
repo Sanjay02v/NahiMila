@@ -15,7 +15,8 @@ No credentials are needed for the typed demonstration. Data persists in `.data/<
 
 ## What actually works
 
-- Merchant capture of exact SKU/pack, integer quantity, retail budget, wait eligibility and 8pm IST pickup deadline.
+- Merchant capture of every missed exact SKU/pack request, including customers who won’t wait. Non-waiting records need no name, budget or pickup date and create no offer or reservation.
+- Willing customers receive an exact conditional offer with a retail budget and 8pm IST pickup deadline; only confirmation backs procurement.
 - Independent customer `/confirm/<token>?workspace=<id>` links. Confirmation is idempotent for the token; a saved request alone contributes zero demand.
 - A 23-unit seed across three shops, plus Customer 08's pending offer. Confirmation reaches a complete 24-unit case.
 - Editable supplier quotes, integer-paise cost allocation including logistics, per-shop cash limits and supplier permissions.

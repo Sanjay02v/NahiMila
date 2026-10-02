@@ -21,8 +21,12 @@ export async function POST(req:Request){
  if(s.requests.length>=200)throw new Error('This demo is limited to 200 requests. Reset to start again.');
  const reason=text(body.reason,'unavailability reason') as UnavailableReason;
  if(!['not_stocked','out_of_stock','wrong_variant','wrong_pack','price_mismatch','unavailable_before_deadline'].includes(reason))throw new Error('Invalid reason.');
- const result=s.createDemandRequest({merchant_id:text(body.merchant_id,'merchant'),product_id:text(body.product_id,'product'),quantity:amount(body.quantity,'Quantity',1),max_retail_price_paise:amount(body.price_paise,'Customer budget',1),required_by_date:text(body.deadline,'deadline'),reason_unavailable:reason,can_wait:body.can_wait===true,customer_name:text(body.customer_name,'customer name')});
- token=result.request.request_token;message='Exact offer created. Only customer confirmation adds it to shared demand.';break;}
+ if(typeof body.can_wait!=='boolean')throw new Error('Specify whether the customer can wait.');
+ const canWait=body.can_wait;
+ const customerName=body.customer_name==null||body.customer_name===''?undefined:text(body.customer_name,'customer name');
+ if(canWait&&!customerName)throw new Error('Invalid customer name.');
+ const result=s.createDemandRequest({merchant_id:text(body.merchant_id,'merchant'),product_id:text(body.product_id,'product'),quantity:amount(body.quantity,'Quantity',1),max_retail_price_paise:amount(body.price_paise??(canWait?undefined:0),'Customer budget',canWait?1:0),required_by_date:canWait?text(body.deadline,'deadline'):'',reason_unavailable:reason,can_wait:canWait,customer_name:customerName});
+ token=result.request.request_token;message=result.offer?'Exact offer created. Only customer confirmation adds it to shared demand.':'Missed demand recorded. Customer won’t wait; no offer or reservation was created.';break;}
  case 'confirm':{const r=s.confirmCustomerOffer(text(body.token,'offer token'));message=r.isDuplicate?'Already confirmed. This reservation was counted only once.':'Reservation confirmed. Shared demand has been recalculated.';break;}
  case 'cancel':s.cancelCustomerReservation(text(body.token,'offer token'));message='Reservation withdrawn. Previous approvals are cleared.';break;
  case 'cap':s.updateMerchantCashCap(text(body.merchant_id,'merchant'),amount(body.cap_paise,'Cash limit'));message='Cash limit updated. Review the new allocation before approving.';break;

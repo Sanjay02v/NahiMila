@@ -95,7 +95,7 @@ export class MemoryStore {
     for (let i=0;i<24;i++) {
       const merchant = this.merchants[Math.floor(i/8)];
       const {request,offer}=this.createDemandRequest({merchant_id:merchant.id,product_id:'prod-millet',quantity:1,max_retail_price_paise:5000,required_by_date:getFutureDateString(2),reason_unavailable:'not_stocked',can_wait:true,customer_name:`Customer ${String(i+1).padStart(2,'0')}`});
-      const token=`REQ-NML-${8801+i}`; request.request_token=token;offer.request_token=token;
+      const token=`REQ-NML-${8801+i}`; request.request_token=token;if(!offer)throw new Error('Seed requires an offer');offer.request_token=token;
       if(i!==7)this.confirmCustomerOffer(token);
     }
 
@@ -182,7 +182,7 @@ export class MemoryStore {
     can_wait: boolean;
     customer_phone?: string;
     customer_name?: string;
-  }): { request: DemandRequest; offer: CustomerOffer } {
+  }): { request: DemandRequest; offer: CustomerOffer | null } {
     const merchant = this.getMerchantById(params.merchant_id);
     if (!merchant) throw new Error('Invalid merchant ID');
 
@@ -190,10 +190,9 @@ export class MemoryStore {
     if (!product) throw new Error('Unknown product SKU. Correction required before counting as demand.');
 
     if (!Number.isSafeInteger(params.quantity) || params.quantity <= 0) throw new Error('Quantity must be at least 1');
-    if (!Number.isSafeInteger(params.max_retail_price_paise) || params.max_retail_price_paise <= 0) throw new Error('Retail price ceiling must be greater than 0');
+    if (!Number.isSafeInteger(params.max_retail_price_paise) || params.max_retail_price_paise < (params.can_wait ? 1 : 0)) throw new Error('Retail price ceiling must be greater than 0');
 
-    if (!params.can_wait) throw new Error('This flow is for customers willing to wait.');
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(params.required_by_date) || !Number.isFinite(Date.parse(`${params.required_by_date}T20:00:00+05:30`)) || Date.parse(`${params.required_by_date}T20:00:00+05:30`)<=Date.now()) throw new Error('Choose a future pickup deadline.');
+    if (params.can_wait && (!/^\d{4}-\d{2}-\d{2}$/.test(params.required_by_date) || !Number.isFinite(Date.parse(`${params.required_by_date}T20:00:00+05:30`)) || Date.parse(`${params.required_by_date}T20:00:00+05:30`)<=Date.now())) throw new Error('Choose a future pickup deadline.');
     // Generate unique stable token
     const token = `NML-${crypto.randomUUID()}`;
     const reqId = `req-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
@@ -209,17 +208,17 @@ export class MemoryStore {
       pack_size: product.pack_size,
       quantity: params.quantity,
       max_retail_price_paise: params.max_retail_price_paise,
-      required_by_date: params.required_by_date,
+      required_by_date: params.can_wait ? params.required_by_date : '',
       reason_unavailable: params.reason_unavailable,
       can_wait: params.can_wait,
       customer_phone: params.customer_phone,
       customer_name: params.customer_name || 'Walk-in Customer',
-      status: 'OFFER_CREATED',
+      status: params.can_wait ? 'OFFER_CREATED' : 'MISSED_DEMAND',
       created_at: now,
       updated_at: now,
     };
 
-    const offer: CustomerOffer = {
+    const offer: CustomerOffer | null = params.can_wait ? {
       id: offerId,
       request_id: reqId,
       request_token: token,
@@ -228,15 +227,16 @@ export class MemoryStore {
       pickup_deadline: `${params.required_by_date}T20:00:00+05:30`,
       is_conditional: true,
       created_at: now,
-    };
+    } : null;
 
     this.requests.push(request);
-    this.offers.push(offer);
+    if (offer) this.offers.push(offer);
 
     this.logAudit('REQUEST', reqId, 'REQUEST_CAPTURED', {
       token,
       sku: product.sku,
       merchantId: params.merchant_id,
+      canWait: params.can_wait,
     });
 
     return { request, offer };
