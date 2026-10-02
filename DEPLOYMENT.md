@@ -1,12 +1,23 @@
 # NahiMila on Render Free and Supabase Free
 
-Deployment files are prepared and pushed to [Sanjay02v/NahiMila](https://github.com/Sanjay02v/NahiMila) on `main`. The configured Supabase project is reachable with the server credentials, but its product tables have not yet been created. No public Render deployment has been verified yet.
+[NahiMila is live](https://nahimila.onrender.com) on Render Free, backed by Supabase Free. Source is pushed to [Sanjay02v/NahiMila](https://github.com/Sanjay02v/NahiMila) on `main`. Both product migrations have been applied and six fictional merchant accounts have been seeded. Render uses Node 24, one instance in Singapore, and the configured server-side Gemini/Sarvam keys with the shared Gemini quota limits.
+
+## Verified deployment checks — 3 October 2026
+
+- Render's production build and deployment succeeded.
+- Two demo accounts signed in through both Supabase and the public app. Owner-scoped reads returned only each account's own shop and requests; the anonymous network RPC and unauthenticated merchant endpoint were denied. A cross-shop mutation attempt was also rejected.
+- Gemini parsed a fictional request for two Coke Zero 500ml bottles, including the explicit refusal to wait. Saving created a `MISSED_DEMAND` entry, which persisted after reload and remained outside confirmed procurement demand.
+- A seeded customer link returned valid data and its public confirmation page loaded successfully.
+- The public Sarvam streaming endpoint accepted synthetic speech and returned partial and final transcripts: “A customer asked for 2 Coke Zero bottles.” This verifies the hosted stream and audio-upload path; it does not verify a physical microphone or every device/browser.
+- Supabase's Site URL is `https://nahimila.onrender.com`. New-account email confirmation and recovery have not been verified; use seeded demo accounts for judging.
+
+The full shared-order demo and a physical microphone check still need a rehearsal on the final devices. No real WhatsApp messages, payments or supplier orders were sent during deployment verification.
 
 ## What you need to provide
 
 1. The GitHub repository is connected. It contains Solution's contents directly, so leave Render's Root Directory blank. `.env.local`, `.data` and API keys are excluded.
-2. All three Supabase settings are configured locally. Sign in to the project's dashboard to apply the two migrations below. Do not send secret keys in chat. Existing Gemini and Sarvam keys can be used.
-3. Sign in to Render and select the Free web-service plan. Connect only the repository needed for this website.
+2. All three Supabase settings are configured locally and in Render. Both migrations below are already applied to the current project. Do not send secret keys in chat.
+3. Render's GitHub connection is configured for this repository. The Free service is already deployed; the remaining setup instructions describe recreating it in a new environment.
 
 ## Prepare Supabase
 
@@ -15,7 +26,7 @@ In the new project's SQL Editor, run these saved files in this order:
 1. `supabase/migrations/20261002010000_merchant_product.sql`
 2. `supabase/migrations/20261002020000_gemini_quota.sql`
 
-Do **not** apply the historical `demo_workspaces` migration for this product. The two current migrations configure owner-scoped data access and server-only coordination. This path has not yet been verified against a real Supabase project.
+Do **not** apply the historical `demo_workspaces` migration for this product. The two current migrations configure owner-scoped data access and server-only coordination. They have been applied and verified in the current Supabase project. Run these instructions only for a new, empty project; do not rerun the first migration against the configured database.
 
 With the three Supabase credentials configured locally, run:
 
