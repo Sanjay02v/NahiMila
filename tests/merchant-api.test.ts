@@ -766,6 +766,51 @@ describe("Adding missing customer contact preserves reservation terms", () => {
 });
 
 describe("Pending interest becomes an offer only after actual terms are set", () => {
+  it("saves the pictured 100gm hazelnut offer as 100 grams", async () => {
+    const intent = { ...manualDraft("Chocolate"), variant: "Capella Hazelnut" };
+    await post({
+      action: "create",
+      submission_key: crypto.randomUUID(),
+      raw_text: "Chocolate",
+      intent,
+      can_wait: true,
+      customer_phone: "9876543210",
+      contact_consent: true,
+      offer_price_paise: null,
+    });
+    const r = network.state.requests.at(-1)!;
+    const reviewed = await reviewItemFields(
+      { ...itemFields(intent), pack: "100gm" },
+      intent,
+      vi.fn(),
+    );
+    const deadline = new Date(Date.now() + 18 * 86400000).toISOString();
+    const response = await post({
+      action: "prepare_offer",
+      request_id: r.id,
+      token: r.request_token,
+      quantity: 1,
+      price_paise: 50000,
+      budget_paise: null,
+      deadline,
+      intent: reviewed,
+      customer_phone: "9876543210",
+      contact_consent: true,
+    });
+    expect(response.status).toBe(200);
+    expect(network.details[r.id].intent).toMatchObject({
+      size: 100,
+      unit: "g",
+      variant: "Capella Hazelnut",
+    });
+    expect(
+      network.state.offers.find((o) => o.request_id === r.id)
+        ?.proposed_price_paise,
+    ).toBe(50000);
+    expect(network.state.requests.find((x) => x.id === r.id)?.status).toBe(
+      "OFFER_CREATED",
+    );
+  });
   it("arranges a missing-pack item using separate flavour/pack edits without another AI call", async () => {
     const intent = {
       ...manualDraft("Cola"),

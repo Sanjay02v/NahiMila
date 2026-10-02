@@ -97,17 +97,17 @@ export function detailsText(i: Intent): string {
 }
 export function withDetails(i: Intent, value: string): Intent {
   const match = value.match(
-    /(\d+(?:\.\d+)?)\s*(kg\b|grams?\b|g\b|ml\b|litres?\b|liters?\b|l\b|pieces?\b)/i,
+    /(\d+(?:\.\d+)?)\s*(kgs?\b|grams?\b|gms?\b|g\b|ml\b|litres?\b|liters?\b|ltrs?\b|l\b|pieces?\b|pcs?\b)/i,
   );
   let size: number | null = match ? Number(match[1]) : null;
   let unit: Intent["unit"] = match
-    ? /kg|gram|^g$/i.test(match[2])
+    ? /kg|gram|^gms?$|^g$/i.test(match[2])
       ? "g"
-      : /piece/i.test(match[2])
+      : /piece|^pcs?$/i.test(match[2])
         ? "piece"
         : "ml"
     : null;
-  if (match && /kg|lit|^l$/i.test(match[2])) size = size! * 1000;
+  if (match && /kg|lit|ltr|^l$/i.test(match[2])) size = size! * 1000;
   const half = /half[ -]?lit(?:re|er)/i;
   if (half.test(value)) {
     size = 500;

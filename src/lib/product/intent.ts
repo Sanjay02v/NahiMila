@@ -40,15 +40,15 @@ export function manualDraft(raw: string): Intent {
   // Explicit aliases are suggestions, not a pretend AI response. All values require review.
   const lower = raw.toLowerCase(),
     weight = lower.match(
-      /(\d+(?:\.\d+)?)\s*(kg|grams?|g\b|ml\b|litres?|liters?|l\b)/,
+      /(\d+(?:\.\d+)?)\s*(kgs?\b|grams?\b|gms?\b|g\b|ml\b|litres?\b|liters?\b|ltrs?\b|l\b)/,
     );
   let size = weight ? Number(weight[1]) : null,
     unit: Intent["unit"] = weight
-      ? /kg|gram|^g$/.test(weight[2])
+      ? /kg|gram|^gms?$|^g$/.test(weight[2])
         ? "g"
         : "ml"
       : null;
-  if (weight && /kg|lit|^l$/.test(weight[2])) size = size! * 1000;
+  if (weight && /kg|lit|ltr|^l$/.test(weight[2])) size = size! * 1000;
   if (/half[ -]?litre|half[ -]?liter/.test(lower)) {
     size = 500;
     unit = "ml";

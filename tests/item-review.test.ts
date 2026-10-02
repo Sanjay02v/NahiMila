@@ -9,6 +9,44 @@ import { manualDraft } from "../src/lib/product/intent";
 import { saveRequest, seedNetwork, storeFor } from "../src/lib/product/network";
 
 describe("Simple item review", () => {
+  it.each(["100gm", "100 gms", "100 grams", "100G", "100 GM"])(
+    "accepts the common gram spelling %s without asking Gemini",
+    async (pack) => {
+      const base = { ...manualDraft("Chocolate"), variant: "Capella Hazelnut" };
+      const normalize = vi.fn();
+      const result = await reviewItemFields(
+        { ...itemFields(base), pack },
+        base,
+        normalize,
+      );
+      expect(result).toMatchObject({
+        size: 100,
+        unit: "g",
+        variant: "Capella Hazelnut",
+      });
+      expect(normalize).not.toHaveBeenCalled();
+      expect(manualDraft(`Chocolate ${pack}`)).toMatchObject({
+        size: 100,
+        unit: "g",
+      });
+    },
+  );
+  it.each([
+    ["0.5 kgs", 500, "g"],
+    ["1 ltr bottle", 1000, "ml"],
+    ["1.5 ltrs", 1500, "ml"],
+    ["1 pc", 1, "piece"],
+    ["2 pcs", 2, "piece"],
+  ])("accepts common pack abbreviation %s", async (pack, size, unit) => {
+    const base = manualDraft("Product");
+    expect(
+      await reviewItemFields(
+        { ...itemFields(base), pack: String(pack) },
+        base,
+        vi.fn(),
+      ),
+    ).toMatchObject({ size, unit });
+  });
   it("splits an extracted item, variant and pack without duplicating flavour", () => {
     const base = {
       ...manualDraft("Coke Zero 500ml bottle"),
