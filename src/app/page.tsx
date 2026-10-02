@@ -1,2 +1,4 @@
-import Workspace from '@/components/Workspace';
-export default function Home(){return <Workspace/>;}
+import MerchantApp from "@/components/merchant/MerchantApp";
+export default function Home() {
+  return <MerchantApp />;
+}

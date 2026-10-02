@@ -180,6 +180,7 @@ export class MemoryStore {
     required_by_date: string;
     reason_unavailable: UnavailableReason;
     can_wait: boolean;
+    pickup_deadline?: string;
     customer_phone?: string;
     customer_name?: string;
   }): { request: DemandRequest; offer: CustomerOffer | null } {
@@ -192,7 +193,8 @@ export class MemoryStore {
     if (!Number.isSafeInteger(params.quantity) || params.quantity <= 0) throw new Error('Quantity must be at least 1');
     if (!Number.isSafeInteger(params.max_retail_price_paise) || params.max_retail_price_paise < (params.can_wait ? 1 : 0)) throw new Error('Retail price ceiling must be greater than 0');
 
-    if (params.can_wait && (!/^\d{4}-\d{2}-\d{2}$/.test(params.required_by_date) || !Number.isFinite(Date.parse(`${params.required_by_date}T20:00:00+05:30`)) || Date.parse(`${params.required_by_date}T20:00:00+05:30`)<=Date.now())) throw new Error('Choose a future pickup deadline.');
+    if (params.pickup_deadline && (!Number.isFinite(Date.parse(params.pickup_deadline)) || Date.parse(params.pickup_deadline)<=Date.now())) throw new Error('INVALID_DEADLINE');
+    if (params.can_wait && !params.pickup_deadline && (!/^\d{4}-\d{2}-\d{2}$/.test(params.required_by_date) || !Number.isFinite(Date.parse(`${params.required_by_date}T20:00:00+05:30`)) || Date.parse(`${params.required_by_date}T20:00:00+05:30`)<=Date.now())) throw new Error('Choose a future pickup deadline.');
     // Generate unique stable token
     const token = `NML-${crypto.randomUUID()}`;
     const reqId = `req-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
@@ -224,7 +226,7 @@ export class MemoryStore {
       request_token: token,
       proposed_price_paise: params.max_retail_price_paise,
       pickup_merchant_id: params.merchant_id,
-      pickup_deadline: `${params.required_by_date}T20:00:00+05:30`,
+      pickup_deadline: params.pickup_deadline || `${params.required_by_date}T20:00:00+05:30`,
       is_conditional: true,
       created_at: now,
     } : null;
@@ -273,7 +275,7 @@ export class MemoryStore {
   } {
     // 1. Check if an active reservation already exists (Database Unique Constraint simulation)
     const existing = this.reservations.find(
-      r => r.request_token === token && (r.status === 'ACTIVE' || r.status === 'COMMITTED')
+      r => r.request_token === token && r.status !== 'CANCELLED'
     );
     if (existing) {
       // Idempotent return: do NOT create duplicate
@@ -344,9 +346,7 @@ export class MemoryStore {
     }
 
     // If order is already committed, cancellation cannot pretend supplier cost disappeared
-    const committedOrder = this.orders.find(
-      o => o.status === 'SIMULATED_COMMITTED' || o.status === 'IN_TRANSIT'
-    );
+    const committedOrder = this.orders.find(o=>o.selected_reservation_ids?.includes(reservation.id));
     if (committedOrder) {
       throw new Error(
         'Supplier order already committed. Supplier procurement cost cannot be eliminated.'
@@ -458,6 +458,7 @@ export class MemoryStore {
     quote_id: string;
     quote_version: number;
     allocation_version?: number;
+    allocation_fingerprint?: string;
     exposure_paise: number;
     approved: boolean;
   }): MerchantApproval {
@@ -482,6 +483,7 @@ export class MemoryStore {
       quote_id: params.quote_id,
       quote_version: params.quote_version,
       allocation_version: params.allocation_version || 1,
+      allocation_fingerprint: params.allocation_fingerprint,
       exposure_paise: params.exposure_paise,
       status: params.approved ? 'APPROVED' : 'REJECTED',
       approved_at: params.approved ? now : null,
@@ -508,11 +510,15 @@ export class MemoryStore {
   }
 
   // ================= Evaluation =================
+  // The product coordinator restricts a quote to its consenting local cohort.
+  public eligibleMerchantIdsForQuote?: (quote: SupplierQuote) => Set<string>;
+
   public evaluateQuote(quoteId: string) {
     const quote = this.getQuoteById(quoteId);
     if (!quote) throw new Error(`Quote ${quoteId} not found`);
 
-    const confirmedRequests = this.requests.map(r=>({...r,
+    const allowed = this.eligibleMerchantIdsForQuote?.(quote);
+    const confirmedRequests = this.requests.filter(r=>!allowed || allowed.has(r.merchant_id)).map(r=>({...r,
       reservation:this.reservations.find(res=>res.request_token===r.request_token&&res.status==='ACTIVE'),
       pickup_deadline:this.offers.find(o=>o.request_token===r.request_token)?.pickup_deadline
     }));
@@ -522,7 +528,7 @@ export class MemoryStore {
     return evaluateSupplierQuote({
       quote,
       confirmedRequests,
-      merchants: this.merchants,
+      merchants: this.merchants.filter(m=>!allowed || allowed.has(m.id)),
       existingApprovals,
     });
   }
@@ -539,7 +545,7 @@ export class MemoryStore {
         return existing;
       }
 
-      if(this.orders.some(o=>o.status==='SIMULATED_COMMITTED')) throw new Error('This demonstration supports one supplier order per workspace. Reset to explore a new case.');
+
       // 2. Evaluate quote and checks
       const evaluation = this.evaluateQuote(quoteId);
       if (!evaluation.is_eligible) {
@@ -566,6 +572,7 @@ export class MemoryStore {
 
       const order: ProcurementOrder = {
         id: orderId,
+        selected_reservation_ids: evaluation.selected_reservation_ids,
         evaluation: structuredClone(evaluation),
         supplier_quote: structuredClone(this.getQuoteById(quoteId)!),
         quote_id: quoteId,
@@ -587,14 +594,14 @@ export class MemoryStore {
 
       // Transition affected reservations and requests to SUPPLIER_COMMITTED -> READY_FOR_PICKUP
       for (const req of this.requests) {
-        if (this.reservations.some(res=>res.request_id===req.id&&res.status==='ACTIVE'&&res.sku===evaluation.sku&&res.pack_size===evaluation.pack_size)) {
+        if (this.reservations.some(res=>res.request_id===req.id&&res.status==='ACTIVE'&&!!evaluation.selected_reservation_ids?.includes(res.id))) {
           req.status = 'READY_FOR_PICKUP';
           req.updated_at = now;
         }
       }
 
       for (const res of this.reservations) {
-        if (res.sku === evaluation.sku && res.pack_size === evaluation.pack_size && res.status === 'ACTIVE') {
+        if (res.sku === evaluation.sku && res.pack_size === evaluation.pack_size && res.status === 'ACTIVE' && !!evaluation.selected_reservation_ids?.includes(res.id)) {
           res.status = 'COMMITTED';
           res.updated_at = now;
         }

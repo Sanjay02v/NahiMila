@@ -1,7 +1,4 @@
 import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
-  /* config options here */
-};
-
-export default nextConfig;
+import createNextIntlPlugin from "next-intl/plugin";
+const config: NextConfig = { devIndicators: false };
+export default createNextIntlPlugin("./src/i18n/request.ts")(config);

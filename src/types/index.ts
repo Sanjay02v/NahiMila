@@ -56,6 +56,7 @@ export interface Merchant {
 }
 
 export interface Product {
+  intent_key?: string;
   id: string;
   sku: string;
   name: string;
@@ -119,6 +120,7 @@ export interface Supplier {
 }
 
 export interface SupplierQuote {
+  created_by_shop?: string;
   id: string;
   supplier_id: string;
   supplier_name: string;
@@ -161,6 +163,7 @@ export interface RuleCheckResult {
 }
 
 export interface QuoteEvaluation {
+  selected_reservation_ids?: string[];
   quote_id: string;
   quote_version: number;
   supplier_name: string;
@@ -186,6 +189,7 @@ export interface MerchantApproval {
   quote_id: string;
   quote_version: number;
   allocation_version: number;
+  allocation_fingerprint?: string;
   exposure_paise: number;
   status: ApprovalStatus;
   approved_at: string | null;
@@ -194,6 +198,7 @@ export interface MerchantApproval {
 }
 
 export interface ProcurementOrder {
+  selected_reservation_ids?: string[];
   evaluation?: QuoteEvaluation;
   supplier_quote?: SupplierQuote;
   id: string;

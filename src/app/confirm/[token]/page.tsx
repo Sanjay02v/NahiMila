@@ -1,4 +1,9 @@
-'use client';
-import { useParams } from 'next/navigation';
-import Workspace from '@/components/Workspace';
-export default function CustomerPage(){const {token}=useParams<{token:string}>();return <Workspace customerToken={token}/>;}
+import Customer from "@/components/merchant/Customer";
+export default async function CustomerPage({
+  params,
+}: {
+  params: Promise<{ token: string }>;
+}) {
+  const { token } = await params;
+  return <Customer token={token} />;
+}

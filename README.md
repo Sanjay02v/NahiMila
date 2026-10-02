@@ -1,54 +1,81 @@
 # NahiMila
 
-A responsive merchant website that turns unavailable-product requests into exact customer reservations and shared supplier cases. The prototype implements the locked PS21 mechanism: customer-backed demand, deterministic cash and delivery checks, individual shop approvals, and an honest pickup ledger.
+A merchant website for HackSprint PS21: remember unmet requests, see anonymous local interest, and buy supplier cases only when exact customer confirmations and every participating shop's approval justify them.
 
-## Run locally
+## Run the prototype
+
+Use **Node 22 or newer** (Node 24 recommended).
 
 ```sh
 npm install
 npm run dev -- --port 3001
 ```
 
-Open http://localhost:3001. Node 20.9+ is required by this Next.js version; Node 24 is recommended. The existing development server may already occupy 3001.
+Open http://localhost:3001. Typed capture, account access, customer offers and procurement work without external keys. Local data persists in `.data/product-network.json`; account passwords are scrypt hashes and sessions are opaque, hashed server-side tokens in `.data/product-auth.json`. One local Node process only. File storage is deliberately disabled on Vercel.
 
-No credentials are needed for the typed demonstration. Data persists in `.data/<workspace-id>.json`, survives reload/restart, and is shared by tabs/devices using the same workspace URL on one Node server. Do not run several Node processes against local file storage. For a phone on the same Wi-Fi, replace `localhost` with the laptop's LAN address and retain `?workspace=...`. Microphone recording requires HTTPS or localhost.
+Separate fictional accounts use `sharma`, `gupta`, `lakshmi`, `corner`, `daily` and `annapurna` at `@demo.nahimila.local`. Their initial demo password is `NahiMila-demo-2026`. Use separate browser profiles/devices for simultaneous merchant accounts. Signing in identifies one shop; there is no merchant selector. A newly registered account completes shop/location onboarding.
 
-## What actually works
+To restore the fictional local seed (with a backup in `.data/backups`):
 
-- Merchant capture of every missed exact SKU/pack request, including customers who won’t wait. Non-waiting records need no name, budget or pickup date and create no offer or reservation.
-- Willing customers receive an exact conditional offer with a retail budget and 8pm IST pickup deadline; only confirmation backs procurement.
-- Independent customer `/confirm/<token>?workspace=<id>` links. Confirmation is idempotent for the token; a saved request alone contributes zero demand.
-- A 23-unit seed across three shops, plus Customer 08's pending offer. Confirmation reaches a complete 24-unit case.
-- Editable supplier quotes, integer-paise cost allocation including logistics, per-shop cash limits and supplier permissions.
-- Whole supplier cases only, without speculative excess stock. Exact pack, quote validity, confirmed retail price, actual offer pickup deadline and each shop's cash cap are server checks.
-- Approvals tied to current quote terms and exposure. Confirmation/cancellation, quote edits, cash-cap edits and permission changes invalidate affected approvals.
-- A final server recheck before simulated commitment. Repeated commitment/pickup cannot multiply orders or cash. Conflicting pickup outcomes cannot overwrite a record.
-- A saved commitment snapshot, then collected/no-show outcomes. Six ₹50 pickups at an eight-unit shop retain ₹344 supplier cost and show ₹300 cash, ₹44 shortfall and two unsold units.
-- Overview, demand book, shared orders, customer offer and pickup ledger adapt to mobile, tablet and desktop. Keyboard focus states and dialog focus trapping are included.
+```sh
+npm run demo:reset -- --confirm
+```
 
-Supplier quotes and all product/customer/shop data are fictional. Supplier acceptance, delivery, pickups and cash collection are simulated. Reservations are conditional and nonbinding; no payments, deposit, auction, real supplier API or identity verification is claimed. A workspace demonstrates one procurement cycle; reset for another.
+This is a development command, not a merchant action. It refuses hosted storage. Reload after running it. Use synthetic test data only.
 
-## Live Sarvam voice
+## Product behavior
 
-Copy `.env.example` to `.env.local` without overwriting existing values. Set `SARVAM_API_KEY` locally, then restart Next.js. Never paste the secret into chat or a client-side variable.
+- **Any product:** type free-form text or speak with Sarvam when configured. Review product, brand, variant, pack, quantity, budget, deadline and explicit constraints before saving. No catalog restriction on capture.
+- **Private book:** only the signed-in shop's individual requests, customer nicknames, spending allowance, approvals, orders and pickups are returned. The retired anonymous workspace API returns 410.
+- **Missed demand:** customers who won't wait are recorded even without a name, budget or date. These records never create reservations or fund orders.
+- **Nearby intelligence:** confirmed shop coordinates, a 1.5 km radius, seven-day window, opt-in contributors, at least three other shops, and five-request count bands. No peer customer records, shop-by-shop demand or cash limits are returned. Products without your own requests stay hidden below the threshold. This suppression reduces leakage; it is not a formal differential privacy guarantee.
+- **Exact customer offers:** independent `/confirm/<opaque-token>` pages show only that offer's product, pack, quantity, price, shop and deadline. Copy, preview and QR actions are compact merchant controls. Repeated confirmation counts once.
+- **Deterministic purchasing:** exact reviewed identity/pack, whole supplier cases, live confirmations, supplier permission, landed cost, customer budgets, delivery, quote expiry and each shop's remaining cash allowance are checked on the server. Group membership is restricted to the quote origin's consenting local cohort. Gemini cannot approve or commit.
+- **Approvals:** each participant approves their own computed exposure. Changing confirmations, terms, permissions or caps clears stale approvals. A fingerprint also checks selected reservations, deadlines, caps and permissions. The final commit rechecks all rules inside the persistence transaction/revision retry. A repeated commit creates no new order and debits no second budget.
+- **Whole cases:** if excess demand exists, a deterministic deadline/confirmation priority attempts a complete case using whole customer reservations. Unselected requests remain active. It is a conservative heuristic, not an optimal purchase solver.
+- **Supplier terms:** manually enter or edit quotes obtained outside the app; there is no invented supplier integration. Quote origin can edit terms; other shops approve their own supplier permission and share.
+- **Orders and conversion:** receive the simulated delivery, record your customers' pickups, and see supplier exposure, collected cash, uncollected units and cash shortfall. No-shows cannot be recorded before the exact pickup deadline. Recorded outcomes are idempotent and conflicting outcomes are rejected. Supplier cost snapshots remain immutable.
+- **English, Hindi and Kannada:** navigation, onboarding, review, statuses, errors, approvals, offers and orders use Next Intl dictionaries. Preferences persist per shop. More languages can be added to the same structure.
+- **Ask NahiMila:** a small read-only accessibility layer for your requests, anonymous nearby demand, orders and pickups. Gemini routes text/code-mixed questions to an allowlisted tool; results come from server data. Direct read buttons remain usable without Gemini. It never spends or changes records.
 
-The browser records at most 20 seconds using MediaRecorder. `/api/voice/transcribe` sends the actual audio to [Sarvam's speech-to-text API](https://docs.sarvam.ai/api-reference/speech-to-text/transcribe), with `saaras:v4` and automatic language detection. The merchant reviews the editable transcript and explicit field suggestions; ambiguous fields stay blank. Failure or missing configuration produces an honest error and typed entry remains usable. No canned transcript substitutes for an API call.
+## Configure real language services
 
-Server limits: 3 MB audio, 25-second upstream timeout, six requests per IP per minute per running instance. This rate limiter is best-effort, not a distributed quota/security boundary. Before making voice public, restrict account/API spending and use provider/platform abuse controls. No Sarvam account or successful live transcription was available during local verification.
+Copy `.env.example` to `.env.local` without overwriting existing secrets, then restart the server.
 
-## Shared database and free demo deployment
+- `SARVAM_API_KEY`: actual audio is sent server-side to Sarvam speech-to-text (`saaras:v4`, automatic language detection). Recording is at most 20 seconds; upload cap is 3 MB; upstream timeout is 25 seconds. Review the transcript before interpreting it. Microphone access needs HTTPS or localhost.
+- `GEMINI_API_KEY` and optional `GEMINI_MODEL`: server-side structured intent normalization and controlled read-tool selection. Model output passes a Zod schema. Canonical labels assist differently worded requests; exact brand, pack, packaging and hard constraints determine the stored identity. Unknown fields stay unknown; ambiguity needs review. There is no embedding or fuzzy procurement substitution.
 
-The selected demo deployment is Vercel Hobby plus Supabase Free, within their limits. Sarvam may consume account credits; it is not unlimited free usage. Review the accounts' actual quotas before publishing.
+Without keys, manual suggestions are clearly labeled, typing remains available, and no fabricated transcript/AI response is returned. Instance-local rate limits are best-effort controls; they are not distributed quotas. Normalization review and agent read-tool events are audited. Provider keys never reach the browser. No successful live provider call was available during development verification.
 
-1. Create/open a Supabase project. Apply **only** `supabase/migrations/20261002000000_demo_workspaces.sql` in the SQL editor. The old Antigravity normalized schema was unused and has been removed from active migrations.
-2. Set server-only `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` in `.env.local` and later Vercel. Add `SARVAM_API_KEY` if voice is enabled. Restart the server.
-3. The footer must say **Supabase shared database**. Open one copied customer link in another browser/device and verify its confirmation updates the merchant view.
-4. Import the `Solution` directory as the Vercel project root; normal Next.js build/start settings apply. Add the same server environment variables.
-5. Test the complete deployed flow before submission. Vercel deliberately refuses the file-storage fallback, so a missing database fails clearly rather than losing serverless state.
+## Supabase and hosted deployment
 
-`demo_workspaces` stores the full synthetic domain state as JSONB. A revision-based compare-and-swap SQL function atomically writes all state. On a conflict, the server reloads and reruns the domain decision, including final eligibility checks. This supports multiple app instances without treating a process mutex as database transactionality. RLS is enabled; anon/authenticated roles cannot directly access the table/function; the server service role performs operations.
+Local mode is sufficient to review the prototype. Hosted mode requires all three Supabase values in `.env.example` and the **new** `supabase/migrations/20261002010000_merchant_product.sql` migration. Apply it in your Supabase SQL editor. The earlier `demo_workspaces` migration is historical and is not the active product database.
 
-This is an anonymous synthetic demo, **not a production merchant account system**. Workspace URLs are bearer-like shared demo links; anyone holding the complete link can operate its demo roles/reset it. Use synthetic nicknames only. Real deployment would require merchant authorization, separate customer/merchant capabilities, distributed voice quotas, retention controls and production payment/fulfillment integrations.
+The new migration stores shops, products, requests, offers, reservations, quotes, approvals, orders, shares, pickups and audits as separate relational records, with owner foreign keys, uniqueness, amount checks and RLS. Shop locations have a PostGIS index. The backend currently performs distance filtering with the same stored coordinates rather than a database spatial query.
+
+Ordinary authenticated database clients can read only owner-scoped private tables; they have no direct writes. Server endpoints verify Supabase users and resolve their shop. A service-only coordinator reads the network, rechecks deterministic rules and commits normalized records atomically through revision compare-and-swap RPCs. On a conflict, it reloads and recomputes. No whole-workspace JSONB row is used by the new product, although individual records retain typed JSON payloads. The coordinator still loads the network as one document: appropriate for this demonstration, not a high-volume query architecture.
+
+For a brand-new EMPTY Supabase product database, create the fictional demonstration with:
+
+```sh
+npm run seed:supabase -- --confirm
+```
+
+The script creates six fictional Auth accounts and the 23-confirmation seed. It refuses an existing product database and preserves existing account passwords. Set `NML_DEMO_PASSWORD` before initial account creation if desired. The script is supplied but has not been run against a live Supabase account. The migration/RLS/RPC path requires live account verification; unit tests do not prove PostgreSQL execution.
+
+Deploy `Solution` as the Next.js project root on a suitable Node/Next.js host (the prepared demo path is Vercel with Supabase). Set the same server credentials and public Supabase URL/publishable key on the host. Check current plan quotas and AI credits before deployment; no paid service is required for local typed review. Do not put service-role or AI keys in `NEXT_PUBLIC` variables.
+
+## Judge walkthrough
+
+1. Sign in as Sharma. Record a customer who won't wait for an arbitrary product. It appears privately and creates no customer offer.
+2. Open Nearby: your exact count is separate from anonymous peer interest. Interest alone does not make a case orderable.
+3. Open Orders. The seed has 23 active reservations. Supplier A has a 48-unit case; C arrives late; B requires 24 units.
+4. In Requests, preview Customer 08's pending offer on another device/tab and confirm. B now has 24 exact confirmed units: eight per shop, ₹344 landed exposure each, inside ₹350 allowances. Duplicate confirmation changes nothing.
+5. Each of Sharma, Gupta and Lakshmi must independently approve. Cancel a customer before committing to show demand dropping and approvals clearing; re-confirm and reapprove to proceed. Editing terms/caps also requires review again.
+6. Simulate commitment. Only one order is created; each shop's remaining allowance drops to ₹6. Mark that shop's delivery received, then record collections under Orders. Six ₹50 collections retain ₹344 supplier cost, show ₹300 collected cash, two uncollected units and ₹44 cash shortfall. Until the pickup deadline, those two customers are waiting rather than no-shows.
+7. Switch the interface to Hindi or Kannada; show the same private workflow. Demonstrate voice/Gemini only after real keys and successful live calls are available.
+
+All seeded people, products, suppliers and quotes are fictional. Customer reservations are conditional, nonbinding and unpaid. Supplier commitment, delivery and pickups are simulated. No deposit, refund, auction, actual payment or supplier acceptance is claimed. Real merchant impact needs a pilot; demo arithmetic is not measured field impact.
 
 ## Verification
 
@@ -58,10 +85,4 @@ npm run lint
 npm run build
 ```
 
-The tests cover the complete pooling/cancellation/approval/commitment/pickup lifecycle, exact-offer constraints, paise remainders, API validation, persisted independent loads and concurrent device requests. Live Supabase execution and Sarvam credentials require an account smoke test; local tests do not prove those external integrations.
-
-The browser demo can be reset using the top-bar reset control. Use **Demo walkthrough** for the judge input sequence. There are no pre-scripted eligibility outcomes: changing an input changes server computations.
-
-## Existing work retained
-
-The existing Next.js/React/TypeScript project, domain types, store lifecycle, approval helpers, supplier evaluation structure and Supabase dependency were reused and repaired. The obsolete UI and in-memory API routes were replaced with one coherent interface and transactional workspace boundary. An archive of the old unused UI/routes/tests is at `/tmp/nahimila-unused-antigravity-ui.tar.gz` for this local session.
+Tests cover the pooling/approval/commitment lifecycle, private DTOs, authentication boundaries, spoofed shop IDs, arbitrary missed demand, exact offer constraints, local privacy suppression, geography, fingerprints, repeat clicks, cash debits and pickup ownership. Build/dev use supported webpack compilation because local Turbopack worker port binding was restricted. The existing domain store, arithmetic and approval helpers were retained; the obsolete dashboard was replaced.
