@@ -65,7 +65,7 @@ export function liveStream(owner: string, key: string, signal: AbortSignal) {
         cleanup();
       };
       const connectTimer = setTimeout(() => fail("VOICE_TIMEOUT"), 8000);
-      const lifetime = setTimeout(() => fail("VOICE_TIMEOUT"), 35000);
+      const lifetime = setTimeout(() => fail("VOICE_TIMEOUT"), 55000);
       cancel = cleanup;
       sessions.set(id, {
         owner,
@@ -196,7 +196,12 @@ export function sendLive(
     throw new Error("VOICE_FILE_TOO_LARGE");
   session.bytes += pcm.length;
   session.next++;
-  session.socket.send(
-    JSON.stringify({ event: "audio_input", audio: pcm.toString("base64") }),
-  );
+  // HTTP batching reduces browser round trips; Sarvam still receives small PCM frames.
+  for (let offset = 0; offset < pcm.length; offset += 3200)
+    session.socket.send(
+      JSON.stringify({
+        event: "audio_input",
+        audio: pcm.subarray(offset, offset + 3200).toString("base64"),
+      }),
+    );
 }

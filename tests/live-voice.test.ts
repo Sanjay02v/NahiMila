@@ -218,6 +218,9 @@ describe("batched hosted voice uploads", () => {
         audio: Buffer.alloc(32000).toString("base64"),
       }),
     ).not.toThrow();
+    expect(
+      s.socket.sent.filter((x) => JSON.parse(x).event === "audio_input"),
+    ).toHaveLength(10);
     expect(() =>
       sendLive(s.owner, ready.session, {
         action: "audio",

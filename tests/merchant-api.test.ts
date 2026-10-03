@@ -15,6 +15,10 @@ vi.mock("../src/lib/product/auth", () => ({
     if (!user) throw new Error("UNAUTHENTICATED");
     return user;
   },
+  voiceActor: async () => {
+    if (!user) throw new Error("UNAUTHENTICATED");
+    return user;
+  },
   shopActor: async () => {
     if (!user) throw new Error("UNAUTHENTICATED");
     const shop = network.shops.find((s) => s.user_id === user);

@@ -90,6 +90,17 @@ async function authFile<T>(fn: (a: AuthFile) => T | Promise<T>, save = false) {
   globals.authQueue = next.catch(() => {});
   return next;
 }
+// Voice audio is short-lived and owner-bound; validate the signed JWT without
+// reloading the merchant network for every PCM upload. getClaims verifies the
+// signature/expiry through Supabase's cached JWKS (not an unverified decode).
+export async function voiceActor() {
+  if (!authConfigured()) return actor();
+  const client = await supabase();
+  const { data, error } = await client.auth.getClaims();
+  if (error || typeof data?.claims?.sub !== "string")
+    throw new Error("UNAUTHENTICATED");
+  return data.claims.sub;
+}
 export async function actor() {
   if (authConfigured()) {
     const client = await supabase();
