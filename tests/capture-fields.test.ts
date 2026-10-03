@@ -8,6 +8,7 @@ import {
   withDetails,
   groundedCustomerName,
   customerNameFromText,
+  preserveDraftContacts,
 } from "../src/lib/product/capture-fields";
 import { manualDraft, parseIntent } from "../src/lib/product/intent";
 import {
@@ -19,6 +20,40 @@ import {
 import { groupDemand } from "../src/lib/product/demand-book";
 const shop = "m-sharma-001";
 describe("Simple capture fields preserve exact specifications", () => {
+  it.each([
+    ["Ravi asked for two Coke bottles.", "Ravi"],
+    ["Customer cannot wait. Customer name: Ravi.", "Ravi"],
+    ["Customer Ravi Kumar wants two bottles and can wait.", "Ravi Kumar"],
+    ["ग्राहक राहुल को दो बोतल चाहिए।", "राहुल"],
+    ["ग्राहक का नाम है राहुल और वह इंतज़ार करेगा।", "राहुल"],
+    ["ಗ್ರಾಹಕರ ಹೆಸರು ರಮೇಶ್ ಮತ್ತು ಅವರು ಕಾಯುತ್ತಾರೆ.", "ರಮೇಶ್"],
+    ["ಗ್ರಾಹಕ ರಮೇಶ್ ಅವರಿಗೆ ಎರಡು ಬಾಟಲಿ ಬೇಕು.", "ರಮೇಶ್"],
+  ])("retains an explicit natural customer name in %s", (raw, name) => {
+    expect(customerNameFromText(raw)).toBe(name);
+    expect(groundedCustomerName(raw, name, raw)).toBe(name);
+  });
+  it("does not turn request verbs or requested brands into customer names", () => {
+    expect(customerNameFromText("Customer cannot wait.")).toBeNull();
+    expect(customerNameFromText("Customer wants Coke Zero.")).toBeNull();
+    expect(
+      groundedCustomerName(
+        "Customer wants Coke Zero.",
+        "Coke Zero",
+        "Customer wants Coke Zero.",
+      ),
+    ).toBeNull();
+  });
+  it("keeps stated contacts when an assistant draft omits them", () => {
+    const draft = preserveDraftContacts(
+      "Customer Ravi wants Coke, phone 9000000001",
+      "Coke bottle",
+    );
+    expect(customerNameFromText(draft)).toBe("Ravi");
+    expect(phoneFromText(draft)).toBe("919000000001");
+    expect(preserveDraftContacts("Coke bottle", "Coke bottle")).toBe(
+      "Coke bottle",
+    );
+  });
   it("autofills only explicitly stated customer names even without AI", () => {
     expect(
       customerNameFromText(

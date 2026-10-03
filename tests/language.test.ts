@@ -18,6 +18,10 @@ beforeEach(() => {
 import { normalize } from "../src/lib/product/normalize";
 import { manualDraft, parseIntent } from "../src/lib/product/intent";
 import { en, hi, kn } from "../src/i18n/messages";
+import {
+  inputLanguage,
+  resolvedInputLanguage,
+} from "../src/lib/product/input-language";
 afterEach(() => {
   vi.unstubAllEnvs();
   vi.unstubAllGlobals();
@@ -58,32 +62,78 @@ describe("Language services remain evidence-limited", () => {
     vi.stubEnv("GEMINI_API_KEY", "test-key");
     vi.stubGlobal(
       "fetch",
-      vi
-        .fn()
-        .mockResolvedValue(
-          Response.json({
-            candidates: [
-              {
-                content: {
-                  parts: [
-                    {
-                      text: JSON.stringify({
-                        ...manualDraft("Coke Zero 500ml bottle"),
-                        display_item: "कोक",
-                        display_details: "ज़ीरो, 500ml, बोतल",
-                      }),
-                    },
-                  ],
-                },
+      vi.fn().mockResolvedValue(
+        Response.json({
+          candidates: [
+            {
+              content: {
+                parts: [
+                  {
+                    text: JSON.stringify({
+                      ...manualDraft("Coke Zero 500ml bottle"),
+                      display_item: "कोक",
+                      display_details: "ज़ीरो, 500ml, बोतल",
+                    }),
+                  },
+                ],
               },
-            ],
-          }),
-        ),
+            },
+          ],
+        }),
+      ),
     );
-    const normalized = await normalize("Coke Zero 500ml bottle", "hi");
+    const normalized = await normalize("कोक ज़ीरो 500ml बोतल", "en");
     expect(normalized.capture?.display_item).toBe("कोक");
     expect(normalized.product).not.toMatch(/[\u0900-\u097f]/);
     expect(Object.keys(parseIntent(normalized))).not.toContain("display_item");
+    expect(normalized.capture?.input_language).toBe("hi");
+  });
+  it("detects the request language independently of the interface", () => {
+    expect(inputLanguage("ರಮೇಶ್ ಅವರಿಗೆ ಹಾಲು ಬೇಕು", "en")).toBe("kn");
+    expect(inputLanguage("ग्राहक राहुल को दूध चाहिए", "kn")).toBe("hi");
+    expect(inputLanguage("Ravi needs milk", "hi")).toBe("en");
+    expect(resolvedInputLanguage("Rahul ko doodh chahiye", "en", "hi")).toBe(
+      "hi",
+    );
+    expect(resolvedInputLanguage("दूध चाहिए", "en", "en")).toBe("hi");
+  });
+  it("keeps Kannada fields and names for a Kannada request in the English interface", async () => {
+    vi.stubEnv("GEMINI_API_KEY", "test-key");
+    const raw = "ಗ್ರಾಹಕರ ಹೆಸರು ರಮೇಶ್. ಕೋಕ್ ಝೀರೋ 500ml ಬಾಟಲಿ ಬೇಕು.";
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        Response.json({
+          candidates: [
+            {
+              content: {
+                parts: [
+                  {
+                    text: JSON.stringify({
+                      ...manualDraft("Coke Zero 500ml bottle"),
+                      source: "gemini",
+                      input_language: "kn",
+                      display_item: "ಕೋಕಾ ಕೋಲಾ",
+                      display_details: "ಝೀರೋ ಶುಗರ್, 500ml ಬಾಟಲಿ",
+                      customer_name: "ರಮೇಶ್",
+                      customer_name_evidence: "ಗ್ರಾಹಕರ ಹೆಸರು ರಮೇಶ್",
+                    }),
+                  },
+                ],
+              },
+            },
+          ],
+        }),
+      ),
+    );
+    const result = await normalize(raw, "en");
+    expect(result.capture).toMatchObject({
+      input_language: "kn",
+      customer_name: "ರಮೇಶ್",
+      display_item: "ಕೋಕಾ ಕೋಲಾ",
+      display_details: "ಝೀರೋ ಶುಗರ್, 500ml ಬಾಟಲಿ",
+    });
+    expect(result.product).not.toMatch(/[\u0c80-\u0cff]/);
   });
   it("reports provider quota/rate limits distinctly instead of claiming AI was removed", async () => {
     vi.stubEnv("GEMINI_API_KEY", "test-key");

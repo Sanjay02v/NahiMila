@@ -66,28 +66,63 @@ export function groundedCustomerName(
       .replace(/\s+/g, " ")
       .includes(evidence.toLocaleLowerCase().replace(/\s+/g, " ")) ||
     !evidence.toLocaleLowerCase().includes(value.toLocaleLowerCase()) ||
-    !/(?:\bcustomer(?:'s)?\s+(?:name\b|is\b|called\b|named\b)|\bname\s*(?:is|:)|नाम|ಹೆಸರು)/i.test(
+    !/(?:\b(?:customer|client)\b|\bname\s*(?:is|:)|नाम|ಹೆಸರು|ग्राहक|ಗ್ರಾಹಕ|\b(?:asked for|wants?|needs?|requested)\b)/i.test(
       evidence,
     ) ||
     /\b(?:product|brand|item)\s+name\b/i.test(evidence)
+  )
+    return null;
+  const identified = customerNameFromText(evidence);
+  if (
+    identified?.toLocaleLowerCase() !== value.toLocaleLowerCase() &&
+    !/(?:\bcustomer(?:'s)?\s+(?:name\b|is\b|called\b|named\b)|\bname\s*(?:is|:)|नाम|ಹೆಸರು)/i.test(
+      evidence,
+    )
   )
     return null;
   return value;
 }
 export function customerNameFromText(raw: string): string | null {
   // Explicit identity phrases only. Never look up a person from their phone.
-  const match = raw.match(
-    /(?:\bcustomer(?:'s)?\s+name\s*(?:is|:|=)?|\b(?:his|her|their)\s+name\s+is|\bcustomer\s+(?:is|called|named)|ग्राहक\s+का\s+नाम\s*(?:है|[:=])?|ಗ್ರಾಹಕರ\s+ಹೆಸರು\s*[:=]?)\s+([\p{L}\p{M}][\p{L}\p{M} .'-]{0,79})/iu,
-  );
+  const match =
+    raw.match(
+      /(?:\b(?:customer|client)(?:'s)?\s+name\s*(?:is|:|=)?|\b(?:his|her|their)\s+name\s+is|ग्राहक\s+का\s+नाम\s*(?:है|[:=])?|ಗ್ರಾಹಕರ\s+ಹೆಸರು\s*[:=]?)\s*([\p{L}\p{M}][\p{L}\p{M} .'-]{0,79})/iu,
+    ) ||
+    raw.match(
+      /(?:\b(?:customer|client)(?:'s)?\s+name\s*(?:is|:|=)?|\b(?:his|her|their)\s+name\s+is|\b(?:customer|client)\s+(?:is\s+(?:called|named)\s+|is\s+|called\s+|named\s+)?|ग्राहक\s+का\s+नाम\s*(?:है|[:=])?|ग्राहक\s+|ಗ್ರಾಹಕರ\s+ಹೆಸರು\s*[:=]?|ಗ್ರಾಹಕ(?:ರು|ರ)?\s+)\s*([\p{L}\p{M}][\p{L}\p{M} .'-]{0,79})/iu,
+    ) ||
+    raw.match(
+      /(?:^|[.!?;\n]\s*)([\p{Lu}][\p{L}\p{M}'-]*(?:\s+[\p{Lu}][\p{L}\p{M}'-]*){0,2})\s+(?:asked for|wants?|needs?|requested)\b/u,
+    );
   if (!match) return null;
   const name = match[1]
-    .split(/[.!?;,\n]/)[0]
+    .split(/[.!?;,\n।]/)[0]
     .split(
-      /\s+(?:and|can|cannot|will|phone|mobile|number|wants?|needs?|is willing|का|और)\b/i,
+      /\s+(?:(?:and|can|cannot|will|phone|mobile|number|wants?|needs?|asked|requested|is willing)\b|को\s|ने\s|है(?:\s|$)|और(?:\s|$)|ಗೆ\s|ಅವರಿಗೆ\s|ಅವರು\s|ಮತ್ತು\s|ಕಾಯಲು\s)/i,
     )[0]
     .replace(/[ .'-]+$/, "")
     .trim();
-  return name && name.length <= 80 ? name : null;
+  return name &&
+    name.length <= 80 &&
+    !/^(?:name|is|can|cannot|will|wants?|needs?|asked|requested|का नाम|ಹೆಸರು)(?:\s|$)/i.test(
+      name,
+    )
+    ? name
+    : null;
+}
+
+export function preserveDraftContacts(raw: string, draft: string): string {
+  const name = customerNameFromText(raw);
+  const phone = phoneFromText(raw);
+  return [
+    draft,
+    name && customerNameFromText(draft) !== name
+      ? `Customer name: ${name}.`
+      : "",
+    phone && phoneFromText(draft) !== phone ? `Customer phone: +${phone}.` : "",
+  ]
+    .filter(Boolean)
+    .join("\n");
 }
 export function dayFromDeadline(value: string | null): string {
   return value && Number.isFinite(Date.parse(value))

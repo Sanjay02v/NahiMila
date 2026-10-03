@@ -7,6 +7,11 @@ import { withNetwork } from "@/lib/product/repository";
 import { merchantView } from "@/lib/product/network";
 import { body, failure, ok, text, throttle } from "@/lib/product/http";
 import {
+  inputLanguage,
+  resolvedInputLanguage,
+} from "@/lib/product/input-language";
+import { preserveDraftContacts } from "@/lib/product/capture-fields";
+import {
   assistantFacts,
   assistantRows,
   converse,
@@ -28,14 +33,14 @@ export async function POST(req: Request) {
     if (b.tool !== undefined && !readTools.includes(b.tool as ReadTool))
       throw new Error("FORBIDDEN");
     const history = historySchema.parse(b.history ?? []);
+    const question = b.tool === undefined ? text(b.question, 1200) : "";
+    const language = inputLanguage(question, shop.locale);
     const v = await withNetwork((n) => merchantView(n, shop.id));
     const explicit =
-      b.tool === undefined
-        ? explicitOperation(v, text(b.question, 1200), history)
-        : null;
+      b.tool === undefined ? explicitOperation(v, question, history) : null;
     const reply: AssistantReply = explicit
       ? {
-          answer: operationAnswer(explicit.quote, explicit.topic, shop.locale),
+          answer: operationAnswer(explicit.quote, explicit.topic, language),
           tool: "quotes",
           draft_text: null,
           can_wait: null,
@@ -47,12 +52,7 @@ export async function POST(req: Request) {
             draft_text: null,
             can_wait: null,
           }
-        : await converse(
-            text(b.question, 1200),
-            history,
-            assistantFacts(v),
-            shop.locale,
-          );
+        : await converse(question, history, assistantFacts(v), language);
     if (reply.tool === "draft" && !reply.draft_text?.trim())
       throw new Error("AI_UNAVAILABLE");
     const focused =
@@ -62,7 +62,11 @@ export async function POST(req: Request) {
         : undefined);
     if (reply.focus && !focused) throw new Error("AI_UNAVAILABLE");
     if (focused && reply.focus)
-      reply.answer = operationAnswer(focused, reply.focus.topic, shop.locale);
+      reply.answer = operationAnswer(
+        focused,
+        reply.focus.topic,
+        resolvedInputLanguage(question, shop.locale, reply.input_language),
+      );
     const result: AssistantResult = {
       answer: reply.answer,
       tool: reply.tool,
@@ -72,7 +76,10 @@ export async function POST(req: Request) {
       ),
       draft:
         reply.tool === "draft"
-          ? { raw: reply.draft_text!.trim(), can_wait: reply.can_wait }
+          ? {
+              raw: preserveDraftContacts(question, reply.draft_text!.trim()),
+              can_wait: reply.can_wait,
+            }
           : null,
       screen:
         reply.tool === "nearby" || reply.tool === "stock"

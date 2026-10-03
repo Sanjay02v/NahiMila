@@ -361,62 +361,88 @@ describe("Server-enforced account boundaries", () => {
   });
 });
 describe("Conversational assistant review boundaries", () => {
-  it("prepares a request draft without creating demand, reservation or order", async () => {
-    const before = structuredClone(network.state);
-    vi.stubEnv("GEMINI_API_KEY", "test-key");
-    const fetch = vi.fn().mockResolvedValue(
-      Response.json({
-        candidates: [
-          {
-            content: {
-              parts: [
-                {
-                  text: JSON.stringify({
-                    answer: "Review this draft before saving.",
-                    tool: "draft",
-                    draft_text:
-                      "Two Coke Zero 500ml bottles; customer cannot wait.",
-                    can_wait: false,
-                  }),
-                },
-              ],
+  it.each([
+    [
+      "Record two Coke Zero 500ml bottles; customer cannot wait. Customer name: Ravi. Phone 9000000001.",
+      "Ravi",
+      "Two Coke Zero 500ml bottles; customer cannot wait.",
+      "en",
+    ],
+    [
+      "ग्राहक का नाम राहुल। कोक ज़ीरो 500ml की दो बोतल चाहिए। फोन 9000000001।",
+      "राहुल",
+      "कोक ज़ीरो 500ml की दो बोतल चाहिए।",
+      "hi",
+    ],
+    [
+      "ಗ್ರಾಹಕರ ಹೆಸರು ರಮೇಶ್. ಕೋಕ್ ಝೀರೋ 500ml ಎರಡು ಬಾಟಲಿ ಬೇಕು. ಫೋನ್ 9000000001.",
+      "ರಮೇಶ್",
+      "ಕೋಕ್ ಝೀರೋ 500ml ಎರಡು ಬಾಟಲಿ ಬೇಕು.",
+      "kn",
+    ],
+  ])(
+    "prepares a %s draft with contacts without creating demand, reservation or order",
+    async (question, name, draft, language) => {
+      const before = structuredClone(network.state);
+      vi.stubEnv("GEMINI_API_KEY", "test-key");
+      const fetch = vi.fn().mockResolvedValue(
+        Response.json({
+          candidates: [
+            {
+              content: {
+                parts: [
+                  {
+                    text: JSON.stringify({
+                      answer: "Review this draft before saving.",
+                      tool: "draft",
+                      draft_text: draft,
+                      can_wait: false,
+                    }),
+                  },
+                ],
+              },
             },
-          },
-        ],
-      }),
-    );
-    vi.stubGlobal("fetch", fetch);
-    try {
-      const r = await agentPOST(
-        request({
-          question: "Record two Coke Zero 500ml bottles; customer cannot wait.",
-          history: [
-            { role: "user", text: "Can you prepare a request?" },
-            { role: "assistant", text: "Tell me the product." },
           ],
         }),
       );
-      expect(r.status).toBe(200);
-      const j = await r.json();
-      expect(j.draft.can_wait).toBe(false);
-      expect(j.draft.raw).toContain("500ml");
-      expect(network.state.requests).toEqual(before.requests);
-      expect(network.state.reservations).toEqual(before.reservations);
-      expect(network.state.orders).toEqual(before.orders);
-      const outbound = JSON.parse(fetch.mock.calls[0][1].body);
-      const prompt = outbound.systemInstruction.parts[0].text;
-      expect(prompt).not.toContain(network.shops[1].user_id);
-      expect(prompt).not.toContain(network.state.requests[0].request_token);
-      expect(prompt).not.toContain("latitude");
-      expect(prompt).toContain("25–29");
-      expect(outbound.contents[0].parts[0].text).toContain(
-        "Tell me the product.",
-      );
-    } finally {
-      vi.unstubAllGlobals();
-      vi.unstubAllEnvs();
-    }
-  });
+      vi.stubGlobal("fetch", fetch);
+      try {
+        const r = await agentPOST(
+          request({
+            question,
+            history: [
+              { role: "user", text: "Can you prepare a request?" },
+              { role: "assistant", text: "Tell me the product." },
+            ],
+          }),
+        );
+        expect(r.status).toBe(200);
+        const j = await r.json();
+        expect(j.draft.can_wait).toBe(false);
+        expect(j.draft.raw).toContain("500ml");
+        expect(j.draft.raw).toContain(`Customer name: ${name}`);
+        expect(j.draft.raw).toContain(draft);
+        expect(j.draft.raw).toContain("+919000000001");
+        expect(network.state.requests).toEqual(before.requests);
+        expect(network.state.reservations).toEqual(before.reservations);
+        expect(network.state.orders).toEqual(before.orders);
+        const outbound = JSON.parse(fetch.mock.calls[0][1].body);
+        const prompt = outbound.systemInstruction.parts[0].text;
+        expect(prompt).not.toContain(network.shops[1].user_id);
+        expect(prompt).not.toContain(network.state.requests[0].request_token);
+        expect(prompt).not.toContain("latitude");
+        expect(prompt).toContain("25–29");
+        expect(prompt).toContain(`Detected language ${language}`);
+        expect(prompt).toContain("Interface language does not override");
+        expect(outbound.contents[0].parts[0].text).toContain(
+          "Tell me the product.",
+        );
+      } finally {
+        vi.unstubAllGlobals();
+        vi.unstubAllEnvs();
+      }
+    },
+  );
   it("rejects malformed model actions and forged identities instead of performing a write", async () => {
     vi.stubEnv("GEMINI_API_KEY", "test-key");
     vi.stubGlobal(
