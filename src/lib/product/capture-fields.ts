@@ -66,7 +66,7 @@ export function groundedCustomerName(
       .replace(/\s+/g, " ")
       .includes(evidence.toLocaleLowerCase().replace(/\s+/g, " ")) ||
     !evidence.toLocaleLowerCase().includes(value.toLocaleLowerCase()) ||
-    !/(?:\b(?:customer|client)\b|\bname\s*(?:is|:)|नाम|ಹೆಸರು|ग्राहक|ಗ್ರಾಹಕ|\b(?:asked for|wants?|needs?|requested)\b)/i.test(
+    !/(?:\b(?:customer|client)\b|\bname\s*(?:is|:)|नाम|ಹೆಸರು|ग्राहक|ಗ್ರಾಹಕ|(?:को|ने|ಅವರಿಗೆ)|\b(?:asked for|wants?|needs?|requested|ko|ne|avarige|avarge)\b)/i.test(
       evidence,
     ) ||
     /\b(?:product|brand|item)\s+name\b/i.test(evidence)
@@ -92,7 +92,13 @@ export function customerNameFromText(raw: string): string | null {
       /(?:\b(?:customer|client)(?:'s)?\s+name\s*(?:is|:|=)?|\b(?:his|her|their)\s+name\s+is|\b(?:customer|client)\s+(?:is\s+(?:called|named)\s+|is\s+|called\s+|named\s+)?|ग्राहक\s+का\s+नाम\s*(?:है|[:=])?|ग्राहक\s+|ಗ್ರಾಹಕರ\s+ಹೆಸರು\s*[:=]?|ಗ್ರಾಹಕ(?:ರು|ರ)?\s+)\s*([\p{L}\p{M}][\p{L}\p{M} .'-]{0,79})/iu,
     ) ||
     raw.match(
-      /(?:^|[.!?;\n]\s*)([\p{Lu}][\p{L}\p{M}'-]*(?:\s+[\p{Lu}][\p{L}\p{M}'-]*){0,2})\s+(?:asked for|wants?|needs?|requested)\b/u,
+      /(?:^|[.!?;\n]\s*)([\p{Lu}][\p{L}\p{M}'-]*(?:\s+[\p{Lu}][\p{L}\p{M}'-]*){0,2})\s+(?:asked for|wants?|needs?|requested|ko|ne|avarige|avarge)\b/u,
+    ) ||
+    raw.match(
+      /(?:^|[.!?;।\n]\s*)([\u0900-\u097f][\p{L}\p{M}'-]*(?:\s+[\u0900-\u097f][\p{L}\p{M}'-]*){0,2})\s+(?:को|ने)\s/u,
+    ) ||
+    raw.match(
+      /(?:^|[.!?;\n]\s*)([\u0c80-\u0cff][\p{L}\p{M}'-]*(?:\s+[\u0c80-\u0cff][\p{L}\p{M}'-]*){0,2})\s+ಅವರಿಗೆ\s/u,
     );
   if (!match) return null;
   const name = match[1]

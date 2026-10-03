@@ -22,6 +22,9 @@ const shop = "m-sharma-001";
 describe("Simple capture fields preserve exact specifications", () => {
   it.each([
     ["Ravi asked for two Coke bottles.", "Ravi"],
+    ["Ravi ko do Coke bottle chahiye.", "Ravi"],
+    ["राहुल को दो बोतल चाहिए।", "राहुल"],
+    ["ರಮೇಶ್ ಅವರಿಗೆ ಎರಡು ಬಾಟಲಿ ಬೇಕು.", "ರಮೇಶ್"],
     ["Customer cannot wait. Customer name: Ravi.", "Ravi"],
     ["Customer Ravi Kumar wants two bottles and can wait.", "Ravi Kumar"],
     ["ग्राहक राहुल को दो बोतल चाहिए।", "राहुल"],
