@@ -44,6 +44,58 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 describe("Shared reviewed product identities", () => {
+  it("ignores duplicated extraction metadata but preserves conflicting and additional product requirements", async () => {
+    const base = coke({ product: "Cola", quantity: 2 });
+    const provider = {
+      ...base,
+      hard_constraints: [
+        "quantity: two",
+        "size: half-litre",
+        "packaging: bottles",
+        "cannot wait",
+      ],
+    };
+    const alternate = {
+      ...base,
+      quantity: 4,
+      hard_constraints: [
+        "quantity: 4",
+        "size: 500ml",
+        "packaging: bottle",
+        "can wait",
+      ],
+    };
+    expect(identityKey(provider)).toBe(identityKey(base));
+    expect(identityKey(alternate)).toBe(identityKey(base));
+    const resolved = await resolveProduct(provider, [base]);
+    expect(resolved.match.kind).toBe("matched");
+    expect(resolved.intent.quantity).toBe(2);
+    for (const constraint of [
+      "size: 1 litre",
+      "packaging: glass only",
+      "caffeine-free",
+      "black only",
+    ])
+      expect(
+        identityKey({
+          ...provider,
+          hard_constraints: [...provider.hard_constraints, constraint],
+        }),
+      ).not.toBe(identityKey(base));
+    const n = seedNetwork();
+    const saved = [provider, alternate].map((intent, index) =>
+      saveRequest(n, n.shops[index].id, {
+        submission_key: crypto.randomUUID(),
+        raw_text: "Customer asked for Coke Zero bottles",
+        intent,
+        can_wait: false,
+      }),
+    );
+    expect(saved[0].product_id).toBe(saved[1].product_id);
+    expect(n.details[saved[0].id].intent.hard_constraints).toContain(
+      "cannot wait",
+    );
+  });
   it("removes exact duplicated brand/flavour words while preserving the commercial identity", () => {
     const base = {
       ...manualDraft("Chocolate"),

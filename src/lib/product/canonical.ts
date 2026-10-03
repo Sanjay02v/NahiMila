@@ -146,6 +146,42 @@ function constraints(i: ProductIdentity) {
     ...new Set(
       i.hard_constraints.map(identityText).filter((c) => {
         // These restrictions remain on the request but add no new product specification.
+        // Quantity and willingness describe this customer, never the supplier SKU.
+        if (/^(?:quantity|qty)\s+/.test(c)) return false;
+        if (
+          /^(?:can wait|cannot wait|can not wait|cant wait|willing to wait|not willing to wait|no rush|can_wait)$/.test(
+            c,
+          ) ||
+          /^(?:can wait|customer can wait|customer cannot wait|can_wait)\s+(?:true|false|yes|no)$/.test(
+            c,
+          )
+        )
+          return false;
+        const packDetail = c.replace(/^(?:packaging|package)\s+/, "");
+        if (pack && (packaging[packDetail] || packDetail) === pack)
+          return false;
+        // Ignore a labelled size only when it is exactly the structured size.
+        // Conflicts and additional requirements (e.g. glass only) stay separate.
+        if (/^(?:size|pack size)\s+/.test(c)) {
+          const sizeText = c.replace(/^(?:size|pack size)\s+/, "");
+          const measured = sizeText.match(
+            /^(\d+(?: \d+)?)\s*(g|grams?|gms?|kg|kilograms?|ml|millilitres?|milliliters?|l|litres?|liters?|pieces?)$/,
+          );
+          const halfLitre = /^half (?:litre|liter)$/.test(sizeText);
+          if (halfLitre && i.unit === "ml" && i.size === 500) return false;
+          if (measured) {
+            const u = measured[2];
+            const unit = /^(?:kg|kilogram|g|gram)/.test(u)
+              ? "g"
+              : /^piece/.test(u)
+                ? "piece"
+                : "ml";
+            const amount =
+              Number(measured[1].replace(" ", ".")) *
+              (/^(?:kg|kilogram|l$|litre|liter)/.test(u) ? 1000 : 1);
+            if (unit === i.unit && amount === i.size) return false;
+          }
+        }
         if (
           [
             "no substitutions",
