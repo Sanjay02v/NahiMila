@@ -38,6 +38,31 @@ const navigation = [
   { key: "nearby", icon: MapPin },
   { key: "orders", icon: Package },
 ] as const;
+function ProgressiveRows<T>({
+  rows,
+  render,
+  step,
+}: {
+  rows: T[];
+  render: (rows: T[]) => React.ReactNode;
+  step: number;
+}) {
+  const [limit, setLimit] = useState(step),
+    t = useTranslations();
+  return (
+    <>
+      {render(rows.slice(0, limit))}
+      {rows.length > limit && (
+        <button
+          className="button secondary list-more"
+          onClick={() => setLimit((n) => n + step)}
+        >
+          {t("showMore")}
+        </button>
+      )}
+    </>
+  );
+}
 export default function MerchantApp() {
   const t = useTranslations(),
     locale = useLocale();
@@ -866,8 +891,16 @@ export default function MerchantApp() {
                       <ChevronRight size={20} />
                     </summary>
                     <div className="group-content">
-                      {renderOrders(g.orders)}
-                      {renderQuotes(g.quotes)}
+                      <ProgressiveRows
+                        rows={g.orders}
+                        render={renderOrders}
+                        step={5}
+                      />
+                      <ProgressiveRows
+                        rows={g.quotes}
+                        render={renderQuotes}
+                        step={3}
+                      />
                     </div>
                   </details>
                 ))}
