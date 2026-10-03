@@ -177,6 +177,7 @@ export function sendLive(
   if (session.socket.readyState !== WebSocket.OPEN)
     throw new Error("VOICE_UNAVAILABLE");
   if (message.action === "end") {
+    if (!session.bytes) throw new Error("VOICE_EMPTY_AUDIO");
     session.ending = true;
     session.socket.send(JSON.stringify({ event: "speech_end" }));
     return;

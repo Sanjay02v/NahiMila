@@ -231,3 +231,19 @@ describe("batched hosted voice uploads", () => {
     s.abort.abort();
   });
 });
+
+describe("ending before microphone audio arrives", () => {
+  it("reports empty audio immediately so the browser can cancel and retry", async () => {
+    const s = session(),
+      reader = s.response.body!.getReader();
+    event(s, { event: "session.begin" });
+    const ready = JSON.parse(
+      new TextDecoder().decode((await reader.read()).value),
+    );
+    expect(() => sendLive(s.owner, ready.session, { action: "end" })).toThrow(
+      "VOICE_EMPTY_AUDIO",
+    );
+    sendLive(s.owner, ready.session, { action: "cancel" });
+    expect(s.socket.terminated).toBe(true);
+  });
+});

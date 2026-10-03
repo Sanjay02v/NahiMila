@@ -24,7 +24,10 @@ for (let p = 12; p + 8 <= wav.length;) {
   if (kind === "data") pcm = wav.subarray(p + 8, p + 8 + size);
   p += 8 + size + (size % 2);
 }
-assert.ok(pcm && pcm.length < 640000, "Use a short synthetic speech sample.");
+assert.ok(
+  pcm && pcm.length > 0 && pcm.length < 640000,
+  "Use a short synthetic speech sample.",
+);
 const base = process.env.NML_VERIFY_URL || "https://nahimila.onrender.com";
 const login = await fetch(base + "/api/auth", {
   method: "POST",

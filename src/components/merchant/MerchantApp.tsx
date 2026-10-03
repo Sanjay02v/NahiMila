@@ -632,19 +632,7 @@ export default function MerchantApp() {
           <span className="desktop-page-name">{t(view)}</span>
           <div>
             <Language persistShop />
-            {data.demo && (
-              <button
-                className="button secondary small demo-reset-top"
-                disabled={busy}
-                onClick={() => {
-                  setAgent(false);
-                  setResetConfirm(true);
-                }}
-              >
-                <RotateCcw size={16} />
-                <span>{t("demoReset")}</span>
-              </button>
-            )}
+
             <button
               className="icon-button"
               onClick={() => navigate("settings")}
@@ -662,6 +650,19 @@ export default function MerchantApp() {
               <Plus size={17} />
               {t("recordRequest")}
             </button>
+            {data.demo && (
+              <button
+                className="button secondary small demo-reset-top"
+                disabled={busy}
+                onClick={() => {
+                  setAgent(false);
+                  setResetConfirm(true);
+                }}
+              >
+                <RotateCcw size={16} />
+                <span>{t("demoReset")}</span>
+              </button>
+            )}
           </div>
         </header>
         <nav className="mobile-nav">
