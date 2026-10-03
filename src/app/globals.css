@@ -2810,3 +2810,36 @@ input[type="checkbox"] {
 .capture-save-actions .button {
   flex: 1 1 auto;
 }
+
+.demo-guide {
+  padding: 20px;
+  margin-bottom: 24px;
+  background: #f0f5ec;
+  border: 1px solid #dde7d8;
+  border-radius: 20px;
+}
+.demo-guide-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.demo-guide-heading p {
+  font-size: 13px;
+  margin: 5px 0 12px;
+  color: var(--muted);
+}
+.demo-guide summary {
+  cursor: pointer;
+  padding: 8px 0;
+  font-weight: 600;
+}
+.demo-guide ol {
+  padding-left: 24px;
+  max-width: 850px;
+}
+.demo-guide li {
+  margin: 10px 0;
+  line-height: 1.6;
+}

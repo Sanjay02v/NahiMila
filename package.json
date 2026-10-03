@@ -11,7 +11,8 @@
     "lint": "eslint",
     "test": "vitest run",
     "demo:reset": "tsx scripts/demo-reset.ts",
-    "seed:supabase": "tsx scripts/seed-supabase.ts"
+    "seed:supabase": "tsx scripts/seed-supabase.ts",
+    "demo:reset:hosted": "tsx scripts/reset-hosted-demo.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

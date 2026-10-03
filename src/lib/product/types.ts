@@ -102,6 +102,7 @@ export interface OrderView {
   }[];
 }
 export interface MerchantView {
+  demo?: boolean;
   shop: Shop;
   requests: PrivateRequest[];
   nearby: NearbySignal[];

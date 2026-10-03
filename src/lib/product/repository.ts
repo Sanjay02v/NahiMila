@@ -14,7 +14,7 @@ const filename = () =>
   path.join(process.cwd(), ".data", "product-network.json");
 export async function withNetwork<T>(
   fn: (n: Network) => T | Promise<T>,
-  mutate = false,
+  mutate: boolean | "demo-reset" = false,
 ): Promise<T> {
   const run = async () => {
     if (url && !remote) throw new Error("DATABASE_REQUIRED");
@@ -41,10 +41,15 @@ export async function withNetwork<T>(
       if (!mutate && !fresh) return result;
       n.revision = revision + 1;
       if (remote) {
-        const { data, error } = await remote.rpc("save_nahimila_network", {
-          expected_revision: revision,
-          network: n,
-        });
+        const { data, error } = await remote.rpc(
+          mutate === "demo-reset"
+            ? "reset_nahimila_demo"
+            : "save_nahimila_network",
+          {
+            expected_revision: revision,
+            network: n,
+          },
+        );
         if (error) throw new Error("DATABASE_UNAVAILABLE");
         if (data !== true) continue;
       } else {

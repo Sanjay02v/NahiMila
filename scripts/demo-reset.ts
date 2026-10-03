@@ -1,6 +1,7 @@
-import { mkdir, readFile, writeFile, copyFile, rename } from "node:fs/promises";
+import { mkdir, readFile, writeFile, rename } from "node:fs/promises";
 import path from "node:path";
-import { seedNetwork } from "../src/lib/product/network";
+import { seedJudgeDemo, resetJudgeDemo } from "../src/lib/product/demo";
+import type { Network } from "../src/lib/product/network";
 try {
   process.loadEnvFile(".env.local");
 } catch {}
@@ -10,48 +11,32 @@ if (
   process.env.RENDER ||
   process.env.VERCEL
 )
-  throw new Error("This reset works only with local fictional demo data.");
+  throw new Error("For hosted data use demo:reset:hosted -- --confirm.");
 if (!process.argv.includes("--confirm"))
   throw new Error(
-    "This restores the fictional demo and backs up local state/auth. Run with --confirm to proceed.",
+    "Pass --confirm to restore fictional demo data and preserve real accounts.",
   );
 const folder = path.join(process.cwd(), ".data"),
-  stamp = Date.now();
+  file = path.join(folder, "product-network.json");
 await mkdir(path.join(folder, "backups"), { recursive: true });
-const n = seedNetwork();
+let n: Network;
 try {
-  const old = JSON.parse(
-    await readFile(path.join(folder, "product-network.json"), "utf8"),
+  const raw = await readFile(file, "utf8");
+  n = JSON.parse(raw);
+  await writeFile(
+    path.join(folder, "backups", `network-${Date.now()}.json`),
+    raw,
+    { mode: 0o600 },
   );
-  n.gemini_usage = old.gemini_usage;
-  for (const shop of n.shops) {
-    const previous = old.shops.find(
-      (s: { id: string; user_id: string }) => s.id === shop.id,
-    );
-    if (previous) shop.user_id = previous.user_id;
-  }
-  await copyFile(
-    path.join(folder, "product-network.json"),
-    path.join(folder, "backups", `network-${stamp}.json`),
-  );
+  resetJudgeDemo(n);
+  n.revision++;
 } catch (e) {
   if ((e as NodeJS.ErrnoException).code !== "ENOENT") throw e;
+  n = seedJudgeDemo();
 }
-n.state.merchants = n.shops;
-await writeFile(path.join(folder, "product-network.json"), JSON.stringify(n));
-// Keep existing seeded account sessions; back up auth if there are extra registered accounts.
-try {
-  const file = path.join(folder, "product-auth.json"),
-    a = JSON.parse(await readFile(file, "utf8"));
-  if (
-    a.accounts.some(
-      (u: { user_id: string }) => !n.shops.some((s) => s.user_id === u.user_id),
-    )
-  )
-    await rename(file, path.join(folder, "backups", `auth-${stamp}.json`));
-} catch (e) {
-  if ((e as NodeJS.ErrnoException).code !== "ENOENT") throw e;
-}
+const temp = file + ".tmp";
+await writeFile(temp, JSON.stringify(n), { mode: 0o600 });
+await rename(temp, file);
 console.log(
-  "Fictional demo restored. Previous state is in .data/backups. Reload the browser.",
+  "Fictional demo restored. Real profiles, authentication and AI usage preserved. Previous state backed up.",
 );

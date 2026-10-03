@@ -1,3 +1,4 @@
+import { seedJudgeDemo } from "../src/lib/product/demo";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { manualDraft } from "../src/lib/product/intent";
 import { itemFields, reviewItemFields } from "../src/lib/product/item-review";
@@ -1050,5 +1051,62 @@ describe("Pending interest becomes an offer only after actual terms are set", ()
     expect(network.state.requests.find((x) => x.id === r.id)?.status).toBe(
       "CANCELLED",
     );
+  });
+});
+
+describe("Shared judge demo reset API", () => {
+  it("requires authentication, confirmation and a fixed demo identity", async () => {
+    user = null;
+    expect((await post({ action: "reset_demo", confirm: true })).status).toBe(
+      401,
+    );
+    network = seedJudgeDemo();
+    as("m-sharma-001");
+    expect((await post({ action: "reset_demo" })).status).toBe(400);
+    const shop = {
+      ...network.shops[0],
+      id: "real-shop",
+      user_id: crypto.randomUUID(),
+    };
+    network.shops.push(shop);
+    network.state.merchants = network.shops;
+    user = shop.user_id;
+    const before = structuredClone(network);
+    expect((await post({ action: "reset_demo", confirm: true })).status).toBe(
+      403,
+    );
+    expect(network).toEqual(before);
+  });
+  it("rotates old customer links and returns fresh demo data without changing real profiles", async () => {
+    network = seedJudgeDemo();
+    as("m-sharma-001");
+    const token = pending().request_token;
+    expect((await customerGET(request({}), context(token))).status).toBe(200);
+    const response = await post({ action: "reset_demo", confirm: true });
+    expect(response.status).toBe(200);
+    const data = await response.json();
+    expect(data.demo).toBe(true);
+    expect(data.orders).toHaveLength(0);
+    expect((await customerGET(request({}), context(token))).status).toBe(404);
+    expect(
+      data.quotes.find(
+        (q: { quote: { id: string } }) => q.quote.id === "quote-b",
+      ).total_units,
+    ).toBe(23);
+  });
+  it("rejects cross-site reset requests before touching data", async () => {
+    const before = structuredClone(network);
+    const response = await POST(
+      new Request("http://localhost/api/merchant", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Origin: "https://untrusted.example",
+        },
+        body: JSON.stringify({ action: "reset_demo", confirm: true }),
+      }),
+    );
+    expect(response.status).toBe(400);
+    expect(network).toEqual(before);
   });
 });

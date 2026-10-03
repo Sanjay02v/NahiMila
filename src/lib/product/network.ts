@@ -1,3 +1,4 @@
+import { isDemoShop } from "./demo-identity";
 import { phoneNumber as normalizePhone } from "./capture-fields";
 import type { GeminiUsage } from "./gemini-quota";
 export { phoneNumber as normalizePhone } from "./capture-fields";
@@ -168,6 +169,7 @@ export function storeFor(n: Network) {
           (m) =>
             m.id === origin?.id ||
             (origin &&
+              isDemoShop(origin.id) === isDemoShop(m.id) &&
               origin.sharing &&
               m.sharing &&
               origin.location_accuracy === "confirmed" &&
@@ -188,32 +190,41 @@ export function fingerprint(s: MemoryStore, id: string) {
   const q = s.getQuoteById(id);
   const e = s.evaluateQuote(id);
   return hash(
-    JSON.stringify({
-      q,
-      selected: [...(e.selected_reservation_ids || [])].sort(),
-      alloc: e.allocations
-        .map((a) => [
-          a.merchant_id,
-          a.allocated_units,
-          a.total_exposure_paise,
-          a.cash_cap_paise,
-        ])
-        .sort(),
-      participants: s.merchants
-        .filter((m) => e.allocations.some((a) => a.merchant_id === m.id))
-        .map((m) => [m.id, [...m.allowed_suppliers].sort()])
-        .sort(),
-      reservations: s.reservations
-        .filter((r) => e.selected_reservation_ids?.includes(r.id))
-        .map((r) => [
-          r.id,
-          r.quantity,
-          r.confirmed_price_paise,
-          s.offers.find((o) => o.id === r.offer_id)?.pickup_deadline,
-          s.requests.find((q) => q.id === r.request_id)?.max_retail_price_paise,
-        ])
-        .sort(),
-    }),
+    JSON.stringify(
+      {
+        q,
+        selected: [...(e.selected_reservation_ids || [])].sort(),
+        alloc: e.allocations
+          .map((a) => [
+            a.merchant_id,
+            a.allocated_units,
+            a.total_exposure_paise,
+            a.cash_cap_paise,
+          ])
+          .sort(),
+        participants: s.merchants
+          .filter((m) => e.allocations.some((a) => a.merchant_id === m.id))
+          .map((m) => [m.id, [...m.allowed_suppliers].sort()])
+          .sort(),
+        reservations: s.reservations
+          .filter((r) => e.selected_reservation_ids?.includes(r.id))
+          .map((r) => [
+            r.id,
+            r.quantity,
+            r.confirmed_price_paise,
+            s.offers.find((o) => o.id === r.offer_id)?.pickup_deadline,
+            s.requests.find((q) => q.id === r.request_id)
+              ?.max_retail_price_paise,
+          ])
+          .sort(),
+      },
+      (_key, value) =>
+        value && typeof value === "object" && !Array.isArray(value)
+          ? Object.fromEntries(
+              Object.entries(value).sort(([a], [b]) => a.localeCompare(b)),
+            )
+          : value,
+    ),
   );
 }
 export function merchantView(n: Network, shopId: string): MerchantView {
@@ -258,6 +269,7 @@ export function merchantView(n: Network, shopId: string): MerchantView {
       return (
         m &&
         m.id !== shopId &&
+        isDemoShop(m.id) === isDemoShop(shopId) &&
         m.sharing &&
         m.location_accuracy === "confirmed" &&
         shop.location_accuracy === "confirmed" &&
@@ -388,6 +400,7 @@ export function merchantView(n: Network, shopId: string): MerchantView {
     });
   return {
     shop,
+    demo: isDemoShop(shopId),
     requests,
     nearby,
     quotes,

@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import { seedNetwork } from "../src/lib/product/network";
+import { seedJudgeDemo } from "../src/lib/product/demo";
 try {
   process.loadEnvFile(".env.local");
 } catch {}
@@ -19,7 +19,7 @@ if (loaded.data.shops.length || loaded.data.state.products.length)
   throw new Error(
     "Database is not empty; refusing to overwrite existing data.",
   );
-const n = seedNetwork(),
+const n = seedJudgeDemo(),
   emails = ["sharma", "gupta", "lakshmi", "corner", "daily", "annapurna"];
 n.gemini_usage = loaded.data.gemini_usage;
 const { data, error } = await c.auth.admin.listUsers({ perPage: 1000 });

@@ -318,7 +318,7 @@ export class MemoryStore {
       updated_at: now,
     };
 
-    this.invalidateAllApprovals('Confirmed demand changed');
+    this.invalidateProductApprovals(reservation.sku, reservation.pack_size, 'Confirmed demand changed');
     this.reservations.push(reservation);
     request.status = 'CUSTOMER_CONFIRMED';
     request.updated_at = now;
@@ -363,7 +363,7 @@ export class MemoryStore {
 
     // Material change: Invalidate approvals because quantity changed!
     let invalidatedCount = 0;
-    for (const quote of this.quotes) {
+    for (const quote of this.quotes.filter(q => q.sku === reservation.sku && q.pack_size === reservation.pack_size)) {
       const initialApprovals = this.getApprovalsForQuote(quote.id);
       const updated = invalidateApprovalsForQuote(
         initialApprovals,
@@ -741,6 +741,10 @@ export class MemoryStore {
       current_cash_shortfall_paise: currentCashShortfallPaise,
       status_description: statusDescription,
     };
+  }
+
+  public invalidateProductApprovals(sku: string, pack: string, reason: string) {
+    for (const quote of this.quotes.filter(q => q.sku === sku && q.pack_size === pack)) this.saveApprovalsForQuote(quote.id, invalidateApprovalsForQuote(this.getApprovalsForQuote(quote.id), quote.id, reason));
   }
 
   public invalidateAllApprovals(reason:string) {

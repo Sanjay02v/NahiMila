@@ -1,4 +1,20 @@
 export const en = {
+  demoTitle: "A demo you can try",
+  demoFictional:
+    "Fictional shops, customers and suppliers. No real orders or payments.",
+  demoReset: "Reset demo",
+  demoTry: "Three things to try",
+  demoStep1:
+    "Requests: send Asha’s Masala 100g offer link to yourself and confirm. Orders: the count changes from 23 to 24; cancellation removes readiness. The 200g pack stays separate.",
+  demoStep2:
+    "Orders: review the Lime 100g case, approve your ₹148 share and simulate the order. Two other shops’ approvals are preloaded fictional data. Record a pickup to see collected sales.",
+  demoStep3:
+    "Nearby: Coke Zero requests use different wording but share the same reviewed item. These customers could not wait, so their interest never counts as a confirmed order.",
+  demoResetTitle: "Start the demo again?",
+  demoResetWarning:
+    "This clears progress for all six shared demo shops and restores fresh examples and customer links. Other visitors using these demo accounts will also see the reset. Real merchant accounts and AI usage limits are kept.",
+  demoResetDone: "Demo restored. You can try it again.",
+
   aiDailyLimit:
     "AI’s daily allowance is used up. You can still check and save the request manually.",
   understandingRequest: "Understanding your request…",
@@ -495,6 +511,21 @@ export const en = {
 type Messages = typeof en;
 export const hi: Messages = {
   ...en,
+  demoTitle: "डेमो आज़माएँ",
+  demoFictional:
+    "दुकानें, ग्राहक और सप्लायर काल्पनिक हैं। असली ऑर्डर या भुगतान नहीं।",
+  demoReset: "डेमो रीसेट करें",
+  demoTry: "तीन चीज़ें आज़माएँ",
+  demoStep1:
+    "अनुरोध: आशा का मसाला 100g ऑफर लिंक खोलकर पुष्टि करें। ऑर्डर में गिनती 23 से 24 होगी। रद्द करने पर तैयारी हटेगी। 200g पैक अलग रहेगा।",
+  demoStep2:
+    "ऑर्डर: लाइम 100g केस में अपना ₹148 हिस्सा मंज़ूर करके ऑर्डर का परीक्षण करें। दो पड़ोसी दुकानों की काल्पनिक मंज़ूरी पहले से है। पिकअप दर्ज करके बिक्री देखें।",
+  demoStep3:
+    "आसपास: अलग शब्दों वाले Coke Zero अनुरोध एक ही जाँची गई वस्तु में हैं। ये ग्राहक इंतज़ार नहीं कर सकते थे, इसलिए इन्हें पक्के ऑर्डर में नहीं गिना जाता।",
+  demoResetTitle: "डेमो फिर शुरू करें?",
+  demoResetWarning:
+    "सभी छह साझा डेमो दुकानों की प्रगति हटाकर नए उदाहरण और ग्राहक लिंक बनेंगे। इन खातों का उपयोग कर रहे दूसरे लोगों को भी रीसेट दिखेगा। असली व्यापारी खाते और AI उपयोग सीमा सुरक्षित रहेंगे।",
+  demoResetDone: "डेमो फिर तैयार है।",
   aiDailyLimit: "आज की AI सीमा पूरी हो गई है। अनुरोध जाँचकर खुद सहेज सकते हैं।",
   understandingRequest: "आपकी बात समझ रहे हैं…",
   aiFilledHint: "AI ने विवरण भरा है। सामान और संख्या जाँचें।",
@@ -959,6 +990,21 @@ export const hi: Messages = {
 };
 export const kn: Messages = {
   ...en,
+  demoTitle: "ಡೆಮೊ ಪ್ರಯತ್ನಿಸಿ",
+  demoFictional:
+    "ಅಂಗಡಿಗಳು, ಗ್ರಾಹಕರು ಮತ್ತು ಪೂರೈಕೆದಾರರು ಕಾಲ್ಪನಿಕ. ನಿಜವಾದ ಆರ್ಡರ್ ಅಥವಾ ಪಾವತಿ ಇಲ್ಲ.",
+  demoReset: "ಡೆಮೊ ಮರುಹೊಂದಿಸಿ",
+  demoTry: "ಮೂರು ವಿಷಯಗಳನ್ನು ಪ್ರಯತ್ನಿಸಿ",
+  demoStep1:
+    "ವಿನಂತಿಗಳು: ಆಶಾ ಅವರ ಮಸಾಲಾ 100g ಆಫರ್ ಲಿಂಕ್ ತೆರೆದು ದೃಢಪಡಿಸಿ. ಆರ್ಡರ್ ಸಂಖ್ಯೆ 23ರಿಂದ 24 ಆಗುತ್ತದೆ. ರದ್ದು ಮಾಡಿದರೆ ಸಿದ್ಧತೆ ಹೋಗುತ್ತದೆ. 200g ಪ್ಯಾಕ್ ಪ್ರತ್ಯೇಕವಾಗಿರುತ್ತದೆ.",
+  demoStep2:
+    "ಆರ್ಡರ್‌ಗಳು: ಲೈಮ್ 100g ಕೇಸ್‌ನಲ್ಲಿ ನಿಮ್ಮ ₹148 ಪಾಲನ್ನು ಅನುಮೋದಿಸಿ ಆರ್ಡರ್ ಅನುಕರಿಸಿ. ಇನ್ನೆರಡು ಅಂಗಡಿಗಳ ಕಾಲ್ಪನಿಕ ಅನುಮೋದನೆಗಳನ್ನು ಮೊದಲೇ ಸೇರಿಸಲಾಗಿದೆ. ಪಿಕಪ್ ದಾಖಲಿಸಿ ಮಾರಾಟ ನೋಡಿ.",
+  demoStep3:
+    "ಹತ್ತಿರ: ಬೇರೆ ಪದಗಳ Coke Zero ವಿನಂತಿಗಳು ಒಂದೇ ಪರಿಶೀಲಿಸಿದ ವಸ್ತುವಿನಲ್ಲಿ ಗುಂಪಾಗಿವೆ. ಕಾಯಲಾಗದ ಗ್ರಾಹಕರ ಆಸಕ್ತಿಯನ್ನು ದೃಢಪಟ್ಟ ಆರ್ಡರ್ ಎಂದು ಎಣಿಸುವುದಿಲ್ಲ.",
+  demoResetTitle: "ಡೆಮೊ ಮತ್ತೆ ಆರಂಭಿಸಬೇಕೇ?",
+  demoResetWarning:
+    "ಆರು ಹಂಚಿದ ಡೆಮೊ ಅಂಗಡಿಗಳ ಪ್ರಗತಿಯನ್ನು ಅಳಿಸಿ ಹೊಸ ಉದಾಹರಣೆಗಳು ಮತ್ತು ಗ್ರಾಹಕ ಲಿಂಕ್‌ಗಳನ್ನು ರಚಿಸಲಾಗುತ್ತದೆ. ಇತರ ಡೆಮೊ ಬಳಕೆದಾರರಿಗೂ ಇದು ಅನ್ವಯಿಸುತ್ತದೆ. ನಿಜವಾದ ವ್ಯಾಪಾರಿ ಖಾತೆಗಳು ಮತ್ತು AI ಬಳಕೆ ಮಿತಿಗಳು ಉಳಿಯುತ್ತವೆ.",
+  demoResetDone: "ಡೆಮೊ ಮತ್ತೆ ಸಿದ್ಧವಾಗಿದೆ.",
   aiDailyLimit: "ಇಂದಿನ AI ಮಿತಿ ಮುಗಿದಿದೆ. ವಿವರ ಪರಿಶೀಲಿಸಿ ನೀವೇ ಉಳಿಸಬಹುದು.",
   understandingRequest: "ನಿಮ್ಮ ವಿನಂತಿಯನ್ನು ಅರ್ಥಮಾಡಿಕೊಳ್ಳುತ್ತಿದೆ…",
   aiFilledHint: "AI ವಿವರಗಳನ್ನು ತುಂಬಿದೆ. ವಸ್ತು ಮತ್ತು ಸಂಖ್ಯೆಯನ್ನು ಪರಿಶೀಲಿಸಿ.",

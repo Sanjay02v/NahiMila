@@ -16,6 +16,7 @@ import {
   ShieldCheck,
   ShoppingBag,
   LoaderCircle,
+  RotateCcw,
 } from "lucide-react";
 import type { MerchantView, QuoteView } from "@/lib/product/types";
 import { api, Brand, Language, Modal, Money, WhatsAppAction } from "./common";
@@ -48,6 +49,7 @@ export default function MerchantApp() {
     [editQuote, setEditQuote] = useState<QuoteView | null>(null),
     [agent, setAgent] = useState(false),
     [approval, setApproval] = useState<QuoteView | null>(null),
+    [resetConfirm, setResetConfirm] = useState(false),
     [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
     [notice, setNotice] = useState("");
@@ -494,6 +496,32 @@ export default function MerchantApp() {
                   {t("welcome")} {data.shop.name}
                 </p>
               </div>
+              {data.demo && (
+                <section className="demo-guide">
+                  <div className="demo-guide-heading">
+                    <div>
+                      <strong>{t("demoTitle")}</strong>
+                      <p>{t("demoFictional")}</p>
+                    </div>
+                    <button
+                      className="btn outline"
+                      disabled={busy}
+                      onClick={() => setResetConfirm(true)}
+                    >
+                      <RotateCcw size={16} />
+                      {t("demoReset")}
+                    </button>
+                  </div>
+                  <details>
+                    <summary>{t("demoTry")}</summary>
+                    <ol>
+                      <li>{t("demoStep1")}</li>
+                      <li>{t("demoStep2")}</li>
+                      <li>{t("demoStep3")}</li>
+                    </ol>
+                  </details>
+                </section>
+              )}
               <section className="home-hero">
                 <div>
                   <h1>{t("what")}</h1>
@@ -892,6 +920,50 @@ export default function MerchantApp() {
           setAgent(false);
         }}
       />
+      {resetConfirm && (
+        <Modal
+          title={t("demoResetTitle")}
+          close={() => {
+            if (!busy) setResetConfirm(false);
+          }}
+        >
+          <p>{t("demoResetWarning")}</p>
+          {error && (
+            <p className="error" role="alert">
+              {error}
+            </p>
+          )}
+          <div className="form-actions">
+            <button
+              className="btn outline"
+              disabled={busy}
+              onClick={() => setResetConfirm(false)}
+            >
+              {t("back")}
+            </button>
+            <button
+              className="btn primary"
+              disabled={busy}
+              onClick={async () => {
+                if (await mutate({ action: "reset_demo", confirm: true })) {
+                  setResetConfirm(false);
+                  setCapture(false);
+                  setCaptureDraft(null);
+                  setQuote(false);
+                  setEditQuote(null);
+                  setAgent(false);
+                  setApproval(null);
+                  setView("home");
+                  setNotice(t("demoResetDone"));
+                }
+              }}
+            >
+              <RotateCcw size={16} />
+              {t("demoReset")}
+            </button>
+          </div>
+        </Modal>
+      )}
       {approval?.own && (
         <Modal
           title={t(approval.eligible ? "approveTitle" : "previewShareTitle")}

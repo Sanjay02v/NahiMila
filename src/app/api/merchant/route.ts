@@ -1,3 +1,5 @@
+import { isDemoShop } from "@/lib/product/demo-identity";
+import { resetJudgeDemo } from "@/lib/product/demo";
 import { canonicalIdentity } from "@/lib/product/canonical";
 import { parseIntent } from "@/lib/product/intent";
 import { actor, shopActor } from "@/lib/product/auth";
@@ -69,6 +71,12 @@ export async function POST(req: Request) {
           return merchantView(n, shop.id);
         }
         if (!shop) throw new Error("ONBOARDING_REQUIRED");
+        if (b.action === "reset_demo") {
+          if (!isDemoShop(shop.id)) throw new Error("FORBIDDEN");
+          if (b.confirm !== true) throw new Error("INVALID_REQUEST");
+          resetJudgeDemo(n);
+          return merchantView(n, shop.id);
+        }
         const s = storeFor(n);
         switch (b.action) {
           case "create":
@@ -447,7 +455,7 @@ export async function POST(req: Request) {
             throw new Error("INVALID_REQUEST");
         }
         return merchantView(n, shop.id);
-      }, true),
+      }, b.action === "reset_demo" ? "demo-reset" : true),
     );
   } catch (e) {
     return failure(e);
