@@ -1,6 +1,6 @@
 import type { Intent } from "./types";
 import { productLabel } from "./canonical";
-import { withDetails } from "./capture-fields";
+import { withDetails, detailsText } from "./capture-fields";
 import { manualDraft, parseIntent } from "./intent";
 
 export function itemDescription(i: Intent) {
@@ -40,6 +40,30 @@ export interface ItemFields {
   item: string;
   variant: string;
   pack: string;
+}
+export function combinedItemFields(i: Intent) {
+  return { item: itemFields(i).item, details: detailsText(i) };
+}
+export async function reviewCombinedItemFields(
+  fields: { item: string; details: string },
+  base: Intent,
+  normalize: (text: string) => Promise<unknown>,
+): Promise<Intent> {
+  const original = combinedItemFields(base);
+  if (!fields.item.trim()) throw new Error("ITEM_REQUIRED");
+  if (
+    fields.item.trim() === original.item &&
+    fields.details.trim() === original.details
+  )
+    return base;
+  const reviewed = await reviewItemFields(
+    { item: fields.item, variant: "", pack: "" },
+    base,
+    normalize,
+  );
+  // One visible details field; structured SKU fields are still kept separately.
+  // Removing details clears old specs instead of silently retaining them.
+  return parseIntent(withDetails(reviewed, fields.details.trim()));
 }
 export function itemFields(i: Intent): ItemFields {
   return {

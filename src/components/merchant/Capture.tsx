@@ -4,8 +4,15 @@ import { useTranslations } from "next-intl";
 import { ArrowRight, LoaderCircle } from "lucide-react";
 import type { Intent } from "@/lib/product/types";
 import { manualDraft, parseIntent } from "@/lib/product/intent";
-import { captureHints, phoneNumber } from "@/lib/product/capture-fields";
-import { itemFields, reviewItemFields } from "@/lib/product/item-review";
+import {
+  captureHints,
+  phoneNumber,
+  customerNameFromText,
+} from "@/lib/product/capture-fields";
+import {
+  combinedItemFields,
+  reviewCombinedItemFields,
+} from "@/lib/product/item-review";
 import { api, Modal } from "./common";
 import { useVoiceRecording } from "@/hooks/useVoiceRecording";
 import VoiceControls from "./VoiceControls";
@@ -28,8 +35,7 @@ export default function Capture({
   const [raw, setRaw] = useState(initial),
     [intent, setIntent] = useState<Intent | null>(null),
     [item, setItem] = useState(""),
-    [variant, setVariant] = useState(""),
-    [pack, setPack] = useState("");
+    [variant, setVariant] = useState("");
   const [wait, setWait] = useState<boolean | null>(initialWait ? true : null),
     [phone, setPhone] = useState(""),
     [customer, setCustomer] = useState(""),
@@ -56,14 +62,14 @@ export default function Capture({
     setError("");
     setNotice("");
     let next: Intent;
-    let customerName = "";
+    let customerName = customerNameFromText(raw) || "";
     try {
       const j = await api("/api/intent", { raw_text: raw });
       next = parseIntent(j.intent);
       customerName =
         typeof j.capture?.customer_name === "string"
           ? j.capture.customer_name
-          : "";
+          : customerName;
     } catch (e) {
       next = manualDraft(raw);
       setNotice(
@@ -85,10 +91,9 @@ export default function Capture({
       no_rush: hints.no_rush,
     };
     setIntent(nextIntent);
-    const fields = itemFields(nextIntent);
+    const fields = combinedItemFields(nextIntent);
     setItem(fields.item);
-    setVariant(fields.variant);
-    setPack(fields.pack);
+    setVariant(fields.details);
     setQuantity(String(next.quantity ?? 1));
     setWait(hints.can_wait ?? (initialWait ? true : null));
     setPhone(hints.phone ? `+${hints.phone}` : "");
@@ -106,8 +111,8 @@ export default function Capture({
       } catch {
         throw new Error("INVALID_PHONE");
       }
-      const reviewed = await reviewItemFields(
-        { item, variant, pack },
+      const reviewed = await reviewCombinedItemFields(
+        { item, details: variant },
         intent,
         async (value) => {
           const j = await api("/api/intent", { raw_text: value });
@@ -214,26 +219,15 @@ export default function Capture({
               maxLength={300}
             />
           </label>
-          <div className="form-grid">
-            <label>
-              {t("variant")}
-              <input
-                value={variant}
-                onChange={(e) => setVariant(e.target.value)}
-                maxLength={120}
-                placeholder={t("simpleVariantExample")}
-              />
-            </label>
-            <label>
-              {t("packOptional")}
-              <input
-                value={pack}
-                onChange={(e) => setPack(e.target.value)}
-                maxLength={120}
-                placeholder={t("whichPackExample")}
-              />
-            </label>
-          </div>
+          <label>
+            {t("itemDetailsOptional")}
+            <input
+              value={variant}
+              onChange={(e) => setVariant(e.target.value)}
+              maxLength={220}
+              placeholder={t("combinedDetailsExample")}
+            />
+          </label>
           <label>
             {t("quantity")}
             <input

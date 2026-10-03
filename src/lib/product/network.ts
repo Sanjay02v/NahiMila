@@ -299,9 +299,11 @@ export function merchantView(n: Network, shopId: string): MerchantView {
   const quotes: QuoteView[] = s.quotes
     .filter(
       (q) =>
-        mine.some(
+        q.created_by_shop === shopId ||
+        (mine.some(
           (r) => r.sku === q.sku && r.pack_size === q.pack_size && r.can_wait,
-        ) && s.eligibleMerchantIdsForQuote!(q).has(shopId),
+        ) &&
+          s.eligibleMerchantIdsForQuote!(q).has(shopId)),
     )
     .map((q) => {
       const e = s.evaluateQuote(q.id),

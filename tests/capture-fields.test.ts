@@ -7,6 +7,7 @@ import {
   phoneFromText,
   withDetails,
   groundedCustomerName,
+  customerNameFromText,
 } from "../src/lib/product/capture-fields";
 import { manualDraft, parseIntent } from "../src/lib/product/intent";
 import {
@@ -18,6 +19,27 @@ import {
 import { groupDemand } from "../src/lib/product/demand-book";
 const shop = "m-sharma-001";
 describe("Simple capture fields preserve exact specifications", () => {
+  it("autofills only explicitly stated customer names even without AI", () => {
+    expect(
+      customerNameFromText(
+        "Two bottles. Customer name: Ravi Kumar. Phone 9000000001, can wait.",
+      ),
+    ).toBe("Ravi Kumar");
+    expect(
+      customerNameFromText("His name is Ravi and he can wait until tomorrow."),
+    ).toBe("Ravi");
+    expect(customerNameFromText("ग्राहक का नाम है राहुल।")).toBe("राहुल");
+    expect(
+      customerNameFromText("Motorola Sky blue, phone 9000000001"),
+    ).toBeNull();
+    expect(
+      groundedCustomerName(
+        "Customer NAME: Ravi",
+        "Ravi",
+        "customer name: Ravi",
+      ),
+    ).toBe("Ravi");
+  });
   it("manual fallback removes contact labels without erasing mobile-phone products", () => {
     expect(
       manualDraft("diet cooke can customer number 9876543210").product,

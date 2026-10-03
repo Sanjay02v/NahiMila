@@ -2882,3 +2882,21 @@ input[type="checkbox"] {
 .supplier-choice > summary h3 { font-size:18px; }
 .supplier-choice-content { margin-top:18px; }
 .topbar .button.demo-reset-top { display:inline-flex; }
+
+/* Compact choices lead to one product panel, rather than nested order cards. */
+.order-product-row, .supplier-option-row { width:100%; display:flex; align-items:center; justify-content:space-between; gap:20px; text-align:left; background:white; color:var(--ink, #21372b); border:1px solid #dde6da; border-radius:18px; padding:20px 24px; cursor:pointer; }
+.order-product-row > span:first-child, .supplier-option-row > span:first-child { display:grid; gap:5px; min-width:0; }
+.order-product-row strong, .supplier-option-row strong { font-size:17px; overflow-wrap:anywhere; }
+.order-product-row small, .supplier-option-row small { color:#66756b; }
+.order-next-step { display:block; color:#315b46; font-size:14px; line-height:1.5; }
+.order-row-action { display:flex; align-items:center; gap:8px; flex-shrink:0; font-size:14px; font-weight:600; }
+.order-product-row:hover, .supplier-option-row:hover { background:#f4f7f1; }
+.item-order-panel { max-width:680px; }
+.item-order-panel h3 { margin:16px 0 12px; }
+.supplier-detail { display:grid; gap:16px; }
+.supplier-detail-heading h3 { margin:4px 0 8px; }
+.supplier-detail .case-progress, .supplier-detail .cost-overview, .supplier-detail .order-blockers, .supplier-detail .fine { margin:0; }
+.supplier-detail .cost-overview { padding:12px 0; }
+.supplier-more { border-top:1px solid #dde6da; padding-top:12px; }
+.approved-note { display:flex; align-items:center; gap:8px; color:#315b46; font-weight:600; }
+@media(max-width:640px) { .order-product-row, .supplier-option-row { padding:16px; gap:12px; } .order-row-action { font-size:12px; } .order-product-row strong { font-size:16px; } }

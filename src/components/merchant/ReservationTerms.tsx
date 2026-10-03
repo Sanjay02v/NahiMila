@@ -8,7 +8,10 @@ import {
   deadlineFromDay,
   phoneNumber,
 } from "@/lib/product/capture-fields";
-import { itemFields, reviewItemFields } from "@/lib/product/item-review";
+import {
+  combinedItemFields,
+  reviewCombinedItemFields,
+} from "@/lib/product/item-review";
 import { api, Modal } from "./common";
 export default function ReservationTerms({
   request,
@@ -28,10 +31,9 @@ export default function ReservationTerms({
       request.status,
     ),
     base = request.detail?.intent || manualDraft(request.product.name);
-  const initial = itemFields(base);
+  const initial = combinedItemFields(base);
   const [item, setItem] = useState(initial.item),
-    [variant, setVariant] = useState(initial.variant),
-    [pack, setPack] = useState(initial.pack);
+    [variant, setVariant] = useState(initial.details);
   return (
     <Modal title={t(preparing ? "prepareOffer" : "reviseTerms")} close={close}>
       <form
@@ -42,8 +44,8 @@ export default function ReservationTerms({
           const f = new FormData(e.currentTarget);
           let failure = "itemReviewRetry";
           try {
-            const i = await reviewItemFields(
-              { item, variant, pack },
+            const i = await reviewCombinedItemFields(
+              { item, details: variant },
               base,
               async (value) =>
                 (await api("/api/intent", { raw_text: value })).intent,
@@ -86,7 +88,7 @@ export default function ReservationTerms({
                 code === "PACK_INVALID"
                   ? "packFix"
                   : code === "ITEM_DETAILS"
-                    ? "whichPackHint"
+                    ? "exactDetailsHint"
                     : code === "PRICE"
                       ? "priceFix"
                       : code === "BUDGET"
@@ -110,27 +112,13 @@ export default function ReservationTerms({
           />
         </label>
         <label>
-          {t("variant")}
+          {t("itemDetailsOptional")}
           <input
             value={variant}
             onChange={(e) => setVariant(e.target.value)}
-            maxLength={120}
-            placeholder={t("simpleVariantExample")}
+            maxLength={220}
+            placeholder={t("combinedDetailsExample")}
           />
-        </label>
-        <label>
-          {t("packLabel")}
-          <input
-            value={pack}
-            onChange={(e) => setPack(e.target.value)}
-            maxLength={120}
-            placeholder={t("whichPackExample")}
-            required
-            aria-describedby="pack-hint"
-          />
-          <small id="pack-hint" className="fine">
-            {t("whichPackHint")}
-          </small>
         </label>
         <div className="form-grid">
           <label>

@@ -42,21 +42,26 @@ export default function QuoteForm({
           setError(false);
           const f = new FormData(e.currentTarget);
           const cents = (key: string) => Math.round(Number(f.get(key)) * 100);
-          const result = await save({
-            action: "quote",
-            quote_id: q?.id,
-            product_id: f.get("product"),
-            supplier: f.get("supplier"),
-            unit_paise: cents("cost"),
-            moq: Number(f.get("moq")),
-            transport_paise: cents("transport"),
-            handling_paise: cents("handling"),
-            delivery: new Date(String(f.get("delivery"))).toISOString(),
-            expiry: new Date(String(f.get("expiry"))).toISOString(),
-          });
-          setBusy(false);
-          if (result) close();
-          else setError(true);
+          try {
+            const result = await save({
+              action: "quote",
+              quote_id: q?.id,
+              product_id: f.get("product"),
+              supplier: f.get("supplier"),
+              unit_paise: cents("cost"),
+              moq: Number(f.get("moq")),
+              transport_paise: cents("transport"),
+              handling_paise: cents("handling"),
+              delivery: new Date(String(f.get("delivery"))).toISOString(),
+              expiry: new Date(String(f.get("expiry"))).toISOString(),
+            });
+            if (result) close();
+            else setError(true);
+          } catch {
+            setError(true);
+          } finally {
+            setBusy(false);
+          }
         }}
       >
         <label>

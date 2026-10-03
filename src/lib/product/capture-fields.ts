@@ -61,8 +61,11 @@ export function groundedCustomerName(
     return null;
   // Verbatim evidence must explicitly identify a customer, never a brand/item name.
   if (
-    !raw.includes(evidence) ||
-    !evidence.includes(value) ||
+    !raw
+      .toLocaleLowerCase()
+      .replace(/\s+/g, " ")
+      .includes(evidence.toLocaleLowerCase().replace(/\s+/g, " ")) ||
+    !evidence.toLocaleLowerCase().includes(value.toLocaleLowerCase()) ||
     !/(?:\bcustomer(?:'s)?\s+(?:name\b|is\b|called\b|named\b)|\bname\s*(?:is|:)|नाम|ಹೆಸರು)/i.test(
       evidence,
     ) ||
@@ -70,6 +73,21 @@ export function groundedCustomerName(
   )
     return null;
   return value;
+}
+export function customerNameFromText(raw: string): string | null {
+  // Explicit identity phrases only. Never look up a person from their phone.
+  const match = raw.match(
+    /(?:\bcustomer(?:'s)?\s+name\s*(?:is|:|=)?|\b(?:his|her|their)\s+name\s+is|\bcustomer\s+(?:is|called|named)|ग्राहक\s+का\s+नाम\s*(?:है|[:=])?|ಗ್ರಾಹಕರ\s+ಹೆಸರು\s*[:=]?)\s+([\p{L}\p{M}][\p{L}\p{M} .'-]{0,79})/iu,
+  );
+  if (!match) return null;
+  const name = match[1]
+    .split(/[.!?;,\n]/)[0]
+    .split(
+      /\s+(?:and|can|cannot|will|phone|mobile|number|wants?|needs?|is willing|का|और)\b/i,
+    )[0]
+    .replace(/[ .'-]+$/, "")
+    .trim();
+  return name && name.length <= 80 ? name : null;
 }
 export function dayFromDeadline(value: string | null): string {
   return value && Number.isFinite(Date.parse(value))

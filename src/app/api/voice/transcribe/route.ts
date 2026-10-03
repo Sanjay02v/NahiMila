@@ -4,6 +4,7 @@ import { failure, ok } from "@/lib/product/http";
 import { assertSameOrigin } from "@/lib/same-origin";
 import { validateAudio } from "@/lib/voice/audio";
 export const runtime = "nodejs";
+export const maxDuration = 45;
 const limits = new Map<string, { count: number; until: number }>();
 const voiceFailure = (error: string, status: number) =>
   NextResponse.json(

@@ -7,32 +7,29 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import { MAX_RECORDING_MS, microphoneError } from "@/lib/voice/audio";
-import { VoiceUploadQueue } from "@/lib/voice/upload-queue";
-import { readTranscript } from "@/lib/voice/events";
+import {
+  MAX_AUDIO_BYTES,
+  MAX_RECORDING_MS,
+  microphoneError,
+  preferredAudioType,
+  recordingFilename,
+  transcribeAudio,
+} from "@/lib/voice/audio";
 const subscribe = () => () => {};
 function microphoneSupport() {
   if (typeof window === "undefined") return "";
   if (!window.isSecureContext) return "MICROPHONE_INSECURE";
-  if (
-    !navigator.mediaDevices?.getUserMedia ||
-    !window.AudioContext ||
-    !window.AudioWorkletNode
-  )
+  if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder)
     return "MICROPHONE_UNSUPPORTED";
   return "";
 }
 type Session = {
   abort: AbortController;
-  id: string;
-  uploads: VoiceUploadQueue | null;
-  stopping: boolean;
   stream: MediaStream | null;
-  context: AudioContext | null;
-  source: MediaStreamAudioSourceNode | null;
-  node: AudioWorkletNode | null;
+  recorder: MediaRecorder | null;
+  chunks: Blob[];
+  bytes: number;
   timer: ReturnType<typeof setTimeout> | null;
-  flush: (() => void) | null;
 };
 export function useVoiceRecording(
   onTranscript: (value: string, final: boolean) => void,
@@ -54,27 +51,17 @@ export function useVoiceRecording(
   }, [onTranscript]);
   const audioOff = useCallback((s: Session) => {
     if (s.timer) clearTimeout(s.timer);
-    s.source?.disconnect();
-    s.node?.disconnect();
     s.stream?.getTracks().forEach((t) => t.stop());
     s.stream = null;
-    if (s.context && s.context.state !== "closed") void s.context.close();
   }, []);
   const cancel = useCallback(() => {
     const s = active.current;
-    if (!s) return;
     active.current = null;
-    audioOff(s);
-    s.uploads?.cancel();
-    if (s.id && !s.abort.signal.aborted)
-      void fetch("/api/voice/live", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ session: s.id, action: "cancel" }),
-        keepalive: true,
-      }).catch(() => {});
+    if (!s) return;
     s.abort.abort();
-    s.flush?.();
+    if (s.recorder && s.recorder.state !== "inactive") s.recorder.stop();
+    audioOff(s);
+    s.chunks = [];
   }, [audioOff]);
   useEffect(() => {
     mounted.current = true;
@@ -95,49 +82,46 @@ export function useVoiceRecording(
     },
     [cancel],
   );
-  async function send(s: Session, body: Record<string, unknown>) {
-    const response = await fetch("/api/voice/live", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ session: s.id, ...body }),
-      signal: s.abort.signal,
-    });
-    if (!response.ok) {
-      const result = await response.json().catch(() => ({}));
-      throw new Error(result.error || "VOICE_NETWORK");
-    }
-  }
-  async function stop() {
-    const s = active.current;
-    if (!s || s.stopping) return;
-    s.stopping = true;
-    if (s.timer) clearTimeout(s.timer);
+  async function finish(s: Session) {
+    if (active.current !== s || s.abort.signal.aborted) return;
+    audioOff(s);
     setRecording(false);
     setWorking(true);
-    s.source?.disconnect();
-    if (s.node) {
-      await new Promise<void>((resolve) => {
-        const timeout = setTimeout(resolve, 300);
-        s.flush = () => {
-          clearTimeout(timeout);
-          resolve();
-        };
-        s.node!.port.postMessage("flush");
-      });
-    }
-    audioOff(s);
+    const type = s.recorder?.mimeType || s.chunks[0]?.type || "audio/webm";
+    const file = new Blob(s.chunks, { type });
+    s.chunks = [];
+    const timeout = setTimeout(() => {
+      if (active.current === s) fail("VOICE_TIMEOUT");
+    }, 35_000);
     try {
-      await s.uploads?.finish();
-      if (s.abort.signal.aborted) return;
-      await send(s, { action: "end" });
+      const text = await transcribeAudio(
+        file,
+        recordingFilename(type),
+        s.abort.signal,
+      );
+      if (active.current !== s || s.abort.signal.aborted || !mounted.current)
+        return;
+      callback.current(text, true);
+      active.current = null;
+      setWorking(false);
     } catch (e) {
       if (!s.abort.signal.aborted)
         fail(e instanceof Error ? e.message : "VOICE_NETWORK");
+    } finally {
+      clearTimeout(timeout);
     }
+  }
+  function stop() {
+    const s = active.current;
+    if (!s?.recorder || s.recorder.state !== "recording") return;
+    if (s.timer) clearTimeout(s.timer);
+    setRecording(false);
+    setWorking(true);
+    s.recorder.stop(); // The final dataavailable event precedes onstop.
   }
   async function toggle() {
     if (active.current) {
-      if (recording) await stop();
+      if (recording) stop();
       return;
     }
     setError("");
@@ -147,15 +131,11 @@ export function useVoiceRecording(
     }
     const s: Session = {
       abort: new AbortController(),
-      id: "",
-      uploads: null,
-      stopping: false,
       stream: null,
-      context: null,
-      source: null,
-      node: null,
+      recorder: null,
+      chunks: [],
+      bytes: 0,
       timer: null,
-      flush: null,
     };
     active.current = s;
     setRequesting(true);
@@ -171,101 +151,33 @@ export function useVoiceRecording(
         audioOff(s);
         return;
       }
-      s.context = new AudioContext();
-      await s.context.resume();
-      await s.context.audioWorklet.addModule("/voice-pcm.js");
-      const response = await fetch("/api/voice/live", {
-        method: "POST",
-        signal: s.abort.signal,
-      });
-      if (!response.ok || !response.body) {
-        const j = await response.json().catch(() => ({}));
-        throw new Error(j.error || "VOICE_UNAVAILABLE");
-      }
-      let settled = false,
-        finished = false,
-        finalText = "";
-      const ready = new Promise<void>((resolve, reject) => {
-        void readTranscript(response.body!, (event) => {
-          if (s.abort.signal.aborted) return;
-          if (event.event === "ready" && event.session) {
-            s.id = event.session;
-            settled = true;
-            resolve();
-          }
-          if (event.event === "partial" && typeof event.text === "string")
-            callback.current(
-              [finalText, event.text].filter(Boolean).join(" "),
-              false,
-            );
-          if (event.event === "final" && typeof event.text === "string") {
-            finalText = [finalText, event.text].filter(Boolean).join(" ");
-            callback.current(finalText, true);
-          }
-          if (event.event === "error") {
-            finished = true;
-            if (!settled) reject(new Error(event.error || "VOICE_UNAVAILABLE"));
-            fail(event.error || "VOICE_UNAVAILABLE");
-          }
-          if (event.event === "done") {
-            finished = true;
-            cancel();
-            if (mounted.current) {
-              setRecording(false);
-              setWorking(false);
-              setRequesting(false);
-            }
-          }
-        })
-          .then(() => {
-            if (!s.abort.signal.aborted && !finished) {
-              if (!settled) reject(new Error("VOICE_NETWORK"));
-              fail("VOICE_NETWORK");
-            }
-          })
-          .catch(() => {
-            if (!s.abort.signal.aborted) {
-              if (!settled) reject(new Error("VOICE_NETWORK"));
-              fail("VOICE_NETWORK");
-            }
-          });
-      });
-      await ready;
-      if (s.abort.signal.aborted) return;
-      s.uploads = new VoiceUploadQueue(
-        (sequence, audio) => send(s, { action: "audio", audio, sequence }),
-        (e) => {
-          if (!s.abort.signal.aborted)
-            fail(e instanceof Error ? e.message : "VOICE_NETWORK");
-        },
+      const type = preferredAudioType(MediaRecorder);
+      s.recorder = new MediaRecorder(
+        s.stream,
+        type ? { mimeType: type } : undefined,
       );
-      s.node = new AudioWorkletNode(s.context, "nahimila-pcm");
-      s.node.port.onmessage = (e) => {
-        if (e.data?.flushed) {
-          s.flush?.();
+      s.recorder.ondataavailable = (event) => {
+        if (active.current !== s || s.abort.signal.aborted || !event.data.size)
+          return;
+        s.bytes += event.data.size;
+        if (s.bytes > MAX_AUDIO_BYTES) {
+          fail("VOICE_FILE_TOO_LARGE");
           return;
         }
-        if (s.abort.signal.aborted || !(e.data instanceof ArrayBuffer)) return;
-        s.uploads?.enqueue(e.data);
+        s.chunks.push(event.data);
       };
-      s.source = s.context.createMediaStreamSource(s.stream!);
-      s.source.connect(s.node);
-      const silent = s.context.createGain();
-      silent.gain.value = 0;
-      s.node.connect(silent);
-      silent.connect(s.context.destination);
+      s.recorder.onerror = () => {
+        if (active.current === s) fail("MICROPHONE_FAILED");
+      };
+      s.recorder.onstop = () => {
+        void finish(s);
+      };
+      s.recorder.start(200);
       setRequesting(false);
       setRecording(true);
-      s.timer = setTimeout(() => {
-        void stop();
-      }, MAX_RECORDING_MS);
+      s.timer = setTimeout(stop, MAX_RECORDING_MS);
     } catch (e) {
-      if (!s.abort.signal.aborted)
-        fail(
-          e instanceof Error && /^[A-Z_]+$/.test(e.message)
-            ? e.message
-            : microphoneError(e),
-        );
+      if (!s.abort.signal.aborted) fail(microphoneError(e));
     }
   }
   const automaticStart = useEffectEvent(() => {

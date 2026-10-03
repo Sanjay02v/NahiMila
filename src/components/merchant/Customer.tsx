@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { Check, ShoppingBag, ShieldCheck } from "lucide-react";
 import type { CustomerView } from "@/lib/product/types";
@@ -10,27 +10,72 @@ export default function Customer({ token }: { token: string }) {
     [data, setData] = useState<CustomerView | null>(null),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
+  const changing = useRef(false),
+    refreshing = useRef(false),
+    generation = useRef(0),
+    sequence = useRef(0);
   const refresh = useCallback(async () => {
+    if (changing.current || refreshing.current) return;
+    refreshing.current = true;
+    const version = generation.current,
+      id = ++sequence.current;
     try {
-      setData(await api(`/api/customer/${encodeURIComponent(token)}`));
+      const result = await api(`/api/customer/${encodeURIComponent(token)}`);
+      if (
+        version !== generation.current ||
+        id !== sequence.current ||
+        changing.current
+      )
+        return;
+      setData(result);
+      setError("");
     } catch {
+      if (
+        version !== generation.current ||
+        id !== sequence.current ||
+        changing.current
+      )
+        return;
       setError(t("invalidOffer"));
+    } finally {
+      refreshing.current = false;
     }
   }, [token, t]);
   useEffect(() => {
     const timer = setTimeout(refresh, 0);
-    return () => clearTimeout(timer);
+    const interval = setInterval(() => {
+      if (document.visibilityState === "visible") void refresh();
+    }, 3000);
+    const focus = () => {
+      if (document.visibilityState === "visible") void refresh();
+    };
+    window.addEventListener("focus", focus);
+    return () => {
+      clearTimeout(timer);
+      clearInterval(interval);
+      window.removeEventListener("focus", focus);
+    };
   }, [refresh]);
   const act = async (action: string) => {
+    if (changing.current) return;
+    changing.current = true;
+    generation.current++;
     setBusy(true);
     setError("");
     try {
       setData(
         await api(`/api/customer/${encodeURIComponent(token)}`, { action }),
       );
+      if (typeof BroadcastChannel !== "undefined") {
+        const channel = new BroadcastChannel("nahimila-updates");
+        channel.postMessage("changed");
+        channel.close();
+      }
     } catch {
       setError(t("errorGeneric"));
     } finally {
+      changing.current = false;
+      generation.current++;
       setBusy(false);
     }
   };

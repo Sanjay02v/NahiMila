@@ -4,11 +4,56 @@ import {
   reviewEditedItem,
   itemFields,
   reviewItemFields,
+  combinedItemFields,
+  reviewCombinedItemFields,
 } from "../src/lib/product/item-review";
 import { manualDraft } from "../src/lib/product/intent";
 import { saveRequest, seedNetwork, storeFor } from "../src/lib/product/network";
 
 describe("Simple item review", () => {
+  it("uses one details field without losing the structured pack or calling AI again", async () => {
+    const base = manualDraft("Coke Zero 500ml bottle");
+    const fields = combinedItemFields(base);
+    expect(fields.details).toBe("Zero sugar, 500ml, bottle");
+    const normalize = vi.fn();
+    expect(await reviewCombinedItemFields(fields, base, normalize)).toBe(base);
+    const corrected = await reviewCombinedItemFields(
+      { ...fields, details: "Diet, 330ml can" },
+      base,
+      normalize,
+    );
+    expect(corrected).toMatchObject({
+      brand: "Coca-Cola",
+      variant: "Diet",
+      size: 330,
+      unit: "ml",
+      packaging: "can",
+    });
+    expect(normalize).not.toHaveBeenCalled();
+    expect(
+      await reviewCombinedItemFields(
+        { ...fields, details: "" },
+        base,
+        normalize,
+      ),
+    ).toMatchObject({ variant: null, size: null, unit: null, packaging: null });
+  });
+  it("keeps colour and configuration as exact variant details, without inventing a pack", async () => {
+    const base = {
+      ...manualDraft("Motorola Moto G86 Power"),
+      variant: "Sky blue",
+    };
+    const result = await reviewCombinedItemFields(
+      { ...combinedItemFields(base), details: "Sky blue, 8GB/128GB" },
+      base,
+      vi.fn(),
+    );
+    expect(result).toMatchObject({
+      variant: "Sky blue 8GB/128GB",
+      size: null,
+      unit: null,
+    });
+  });
   it.each(["100gm", "100 gms", "100 grams", "100G", "100 GM"])(
     "accepts the common gram spelling %s without asking Gemini",
     async (pack) => {

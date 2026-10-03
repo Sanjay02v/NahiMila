@@ -81,6 +81,8 @@ export default function MerchantApp() {
     } | null>(null),
     [quote, setQuote] = useState(false),
     [editQuote, setEditQuote] = useState<QuoteView | null>(null),
+    [selectedProduct, setSelectedProduct] = useState<string | null>(null),
+    [selectedQuote, setSelectedQuote] = useState<string | null>(null),
     [agent, setAgent] = useState(false),
     [approval, setApproval] = useState<QuoteView | null>(null),
     [resetConfirm, setResetConfirm] = useState(false),
@@ -88,7 +90,9 @@ export default function MerchantApp() {
     [error, setError] = useState(""),
     [notice, setNotice] = useState("");
   const mutating = useRef(false),
-    generation = useRef(0);
+    refreshing = useRef(false),
+    generation = useRef(0),
+    refreshSequence = useRef(0);
   const err = useCallback(
     (e: unknown) => {
       const code = e instanceof Error ? e.message : "UNKNOWN";
@@ -96,24 +100,46 @@ export default function MerchantApp() {
     },
     [t],
   );
+  const applySnapshot = useCallback((result: MerchantView) => {
+    setData(result);
+    setApproval((previous) =>
+      previous
+        ? result.quotes.find((q) => q.quote.id === previous.quote.id) || null
+        : null,
+    );
+  }, []);
   const refresh = useCallback(async () => {
-    if (mutating.current) return;
-    const version = generation.current;
+    if (mutating.current || refreshing.current) return;
+    refreshing.current = true;
+    const version = generation.current,
+      sequence = ++refreshSequence.current;
     try {
       const result = await api("/api/merchant");
-      if (version !== generation.current || mutating.current) return;
-      setData(result);
+      if (
+        version !== generation.current ||
+        sequence !== refreshSequence.current ||
+        mutating.current
+      )
+        return;
+      applySnapshot(result);
       setAccess(null);
     } catch (e) {
-      if (version !== generation.current || mutating.current) return;
+      if (
+        version !== generation.current ||
+        sequence !== refreshSequence.current ||
+        mutating.current
+      )
+        return;
       const code = e instanceof Error ? e.message : "";
       if (code === "UNAUTHENTICATED") {
         setData(null);
         setAccess("login");
       } else if (code === "ONBOARDING_REQUIRED") setAccess("onboard");
       else err(e);
+    } finally {
+      refreshing.current = false;
     }
-  }, [err]);
+  }, [err, applySnapshot]);
   useEffect(() => {
     const initial = setTimeout(refresh, 0);
     return () => clearTimeout(initial);
@@ -123,8 +149,23 @@ export default function MerchantApp() {
     window.scrollTo({ top: 0 });
     const interval = setInterval(() => {
       if (document.visibilityState === "visible") void refresh();
-    }, 5000);
-    return () => clearInterval(interval);
+    }, 3000);
+    const onFocus = () => {
+      if (document.visibilityState === "visible") void refresh();
+    };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onFocus);
+    const channel =
+      typeof BroadcastChannel === "undefined"
+        ? null
+        : new BroadcastChannel("nahimila-updates");
+    if (channel) channel.onmessage = onFocus;
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onFocus);
+      channel?.close();
+    };
   }, [data?.shop.id, refresh]); // eslint-disable-line react-hooks/exhaustive-deps
   const mutate = async (b: Record<string, unknown>) => {
     if (mutating.current) return false;
@@ -134,7 +175,26 @@ export default function MerchantApp() {
     setError("");
     setNotice("");
     try {
-      setData(await api("/api/merchant", b));
+      const result: MerchantView = await api("/api/merchant", b);
+      applySnapshot(result);
+      if (typeof BroadcastChannel !== "undefined") {
+        const channel = new BroadcastChannel("nahimila-updates");
+        channel.postMessage("changed");
+        channel.close();
+      }
+      if (b.action === "quote") {
+        const saved = result.quotes.find((q) =>
+          b.quote_id
+            ? q.quote.id === b.quote_id
+            : q.can_edit &&
+              !data?.quotes.some((old) => old.quote.id === q.quote.id),
+        );
+        setView("orders");
+        setOrderSearch("");
+        setOrderLimit(10);
+        setSelectedProduct(saved?.product.id || String(b.product_id));
+        setSelectedQuote(saved?.quote.id || null);
+      }
       setNotice(
         t(
           b.action === "create"
@@ -252,209 +312,212 @@ export default function MerchantApp() {
   const pendingQuotes = data.quotes.filter(
     (q) =>
       !q.committed &&
-      (q.total_units > 0 ||
+      (q.can_edit ||
+        q.total_units > 0 ||
         !data.orders.some((o) => o.product.id === q.product.id)),
   );
-  const renderQuotes = (rows: QuoteView[]) => (
-    <div className="quote-list">
-      {rows.map((q) => (
-        <details className="quote-review supplier-choice" key={q.quote.id}>
-          <summary>
-            <div className="quote-header">
-              <div>
-                <span className="eyebrow">{t("supplier")}</span>
-                <h3>{q.quote.supplier_name}</h3>
-                <p>
-                  {q.product?.name} · {q.quote.pack_size}
-                </p>
-              </div>
-              <span className={`status ${q.eligible ? "positive" : ""}`}>
-                {t(q.eligible ? "checksPassed" : "notYet")}
-              </span>
-            </div>
-          </summary>
-          <div className="supplier-choice-content">
-            <div className="case-progress">
-              <span>
-                {t("confirmed")} · {t("caseSize")} {q.quote.moq}
-              </span>
-              <strong>
-                {q.total_units} {t("units")}
-              </strong>
-            </div>
-            {q.own ? (
-              <>
-                <div className="cost-overview">
-                  <div>
-                    <span>{t("yourShare")}</span>
-                    <strong>
-                      {q.own.allocated_units} <small>{t("units")}</small>
-                    </strong>
-                  </div>
-                  <div>
-                    <span>{t("totalCost")}</span>
-                    <strong>
-                      <Money value={q.own.total_exposure_paise} />
-                    </strong>
-                  </div>
-                </div>
-                <dl className="cost-detail">
-                  <div>
-                    <dt>{t("limit")}</dt>
-                    <dd>
-                      <Money value={q.own.cash_cap_paise} />
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>{t(q.own.within_cap ? "buffer" : "over")}</dt>
-                    <dd className={q.own.within_cap ? "good" : "warn"}>
-                      <Money value={Math.abs(q.own.cash_cap_headroom_paise)} />
-                    </dd>
-                  </div>
-                </dl>
-              </>
-            ) : (
-              <p className="note">{t("awaiting")}</p>
-            )}
-            <details className="details">
-              <summary>
-                {t("reviewOrder")}
-                <ChevronRight size={16} />
-              </summary>
-              <div className="checks">
-                {q.checks.map((c) => (
-                  <p key={c.code}>
-                    <span className={c.passed ? "good" : "warn"}>
-                      {c.passed ? "✓" : "○"}
-                    </span>
-                    {t(
-                      (
-                        {
-                          cases: "cases",
-                          deadline: "deliveryRule",
-                          expiry: "expiryRule",
-                          price: "priceRule",
-                          group: "groupRule",
-                        } as Record<string, string>
-                      )[c.code],
-                    )}
-                  </p>
-                ))}
-              </div>
-              <dl className="cost-detail">
-                <div>
-                  <dt>{t("caseSize")}</dt>
-                  <dd>{q.quote.moq}</dd>
-                </div>
-                <div>
-                  <dt>{t("delivery")}</dt>
-                  <dd>{date(q.quote.expected_delivery_date)}</dd>
-                </div>
-                <div>
-                  <dt>{t("expiry")}</dt>
-                  <dd>{date(q.quote.quote_expiry_date)}</dd>
-                </div>
-              </dl>
-              <label className="check">
-                <input
-                  type="checkbox"
-                  checked={data.shop.allowed_suppliers.includes(
-                    q.quote.supplier_id,
-                  )}
-                  disabled={busy}
-                  onChange={(e) =>
-                    mutate({
-                      action: "permission",
-                      supplier_id: q.quote.supplier_id,
-                      allowed: e.target.checked,
-                    })
-                  }
-                />
-                {t("supplier")}
-              </label>
-            </details>
-            {q.can_edit && (
+  const nextStep = (q: QuoteView) => {
+    if (quoteActions(q).canCommit) return t("readyToOrder");
+    if (quoteActions(q).canApprove) return t("reviewNext");
+    const blocker = quoteBlockers(q)[0];
+    return blocker
+      ? t(blocker.key, { count: blocker.count ?? 0 })
+      : t("waitingNext");
+  };
+  const renderQuote = (q: QuoteView) => (
+    <article className="supplier-detail" key={q.quote.id}>
+      <div className="supplier-detail-heading">
+        <span className="eyebrow">{t("supplier")}</span>
+        <h3>{q.quote.supplier_name}</h3>
+        <p className="order-next-step" role="status">
+          {nextStep(q)}
+        </p>
+      </div>
+      <div className="case-progress">
+        <span>
+          {t("confirmed")} / {t("caseSize")}
+        </span>
+        <strong>
+          {q.total_units} / {q.quote.moq} {t("units")}
+        </strong>
+      </div>
+      {q.own ? (
+        <div className="cost-overview">
+          <div>
+            <span>{t("yourShare")}</span>
+            <strong>
+              {q.own.allocated_units} <small>{t("units")}</small>
+            </strong>
+          </div>
+          <div>
+            <span>{t("totalCost")}</span>
+            <strong>
+              <Money value={q.own.total_exposure_paise} />
+            </strong>
+          </div>
+        </div>
+      ) : (
+        <p className="fine">{t("awaiting")}</p>
+      )}
+      <p className="fine">
+        {q.approval_count} / {q.participant_count} {t("approvals")}
+      </p>
+      {q.own?.approval_status === "INVALIDATED" && (
+        <p className="note">{t("changed")}</p>
+      )}
+      {quoteActions(q).canCommit ? (
+        <button
+          className="button full"
+          disabled={busy}
+          onClick={() =>
+            mutate({
+              action: "commit",
+              quote_id: q.quote.id,
+              fingerprint: q.fingerprint,
+            })
+          }
+        >
+          {t("commit")}
+          <ArrowRight size={16} />
+        </button>
+      ) : quoteActions(q).canApprove ? (
+        <button
+          className="button full"
+          disabled={busy}
+          onClick={() => setApproval(q)}
+        >
+          <ShieldCheck size={18} />
+          {t("approve")}
+        </button>
+      ) : q.own?.approval_status === "APPROVED" ? (
+        <p className="approved-note">
+          <Check size={16} />
+          {t("approved")}
+        </p>
+      ) : null}
+      {quoteBlockers(q).length > 0 && (
+        <div className="order-blockers">
+          <strong>{t("beforeOrdering")}</strong>
+          <ul>
+            {quoteBlockers(q).map((b, index) => (
+              <li key={`${b.key}-${index}`}>
+                {t(b.key, { count: b.count ?? 0 })}
+              </li>
+            ))}
+          </ul>
+          {!q.checks.find((c) => c.code === "cases")?.passed &&
+            data.requests.some(
+              (r) =>
+                r.product.id === q.product.id && r.status === "OFFER_CREATED",
+            ) && (
               <button
                 className="text-button small"
                 onClick={() => {
-                  setEditQuote(q);
-                  setQuote(true);
+                  setSelectedProduct(null);
+                  navigate("requests");
                 }}
               >
-                {t("editQuote")}
+                {t("viewWaitingOffers")}
+                <ArrowRight size={14} />
               </button>
             )}
-            <div className="approval-line">
-              <span>
-                {q.approval_count} / {q.participant_count} {t("approvals")}
+        </div>
+      )}
+      <details className="details supplier-more">
+        <summary>
+          {t("moreDetails")}
+          <ChevronRight size={16} />
+        </summary>
+        {q.own && (
+          <dl className="cost-detail">
+            <div>
+              <dt>{t("limit")}</dt>
+              <dd>
+                <Money value={q.own.cash_cap_paise} />
+              </dd>
+            </div>
+            <div>
+              <dt>{t(q.own.within_cap ? "buffer" : "over")}</dt>
+              <dd>
+                <Money value={Math.abs(q.own.cash_cap_headroom_paise)} />
+              </dd>
+            </div>
+          </dl>
+        )}
+        <div className="checks">
+          {q.checks.map((c) => (
+            <p key={c.code}>
+              <span className={c.passed ? "good" : "warn"}>
+                {c.passed ? "✓" : "○"}
               </span>
-              {q.own?.approval_status === "INVALIDATED" && (
-                <span className="warn">{t("changed")}</span>
+              {t(
+                (
+                  {
+                    cases: "cases",
+                    deadline: "deliveryRule",
+                    expiry: "expiryRule",
+                    price: "priceRule",
+                    group: "groupRule",
+                  } as Record<string, string>
+                )[c.code],
               )}
-            </div>
-            <div className="quote-actions">
-              <button
-                className={`button ${q.own?.approval_status === "APPROVED" ? "secondary" : ""}`}
-                disabled={!quoteActions(q, busy).canReview}
-                onClick={() => setApproval(q)}
-              >
-                {q.own?.approval_status === "APPROVED" ? (
-                  <Check size={18} />
-                ) : (
-                  <ShieldCheck size={18} />
-                )}{" "}
-                {t(
-                  q.own?.approval_status === "APPROVED"
-                    ? "approved"
-                    : "approve",
-                )}
-              </button>
-              <button
-                className="button secondary"
-                disabled={!quoteActions(q, busy).canCommit}
-                aria-describedby={`blockers-${q.quote.id}`}
-                onClick={() =>
-                  mutate({
-                    action: "commit",
-                    quote_id: q.quote.id,
-                    fingerprint: q.fingerprint,
-                  })
-                }
-              >
-                {t("commit")}
-                <ArrowRight size={16} />
-              </button>
-            </div>
-            {quoteBlockers(q).length > 0 && (
-              <div className="order-blockers" id={`blockers-${q.quote.id}`}>
-                <strong>{t("beforeOrdering")}</strong>
-                <ul>
-                  {quoteBlockers(q).map((b, index) => (
-                    <li key={`${b.key}-${index}`}>
-                      {t(b.key, { count: b.count ?? 0 })}
-                    </li>
-                  ))}
-                </ul>
-                {!q.checks.find((c) => c.code === "cases")?.passed &&
-                  data.requests.some(
-                    (r) => r.status === "OFFER_CREATED" && r.offer,
-                  ) && (
-                    <button
-                      className="text-button small"
-                      onClick={() => setView("requests")}
-                    >
-                      {t("viewWaitingOffers")} <ArrowRight size={14} />
-                    </button>
-                  )}
-              </div>
-            )}
-            <p className="fine">{t("groupHint")}</p>
+            </p>
+          ))}
+        </div>
+        <dl className="cost-detail">
+          <div>
+            <dt>{t("unitCost")}</dt>
+            <dd>
+              <Money value={q.quote.unit_cost_paise} />
+            </dd>
           </div>
-        </details>
-      ))}
-    </div>
+          <div>
+            <dt>{t("delivery")}</dt>
+            <dd>{date(q.quote.expected_delivery_date)}</dd>
+          </div>
+          <div>
+            <dt>{t("expiry")}</dt>
+            <dd>{date(q.quote.quote_expiry_date)}</dd>
+          </div>
+        </dl>
+        <label className="check">
+          <input
+            type="checkbox"
+            checked={data.shop.allowed_suppliers.includes(q.quote.supplier_id)}
+            disabled={busy}
+            onChange={(e) =>
+              mutate({
+                action: "permission",
+                supplier_id: q.quote.supplier_id,
+                allowed: e.target.checked,
+              })
+            }
+          />
+          {t("allowSupplier")}
+        </label>
+        <p className="fine">{t("groupHint")}</p>
+      </details>
+      {q.can_edit && (
+        <button
+          className="text-button small"
+          disabled={busy}
+          onClick={() => {
+            setEditQuote(q);
+            setQuote(true);
+          }}
+        >
+          {t("editQuote")}
+        </button>
+      )}
+    </article>
   );
   const groups = orderGroups(data.orders, pendingQuotes, orderSearch);
+  const selectedGroup = orderGroups(data.orders, pendingQuotes, "").find(
+    (g) => g.key === selectedProduct,
+  );
+  const activeQuote = selectedGroup?.quotes.find(
+    (q) => q.quote.id === selectedQuote,
+  );
   const renderOrders = (rows: MerchantView["orders"]) =>
     rows.map((o) => (
       <article className="order-card" key={o.id}>
@@ -696,24 +759,6 @@ export default function MerchantApp() {
                   {t("welcome")} {data.shop.name}
                 </p>
               </div>
-              {data.demo && (
-                <section className="demo-guide">
-                  <div className="demo-guide-heading">
-                    <div>
-                      <strong>{t("demoTitle")}</strong>
-                      <p>{t("demoFictional")}</p>
-                    </div>
-                  </div>
-                  <details>
-                    <summary>{t("demoTry")}</summary>
-                    <ol>
-                      <li>{t("demoStep1")}</li>
-                      <li>{t("demoStep2")}</li>
-                      <li>{t("demoStep3")}</li>
-                    </ol>
-                  </details>
-                </section>
-              )}
               <section className="home-hero">
                 <div>
                   <h1>{t("what")}</h1>
@@ -865,45 +910,30 @@ export default function MerchantApp() {
               </label>
               <div className="compact-list">
                 {groups.slice(0, orderLimit).map((g) => (
-                  <details className="product-order-group" key={g.key}>
-                    <summary>
-                      <div>
-                        <h2>{g.name}</h2>
-                        <p>{displayPack(g.pack)}</p>
-                        <span className="fine">
-                          {g.orders.some((o) => o.remaining > 0)
-                            ? t("pickupNext")
-                            : g.quotes.some((q) => q.eligible)
-                              ? t("reviewNext")
-                              : g.quotes.length
-                                ? (() => {
-                                    const blocker = quoteBlockers(
-                                      g.quotes[0],
-                                    )[0];
-                                    return blocker
-                                      ? t(blocker.key, {
-                                          count: blocker.count ?? 0,
-                                        })
-                                      : t("waitingNext");
-                                  })()
-                                : t("completedNext")}
-                        </span>
-                      </div>
-                      <ChevronRight size={20} />
-                    </summary>
-                    <div className="group-content">
-                      <ProgressiveRows
-                        rows={g.orders}
-                        render={renderOrders}
-                        step={5}
-                      />
-                      <ProgressiveRows
-                        rows={g.quotes}
-                        render={renderQuotes}
-                        step={3}
-                      />
-                    </div>
-                  </details>
+                  <button
+                    className="order-product-row"
+                    key={g.key}
+                    onClick={() => {
+                      setSelectedProduct(g.key);
+                      setSelectedQuote(null);
+                    }}
+                  >
+                    <span>
+                      <strong>{g.name}</strong>
+                      <small>{displayPack(g.pack)}</small>
+                      <span className="order-next-step">
+                        {g.orders.some((o) => o.remaining > 0)
+                          ? t("pickupNext")
+                          : g.quotes.length
+                            ? nextStep(g.quotes[0])
+                            : t("completedNext")}
+                      </span>
+                    </span>
+                    <span className="order-row-action">
+                      {t("viewItem")}
+                      <ChevronRight size={18} />
+                    </span>
+                  </button>
                 ))}
               </div>
               {groups.length > orderLimit && (
@@ -1011,6 +1041,75 @@ export default function MerchantApp() {
           <span>{t("ask")}</span>
         </button>
       </div>
+      {selectedProduct && !capture && !quote && !approval && !resetConfirm && (
+        <Modal
+          title={selectedGroup?.name || t("orders")}
+          className="item-order-panel"
+          close={() => {
+            setSelectedProduct(null);
+            setSelectedQuote(null);
+          }}
+        >
+          {selectedGroup ? (
+            <>
+              <p className="fine">{displayPack(selectedGroup.pack)}</p>
+              {activeQuote ? (
+                <>
+                  <button
+                    className="text-button small"
+                    onClick={() => setSelectedQuote(null)}
+                  >
+                    {t("allSuppliers")}
+                  </button>
+                  {renderQuote(activeQuote)}
+                </>
+              ) : (
+                <>
+                  <ProgressiveRows
+                    rows={selectedGroup.orders}
+                    render={renderOrders}
+                    step={5}
+                  />
+                  {!!selectedGroup.quotes.length && (
+                    <>
+                      <h3>{t("chooseSupplier")}</h3>
+                      <ProgressiveRows
+                        step={5}
+                        rows={selectedGroup.quotes}
+                        render={(rows) => (
+                          <div className="compact-list">
+                            {rows.map((q) => (
+                              <button
+                                key={q.quote.id}
+                                className="supplier-option-row"
+                                onClick={() => setSelectedQuote(q.quote.id)}
+                              >
+                                <span>
+                                  <strong>{q.quote.supplier_name}</strong>
+                                  <small>
+                                    <Money value={q.quote.unit_cost_paise} /> ·{" "}
+                                    {t("caseSize")} {q.quote.moq}
+                                  </small>
+                                  <span className="order-next-step">
+                                    {nextStep(q)}
+                                  </span>
+                                </span>
+                                <ChevronRight size={18} />
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      />
+                    </>
+                  )}
+                </>
+              )}
+            </>
+          ) : (
+            <p className="note">{t("itemNoLongerPending")}</p>
+          )}
+        </Modal>
+      )}
       {capture && (
         <Capture
           mode={captureMode}
@@ -1033,7 +1132,14 @@ export default function MerchantApp() {
         />
       )}{" "}
       <Agent
-        open={agent && !capture && !quote && !approval && !resetConfirm}
+        open={
+          agent &&
+          !capture &&
+          !quote &&
+          !approval &&
+          !resetConfirm &&
+          !selectedProduct
+        }
         configured={data.gemini}
         voice={data.voice}
         close={() => setAgent(false)}
@@ -1081,6 +1187,8 @@ export default function MerchantApp() {
                   setEditQuote(null);
                   setAgent(false);
                   setApproval(null);
+                  setSelectedProduct(null);
+                  setSelectedQuote(null);
                   setNearbySearch("");
                   setOrderSearch("");
                   setNearbyLimit(10);

@@ -1,4 +1,17 @@
 export const en = {
+  itemDetailsOptional: "Variant / details · optional",
+  combinedDetailsExample: "e.g. Masala, 100g pouch or Sky blue, 8GB/128GB",
+  exactDetailsHint:
+    "Add the exact item details above, such as 100g pouch, 500ml bottle or 1 piece. You can keep it as demand until you know.",
+  moreDetails: "More details",
+  viewItem: "View item",
+  chooseSupplier: "Choose a supplier",
+  allSuppliers: "← All supplier choices",
+  allowSupplier: "Allow ordering from this supplier",
+  readyToOrder: "Ready: all shops approved their share",
+  itemNoLongerPending:
+    "This item has changed. Close this panel to see the latest list.",
+
   exploreDemo: "Explore the demo",
   demoEntryHint: "Try the fictional shop. No signup needed.",
   merchantSignIn: "Merchant sign in",
@@ -174,8 +187,7 @@ export const en = {
   expired: "Expired",
 
   uploadAudio: "Use audio file",
-  voicePermissionPending:
-    "Starting live transcription. Allow microphone access if prompted.",
+  voicePermissionPending: "Allow microphone access to record your request.",
 
   matchFound:
     "Shared product: {product}. Check the brand, variant and pack before saving.",
@@ -372,12 +384,12 @@ export const en = {
   demoLogin:
     "Local demo: use an assigned account. Example: sharma@demo.nahimila.local · password NahiMila-demo-2026",
   listen: "Recording… tap to stop",
-  transcribing: "Finishing your transcript…",
+  transcribing: "Processing your recording…",
   voiceOff: "Voice isn’t configured. Typed entry works.",
   voiceConsent:
-    "Your voice streams to Sarvam only while listening. Check the transcript before continuing.",
+    "Your recording is sent to Sarvam after you stop. Review the text before continuing.",
   recorded: "Transcript ready. Check the words.",
-  voiceLive: "Listening · words appear as you speak",
+  voiceLive: "Listening… tap the microphone to stop",
   voiceWelcome: "Speak naturally",
   agentExpand: "Expand chat",
   agentCollapse: "Reduce chat",
@@ -455,7 +467,7 @@ export const en = {
     MICROPHONE_PERMISSION:
       "Microphone access was blocked. Allow it in your browser and device settings, then retry. If the in-app preview blocks it, open this page in Chrome or Safari. You can still type.",
     MICROPHONE_UNSUPPORTED:
-      "This browser does not support live recording here. Open the page in Chrome or Safari. You can still type.",
+      "This browser does not support recording here. Open the page in Chrome or Safari. You can still type.",
     MICROPHONE_INSECURE:
       "Microphone access needs HTTPS or localhost. Open the secure website or type your request.",
     MICROPHONE_NOT_FOUND:
@@ -527,6 +539,18 @@ export const en = {
 type Messages = typeof en;
 export const hi: Messages = {
   ...en,
+  itemDetailsOptional: "प्रकार / विवरण · वैकल्पिक",
+  combinedDetailsExample: "जैसे मसाला, 100g पाउच या नीला, 8GB/128GB",
+  exactDetailsHint:
+    "ऊपर सही विवरण जोड़ें, जैसे 100g पाउच, 500ml बोतल या 1 piece। पता न हो तो इसे माँग रहने दें।",
+  moreDetails: "और विवरण",
+  viewItem: "देखें",
+  chooseSupplier: "सप्लायर चुनें",
+  allSuppliers: "← सभी सप्लायर",
+  allowSupplier: "इस सप्लायर से ऑर्डर की अनुमति दें",
+  readyToOrder: "तैयार: हर दुकान ने अपना हिस्सा मंज़ूर किया",
+  itemNoLongerPending: "यह वस्तु बदल गई है। नई सूची देखने के लिए इसे बंद करें।",
+
   exploreDemo: "डेमो देखें",
   demoEntryHint: "काल्पनिक दुकान आज़माएँ। खाता बनाना ज़रूरी नहीं।",
   merchantSignIn: "दुकानदार साइन इन",
@@ -882,9 +906,9 @@ export const hi: Messages = {
   transcribing: "आपके शब्द पूरे कर रहे हैं…",
   voiceOff: "वॉइस सेट नहीं है। टाइप कर सकते हैं।",
   voiceConsent:
-    "केवल सुनते समय आपकी आवाज़ Sarvam को जाती है। आगे बढ़ने से पहले शब्द जाँचें।",
+    "रोकने के बाद रिकॉर्डिंग Sarvam को भेजी जाएगी। आगे बढ़ने से पहले लिखे शब्द देखें।",
   recorded: "बात लिखी गई। शब्द जाँचें।",
-  voiceLive: "सुन रहे हैं · बोलते समय शब्द दिखेंगे",
+  voiceLive: "सुन रहे हैं… रोकने के लिए माइक दबाएँ",
   voiceWelcome: "स्वाभाविक रूप से बोलें",
   agentExpand: "चैट बड़ी करें",
   agentCollapse: "चैट छोटी करें",
@@ -1021,6 +1045,18 @@ export const hi: Messages = {
 };
 export const kn: Messages = {
   ...en,
+  itemDetailsOptional: "ವಿಧ / ವಿವರ · ಐಚ್ಛಿಕ",
+  combinedDetailsExample: "ಉದಾ. ಮಸಾಲಾ, 100g ಪೌಚ್ ಅಥವಾ ನೀಲಿ, 8GB/128GB",
+  exactDetailsHint:
+    "ಮೇಲೆ ನಿಖರ ವಿವರ ಸೇರಿಸಿ: 100g ಪೌಚ್, 500ml ಬಾಟಲಿ ಅಥವಾ 1 piece. ತಿಳಿಯುವವರೆಗೆ ಬೇಡಿಕೆಯಾಗಿ ಉಳಿಸಬಹುದು.",
+  moreDetails: "ಹೆಚ್ಚಿನ ವಿವರ",
+  viewItem: "ನೋಡಿ",
+  chooseSupplier: "ಪೂರೈಕೆದಾರ ಆಯ್ಕೆಮಾಡಿ",
+  allSuppliers: "← ಎಲ್ಲಾ ಪೂರೈಕೆದಾರರು",
+  allowSupplier: "ಈ ಪೂರೈಕೆದಾರರಿಂದ ಆರ್ಡರ್ ಮಾಡಲು ಅನುಮತಿಸಿ",
+  readyToOrder: "ಸಿದ್ಧ: ಎಲ್ಲಾ ಅಂಗಡಿಗಳ ಪಾಲು ಅನುಮೋದಿಸಲಾಗಿದೆ",
+  itemNoLongerPending: "ಈ ವಸ್ತು ಬದಲಾಗಿದೆ. ಹೊಸ ಪಟ್ಟಿಗಾಗಿ ಫಲಕ ಮುಚ್ಚಿ.",
+
   exploreDemo: "ಡೆಮೊ ನೋಡಿ",
   demoEntryHint: "ಕಾಲ್ಪನಿಕ ಅಂಗಡಿ ಪ್ರಯತ್ನಿಸಿ. ಖಾತೆ ಬೇಕಿಲ್ಲ.",
   merchantSignIn: "ವ್ಯಾಪಾರಿ ಸೈನ್ ಇನ್",
@@ -1383,9 +1419,9 @@ export const kn: Messages = {
   transcribing: "ನಿಮ್ಮ ಪಠ್ಯವನ್ನು ಪೂರ್ಣಗೊಳಿಸುತ್ತಿದೆ…",
   voiceOff: "ಧ್ವನಿ ಸೇವೆ ಸಿದ್ಧವಾಗಿಲ್ಲ. ಟೈಪ್ ಮಾಡಬಹುದು.",
   voiceConsent:
-    "ಆಲಿಸುತ್ತಿರುವಾಗ ಮಾತ್ರ ನಿಮ್ಮ ಧ್ವನಿ Sarvamಗೆ ಹೋಗುತ್ತದೆ. ಮುಂದುವರಿಯುವ ಮೊದಲು ಪದಗಳನ್ನು ಪರಿಶೀಲಿಸಿ.",
+    "ನಿಲ್ಲಿಸಿದ ನಂತರ ರೆಕಾರ್ಡಿಂಗ್ Sarvam ಗೆ ಕಳುಹಿಸಲಾಗುತ್ತದೆ. ಮುಂದುವರಿಯುವ ಮೊದಲು ಪಠ್ಯ ಪರಿಶೀಲಿಸಿ.",
   recorded: "ಮಾತು ಬರೆಯಲಾಗಿದೆ. ಪದ ಪರಿಶೀಲಿಸಿ.",
-  voiceLive: "ಆಲಿಸುತ್ತಿದೆ · ನೀವು ಮಾತನಾಡಿದಂತೆ ಪದಗಳು ಕಾಣಿಸುತ್ತವೆ",
+  voiceLive: "ಆಲಿಸುತ್ತಿದೆ… ನಿಲ್ಲಿಸಲು ಮೈಕ್ ಒತ್ತಿ",
   voiceWelcome: "ಸಹಜವಾಗಿ ಮಾತನಾಡಿ",
   agentExpand: "ಚಾಟ್ ವಿಸ್ತರಿಸಿ",
   agentCollapse: "ಚಾಟ್ ಚಿಕ್ಕದಾಗಿಸಿ",

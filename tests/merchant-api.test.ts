@@ -73,6 +73,66 @@ beforeEach(() => {
   as("m-sharma-001");
 });
 describe("Server-enforced account boundaries", () => {
+  it("persists and shows the owner's supplier quote before any customer is ready to order", async () => {
+    const captured = await post({
+      action: "create",
+      raw_text: "Chocolate 100g, customer cannot wait",
+      intent: { ...manualDraft("Chocolate 100g"), quantity: 1 },
+      can_wait: false,
+      submission_key: crypto.randomUUID(),
+    });
+    expect(captured.status).toBe(200);
+    const created = network.state.requests.find(
+      (r) =>
+        network.details[r.id]?.raw_text ===
+        "Chocolate 100g, customer cannot wait",
+    )!;
+    const product = network.state.products.find(
+      (p) => p.id === created.product_id,
+    )!;
+    const response = await post({
+      action: "quote",
+      product_id: product.id,
+      supplier: "Test supplier",
+      unit_paise: 3000,
+      moq: 12,
+      transport_paise: 500,
+      handling_paise: 0,
+      delivery: new Date(Date.now() + 86400000).toISOString(),
+      expiry: new Date(Date.now() + 172800000).toISOString(),
+    });
+    expect(response.status).toBe(200);
+    const saved = (await response.json()).quotes.find(
+      (q: { product: { id: string } }) => q.product.id === product.id,
+    );
+    expect(saved).toMatchObject({
+      can_edit: true,
+      total_units: 0,
+      eligible: false,
+      own: null,
+    });
+    const reload = await (await GET()).json();
+    expect(
+      reload.quotes.some(
+        (q: { quote: { id: string } }) => q.quote.id === saved.quote.id,
+      ),
+    ).toBe(true);
+    expect(
+      (
+        await post({
+          action: "commit",
+          quote_id: saved.quote.id,
+          fingerprint: saved.fingerprint,
+        })
+      ).status,
+    ).not.toBe(200);
+    as("m-gupta-002");
+    expect(
+      (await (await GET()).json()).quotes.some(
+        (q: { quote: { id: string } }) => q.quote.id === saved.quote.id,
+      ),
+    ).toBe(false);
+  });
   it("requires authentication, even for the speech endpoint", async () => {
     user = null;
     expect((await GET()).status).toBe(401);

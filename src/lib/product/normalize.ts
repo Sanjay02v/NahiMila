@@ -3,7 +3,7 @@ import { geminiFetch } from "./gemini";
 import { z } from "zod";
 import type { Intent } from "./types";
 import { intentSchema, manualDraft, parseIntent } from "./intent";
-import { groundedCustomerName } from "./capture-fields";
+import { groundedCustomerName, customerNameFromText } from "./capture-fields";
 type CaptureIntent = Intent & { capture?: { customer_name: string | null } };
 const captureSchema = intentSchema.extend({
   customer_name: z.string().max(80).nullable().optional(),
@@ -14,7 +14,11 @@ export async function normalize(
   locale: string,
   shopId = "local",
 ): Promise<CaptureIntent> {
-  if (!process.env.GEMINI_API_KEY) return manualDraft(raw);
+  if (!process.env.GEMINI_API_KEY)
+    return {
+      ...manualDraft(raw),
+      capture: { customer_name: customerNameFromText(raw) },
+    };
   const schema = z.toJSONSchema(captureSchema);
   const model = process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";
   const response = await geminiFetch(
@@ -72,11 +76,12 @@ export async function normalize(
   return {
     ...parseIntent(parsed),
     capture: {
-      customer_name: groundedCustomerName(
-        raw,
-        parsed.customer_name,
-        parsed.customer_name_evidence,
-      ),
+      customer_name:
+        groundedCustomerName(
+          raw,
+          parsed.customer_name,
+          parsed.customer_name_evidence,
+        ) || customerNameFromText(raw),
     },
   };
 }
