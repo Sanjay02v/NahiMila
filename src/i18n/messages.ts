@@ -30,6 +30,8 @@ export const en = {
   moreDetails: "More details",
   viewItem: "View item",
   chooseSupplier: "Choose a supplier",
+  compareSupplierHint:
+    "Check your total cost, including transport, and delivery date before choosing.",
   allSuppliers: "← All supplier choices",
   allowSupplier: "Allow ordering from this supplier",
   readyToOrder: "Ready: all shops approved their share",
@@ -602,6 +604,8 @@ export const hi: Messages = {
   moreDetails: "और विवरण",
   viewItem: "देखें",
   chooseSupplier: "सप्लायर चुनें",
+  compareSupplierHint:
+    "चुनने से पहले परिवहन सहित अपनी कुल लागत और डिलीवरी की तारीख जाँचें।",
   allSuppliers: "← सभी सप्लायर",
   allowSupplier: "इस सप्लायर से ऑर्डर की अनुमति दें",
   readyToOrder: "तैयार: हर दुकान ने अपना हिस्सा मंज़ूर किया",
@@ -1140,6 +1144,8 @@ export const kn: Messages = {
   moreDetails: "ಹೆಚ್ಚಿನ ವಿವರ",
   viewItem: "ನೋಡಿ",
   chooseSupplier: "ಪೂರೈಕೆದಾರ ಆಯ್ಕೆಮಾಡಿ",
+  compareSupplierHint:
+    "ಆಯ್ಕೆ ಮಾಡುವ ಮೊದಲು ಸಾಗಣೆ ಸೇರಿ ನಿಮ್ಮ ಒಟ್ಟು ವೆಚ್ಚ ಮತ್ತು ವಿತರಣೆಯ ದಿನಾಂಕ ಪರಿಶೀಲಿಸಿ.",
   allSuppliers: "← ಎಲ್ಲಾ ಪೂರೈಕೆದಾರರು",
   allowSupplier: "ಈ ಪೂರೈಕೆದಾರರಿಂದ ಆರ್ಡರ್ ಮಾಡಲು ಅನುಮತಿಸಿ",
   readyToOrder: "ಸಿದ್ಧ: ಎಲ್ಲಾ ಅಂಗಡಿಗಳ ಪಾಲು ಅನುಮೋದಿಸಲಾಗಿದೆ",

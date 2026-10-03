@@ -1117,6 +1117,7 @@ export default function MerchantApp() {
                   {!!selectedGroup.quotes.length && (
                     <>
                       <h3>{t("chooseSupplier")}</h3>
+                      <p className="fine">{t("compareSupplierHint")}</p>
                       <ProgressiveRows
                         step={5}
                         rows={selectedGroup.quotes}
@@ -1131,8 +1132,21 @@ export default function MerchantApp() {
                                 <span>
                                   <strong>{q.quote.supplier_name}</strong>
                                   <small>
+                                    {t("unitCost")}{" "}
                                     <Money value={q.quote.unit_cost_paise} /> ·{" "}
                                     {t("caseSize")} {q.quote.moq}
+                                  </small>
+                                  {q.own && (
+                                    <small>
+                                      {t("totalCost")}:{" "}
+                                      <Money
+                                        value={q.own.total_exposure_paise}
+                                      />
+                                    </small>
+                                  )}
+                                  <small>
+                                    {t("delivery")}:{" "}
+                                    {date(q.quote.expected_delivery_date)}
                                   </small>
                                   <span className="order-next-step">
                                     {nextStep(q)}

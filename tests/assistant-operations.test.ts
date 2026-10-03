@@ -8,6 +8,26 @@ import {
 } from "../src/lib/product/assistant-operations";
 import { assistantFacts } from "../src/lib/product/assistant";
 describe("Exact operational shop answers", () => {
+  it("names the feasible quote for a product question and respects an explicitly named late supplier", () => {
+    const n = seedJudgeDemo();
+    const view = merchantView(n, n.shops[0].id);
+    expect(
+      explicitOperation(
+        view,
+        "How much does my share of Millet Crunch Lime cost?",
+        [],
+      )?.quote.quote.id,
+    ).toBe("demo-quote-lime");
+    const late = explicitOperation(
+      view,
+      "Why is Millet Crunch Lime blocked with Community Supply (demo)?",
+      [],
+    );
+    expect(late?.quote.quote.id).toBe("demo-quote-lime-late");
+    expect(operationAnswer(late!.quote, "readiness", "en")).toContain(
+      "not ready",
+    );
+  });
   it("says one more approval, not merely eligible, and uses fresh state for follow-ups", () => {
     const n = seedJudgeDemo();
     const v = merchantView(n, n.shops[0].id);

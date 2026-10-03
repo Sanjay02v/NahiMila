@@ -6,6 +6,8 @@ import {
   merchantView,
 } from "../src/lib/product/network";
 import { isDemoShop } from "../src/lib/product/demo-identity";
+import { orderGroups } from "../src/lib/product/list-view";
+import { quoteActions, quoteBlockers } from "../src/lib/product/quote-actions";
 
 function approve(s: ReturnType<typeof storeFor>, id: string) {
   const e = s.evaluateQuote(id),
@@ -23,6 +25,38 @@ function approve(s: ReturnType<typeof storeFor>, id: string) {
 }
 
 describe("judge demo: real calculations, fictional inputs", () => {
+  it("shows a cheaper late quote without allowing it to replace the feasible case", async () => {
+    const n = seedJudgeDemo();
+    const view = merchantView(n, "m-sharma-001");
+    const choices = orderGroups(view.orders, view.quotes, "lime")[0].quotes;
+    expect(choices.map((q) => q.quote.id)).toEqual([
+      "demo-quote-lime",
+      "demo-quote-lime-late",
+    ]);
+    const [onTime, late] = choices;
+    expect(onTime.own?.total_exposure_paise).toBe(14800);
+    expect(late.own?.total_exposure_paise).toBe(13600);
+    expect(late.total_units).toBe(12);
+    expect(late.checks.filter((c) => !c.passed).map((c) => c.code)).toEqual([
+      "deadline",
+    ]);
+    expect(quoteBlockers(late)).toContainEqual({ key: "blockedDelivery" });
+    expect(quoteActions(late)).toMatchObject({
+      canApprove: false,
+      canCommit: false,
+    });
+    await expect(
+      storeFor(n).commitSupplierOrder(late.quote.id),
+    ).rejects.toThrow();
+    resetJudgeDemo(n);
+    const reset = merchantView(n, "m-sharma-001");
+    expect(
+      reset.quotes.find((q) => q.quote.id === late.quote.id)?.eligible,
+    ).toBe(false);
+    expect(
+      reset.quotes.find((q) => q.quote.id === onTime.quote.id)?.approval_count,
+    ).toBe(2);
+  });
   it("keeps approval fingerprints stable through JSONB key reordering", () => {
     const n = seedJudgeDemo();
     const jsonb = JSON.parse(

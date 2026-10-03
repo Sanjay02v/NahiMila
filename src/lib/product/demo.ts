@@ -130,6 +130,21 @@ export function seedJudgeDemo(): Network {
     supplier_name: "Local Distribution Co. (demo)",
     created_by_shop: "m-sharma-001",
   });
+  // Same exact case, lower price, but delivery misses the customers' deadline.
+  // Its status and cost are evaluated by the normal procurement engine.
+  s.quotes.push({
+    ...s.quotes[2],
+    id: "demo-quote-lime-late",
+    sku: "MC-LIME-100G",
+    pack_size: "100g",
+    unit_cost_paise: 3200,
+    moq: 12,
+    expected_delivery_date: getFutureDate(3),
+    quote_expiry_date: getFutureDate(2, 18),
+    version: 1,
+    supplier_name: "Community Supply (demo)",
+    created_by_shop: "m-sharma-001",
+  });
   // Every pack has its own reviewed canonical identity, including those with no previous request.
   for (const product of s.products) {
     const detail = s.requests.find(

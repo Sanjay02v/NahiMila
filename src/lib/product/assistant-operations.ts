@@ -136,5 +136,11 @@ export function explicitOperation(
     );
     if (supplier.length) choices = supplier;
   }
+  // For a product-only question, use the sole feasible uncommitted quote.
+  // An explicitly named supplier above still takes precedence, even if blocked.
+  if (choices.length > 1) {
+    const feasible = choices.filter((q) => q.eligible && !q.committed);
+    if (feasible.length === 1) choices = feasible;
+  }
   return choices.length === 1 ? { quote: choices[0], topic } : null;
 }

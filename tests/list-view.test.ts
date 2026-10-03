@@ -27,7 +27,7 @@ describe("large merchant lists", () => {
     expect(groups.find((g) => g.key === "prod-millet")!.quotes).toHaveLength(3);
     expect(
       groups.find((g) => g.key === "prod-millet-lime")!.quotes,
-    ).toHaveLength(1);
+    ).toHaveLength(2);
     expect(orderGroups([], v.quotes, "lime")).toHaveLength(1);
     const big = v.quotes.map((q) => ({
       ...q,
