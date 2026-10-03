@@ -271,7 +271,11 @@ export default function Agent({
                   {m.result.rows.slice(0, 8).map((r, i) => (
                     <div className="assistant-evidence-row" key={i}>
                       <span>
-                        <strong>{label(r.title)}</strong>
+                        <strong>
+                          {m.result?.tool === "pickups"
+                            ? r.title
+                            : label(r.title)}
+                        </strong>
                         <small>{label(r.detail)}</small>
                       </span>
                       <b>{r.count}</b>
