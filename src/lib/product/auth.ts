@@ -147,10 +147,15 @@ export async function login(email: string, password: string) {
 export async function register(email: string, password: string) {
   if (authConfigured()) {
     const c = await supabase();
-    const { data, error } = await c.auth.signUp({ email, password });
+    const { data, error } = await c.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: process.env.NEXT_PUBLIC_APP_URL || undefined,
+      },
+    });
     if (error) throw new Error("REGISTER_FAILED");
-    if (!data.session) throw new Error("CHECK_EMAIL");
-    return;
+    return { confirmationRequired: !data.session };
   }
   const user_id = crypto.randomUUID(),
     salt = randomBytes(16).toString("hex");
@@ -165,6 +170,7 @@ export async function register(email: string, password: string) {
     });
   }, true);
   await login(email, password);
+  return { confirmationRequired: false };
 }
 export async function logout() {
   if (authConfigured()) {

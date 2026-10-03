@@ -8,6 +8,7 @@ import {
   useSyncExternalStore,
 } from "react";
 import { MAX_RECORDING_MS, microphoneError } from "@/lib/voice/audio";
+import { VoiceUploadQueue } from "@/lib/voice/upload-queue";
 import { readTranscript } from "@/lib/voice/events";
 const subscribe = () => () => {};
 function microphoneSupport() {
@@ -24,9 +25,7 @@ function microphoneSupport() {
 type Session = {
   abort: AbortController;
   id: string;
-  sequence: number;
-  queue: Promise<void>;
-  pending: number;
+  uploads: VoiceUploadQueue | null;
   stopping: boolean;
   stream: MediaStream | null;
   context: AudioContext | null;
@@ -66,6 +65,14 @@ export function useVoiceRecording(
     if (!s) return;
     active.current = null;
     audioOff(s);
+    s.uploads?.cancel();
+    if (s.id && !s.abort.signal.aborted)
+      void fetch("/api/voice/live", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ session: s.id, action: "cancel" }),
+        keepalive: true,
+      }).catch(() => {});
     s.abort.abort();
     s.flush?.();
   }, [audioOff]);
@@ -120,7 +127,7 @@ export function useVoiceRecording(
     }
     audioOff(s);
     try {
-      await s.queue;
+      await s.uploads?.finish();
       if (s.abort.signal.aborted) return;
       await send(s, { action: "end" });
     } catch (e) {
@@ -141,9 +148,7 @@ export function useVoiceRecording(
     const s: Session = {
       abort: new AbortController(),
       id: "",
-      sequence: 0,
-      queue: Promise.resolve(),
-      pending: 0,
+      uploads: null,
       stopping: false,
       stream: null,
       context: null,
@@ -227,6 +232,13 @@ export function useVoiceRecording(
       });
       await ready;
       if (s.abort.signal.aborted) return;
+      s.uploads = new VoiceUploadQueue(
+        (sequence, audio) => send(s, { action: "audio", audio, sequence }),
+        (e) => {
+          if (!s.abort.signal.aborted)
+            fail(e instanceof Error ? e.message : "VOICE_NETWORK");
+        },
+      );
       s.node = new AudioWorkletNode(s.context, "nahimila-pcm");
       s.node.port.onmessage = (e) => {
         if (e.data?.flushed) {
@@ -234,26 +246,7 @@ export function useVoiceRecording(
           return;
         }
         if (s.abort.signal.aborted || !(e.data instanceof ArrayBuffer)) return;
-        if (s.pending >= 8) {
-          fail("VOICE_NETWORK");
-          return;
-        }
-        const bytes = new Uint8Array(e.data);
-        let binary = "";
-        for (const byte of bytes) binary += String.fromCharCode(byte);
-        const audio = btoa(binary),
-          sequence = s.sequence++;
-        s.pending++;
-        s.queue = s.queue
-          .then(() => send(s, { action: "audio", audio, sequence }))
-          .then(() => {
-            s.pending--;
-          })
-          .catch((e) => {
-            s.pending--;
-            if (!s.abort.signal.aborted)
-              fail(e instanceof Error ? e.message : "VOICE_NETWORK");
-          });
+        s.uploads?.enqueue(e.data);
       };
       s.source = s.context.createMediaStreamSource(s.stream!);
       s.source.connect(s.node);

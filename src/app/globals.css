@@ -2843,3 +2843,42 @@ input[type="checkbox"] {
   margin: 10px 0;
   line-height: 1.6;
 }
+/* Compact, progressively expanded lists for a busy shop counter. */
+.compact-list { display:flex; flex-direction:column; gap:12px; }
+.compact-signal { display:flex; align-items:center; gap:20px; padding:18px 22px; border:1px solid #dce5db; border-radius:18px; background:white; }
+.compact-signal > div:first-child { flex:1; min-width:0; }
+.compact-signal h3, .product-order-group h2 { font-size:18px; margin:0 0 4px; overflow-wrap:anywhere; }
+.compact-signal p, .product-order-group summary p { margin:0 0 4px; }
+.compact-counts { display:flex; gap:28px; }
+.compact-counts span { display:flex; flex-direction:column; font-size:12px; max-width:120px; }
+.compact-counts strong { font-size:22px; }
+.list-search { display:block; max-width:520px; margin:0 0 20px; }
+.list-search input { margin-top:8px; }
+.list-more { margin:20px 0; }
+.product-order-group { border:1px solid #dce5db; border-radius:18px; background:white; overflow:hidden; }
+.product-order-group > summary { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:20px; cursor:pointer; list-style:none; }
+.product-order-group > summary::-webkit-details-marker { display:none; }
+.product-order-group[open] > summary > svg { transform:rotate(90deg); }
+.group-content { padding:0 16px 16px; }
+.group-content .quote-list { grid-template-columns:1fr; }
+.group-content .quote-review { padding:20px; }
+.group-content .order-card { margin-bottom:16px; }
+.demo-entry { margin-bottom:20px; }
+.merchant-login > summary { padding:12px 0; cursor:pointer; font-weight:600; }
+.demo-reset-top { white-space:nowrap; }
+@media(max-width:700px) {
+ .topbar { flex-wrap:wrap; height:auto; gap:12px; padding:14px 16px; }
+ .topbar > div:last-child { flex-wrap:wrap; gap:8px; }
+ .compact-signal { flex-wrap:wrap; padding:16px; gap:12px; }
+ .compact-signal > div:first-child { flex-basis:calc(100% - 56px); }
+ .compact-counts { order:3; flex-basis:100%; gap:32px; }
+ .compact-signal > button { margin-left:auto; }
+ .product-order-group > summary { padding:16px; }
+ .group-content { padding:0 8px 12px; }
+}
+.supplier-choice > summary { cursor:pointer; list-style:none; }
+.supplier-choice > summary::-webkit-details-marker { display:none; }
+.supplier-choice > summary .quote-header { margin-bottom:0; }
+.supplier-choice > summary h3 { font-size:18px; }
+.supplier-choice-content { margin-top:18px; }
+.topbar .button.demo-reset-top { display:inline-flex; }

@@ -128,3 +128,13 @@ Apply `supabase/migrations/20261003000000_reset_judge_demo.sql` after the produc
 - Coke Zero 500ml bottle: six shops’ different descriptions use one manually reviewed canonical identity. These no-wait requests stay interest only. Masala 200g and Lime 100g remain separate from Masala 100g.
 
 For an operator reset with a private backup, run `npm run demo:reset:hosted -- --confirm`. The script verifies that each fixed shop belongs to its fictional demo email before writing, and checks that old customer links disappeared and real profiles/requests and quota counters remained unchanged. Local reset uses `npm run demo:reset -- --confirm` with no hosted database configured; it preserves existing local authentication and real accounts.
+
+## Simple browsing and judge entry
+
+The public entry page offers **Explore the demo** with no signup. The server signs into only the fixed fictional Sharma account, using the server demo password, and verifies that the authenticated user owns that fixed shop before returning a merchant session. Merchant sign-in remains available separately. Real registrations with required email confirmation show a successful pending state; verified new users complete onboarding and receive an empty private shop.
+
+Home shows up to three demand items. Nearby uses compact rows, searches the complete returned set, and shows ten items initially with Show more. Orders groups existing orders and supplier choices by exact product identity; it keeps different packs/flavours separate, searches the full set and initially shows ten products. Product and supplier details open progressively. This is presentation pagination, not database query pagination: the prototype coordinator still loads the network. Counts, eligibility, costs, approvals and pickup amounts remain computed from saved records.
+
+**Reset demo** is in the top-right header on every demo screen, including mobile. It is hidden for real accounts, requires confirmation and affects all six shared fictional shops. A refresh already in flight cannot overwrite the response from a save/reset.
+
+Voice uses 16kHz PCM from the microphone, batches ordered uploads up to one second, drains pending audio before ending speech, and explicitly cancels the private server session on close. The response disables compression so partial transcripts can stream. The 20-second recording limit and bounded audio size remain enforced. Use `node --import tsx scripts/verify-hosted-voice.ts /path/to/synthetic-16khz-mono.wav` to exercise the same batching transport against the deployed Sarvam stream without saving demand. Actual microphone permissions and hardware must still be rehearsed on the target device.

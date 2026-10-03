@@ -1,4 +1,20 @@
 export const en = {
+  exploreDemo: "Explore the demo",
+  demoEntryHint: "Try the fictional shop. No signup needed.",
+  merchantSignIn: "Merchant sign in",
+  checkEmailSuccess:
+    "Account created. Check your email to confirm it, then sign in here.",
+  findProduct: "Find an item",
+  searchProduct: "Type an item or pack…",
+  showMore: "Show more",
+  noResults: "No matching items yet.",
+  nearbyShops: "Asked for across {count} nearby shops",
+  reviewProduct: "Review {product}",
+  pickupNext: "Next: receive stock or record customer pickups",
+  reviewNext: "Next: review your share and shop approvals",
+  waitingNext: "Waiting: open to see what is needed",
+  completedNext: "Completed: open to see collected sales",
+
   demoTitle: "A demo you can try",
   demoFictional:
     "Fictional shops, customers and suppliers. No real orders or payments.",
@@ -511,6 +527,21 @@ export const en = {
 type Messages = typeof en;
 export const hi: Messages = {
   ...en,
+  exploreDemo: "डेमो देखें",
+  demoEntryHint: "काल्पनिक दुकान आज़माएँ। खाता बनाना ज़रूरी नहीं।",
+  merchantSignIn: "दुकानदार साइन इन",
+  checkEmailSuccess: "खाता बन गया। ईमेल से पुष्टि करें, फिर यहाँ साइन इन करें।",
+  findProduct: "सामान खोजें",
+  searchProduct: "सामान या पैक लिखें…",
+  showMore: "और दिखाएँ",
+  noResults: "अभी मेल खाता सामान नहीं है।",
+  nearbyShops: "आसपास की {count} दुकानों में माँगा गया",
+  reviewProduct: "{product} देखें",
+  pickupNext: "अगला: स्टॉक मिलने या ग्राहक पिकअप दर्ज करें",
+  reviewNext: "अगला: अपना हिस्सा और दुकानों की मंज़ूरी देखें",
+  waitingNext: "इंतज़ार: क्या चाहिए जानने के लिए खोलें",
+  completedNext: "पूरा: मिली बिक्री देखने के लिए खोलें",
+
   demoTitle: "डेमो आज़माएँ",
   demoFictional:
     "दुकानें, ग्राहक और सप्लायर काल्पनिक हैं। असली ऑर्डर या भुगतान नहीं।",
@@ -990,6 +1021,22 @@ export const hi: Messages = {
 };
 export const kn: Messages = {
   ...en,
+  exploreDemo: "ಡೆಮೊ ನೋಡಿ",
+  demoEntryHint: "ಕಾಲ್ಪನಿಕ ಅಂಗಡಿ ಪ್ರಯತ್ನಿಸಿ. ಖಾತೆ ಬೇಕಿಲ್ಲ.",
+  merchantSignIn: "ವ್ಯಾಪಾರಿ ಸೈನ್ ಇನ್",
+  checkEmailSuccess:
+    "ಖಾತೆ ರಚಿಸಲಾಗಿದೆ. ಇಮೇಲ್‌ನಲ್ಲಿ ದೃಢಪಡಿಸಿ, ನಂತರ ಇಲ್ಲಿ ಸೈನ್ ಇನ್ ಮಾಡಿ.",
+  findProduct: "ವಸ್ತು ಹುಡುಕಿ",
+  searchProduct: "ವಸ್ತು ಅಥವಾ ಪ್ಯಾಕ್ ಬರೆಯಿರಿ…",
+  showMore: "ಇನ್ನಷ್ಟು ತೋರಿಸಿ",
+  noResults: "ಹೊಂದುವ ವಸ್ತುಗಳು ಇನ್ನೂ ಇಲ್ಲ.",
+  nearbyShops: "ಹತ್ತಿರದ {count} ಅಂಗಡಿಗಳಲ್ಲಿ ಕೇಳಲಾಗಿದೆ",
+  reviewProduct: "{product} ಪರಿಶೀಲಿಸಿ",
+  pickupNext: "ಮುಂದೆ: ಸರಕು ಸ್ವೀಕಾರ ಅಥವಾ ಪಿಕಪ್ ದಾಖಲಿಸಿ",
+  reviewNext: "ಮುಂದೆ: ನಿಮ್ಮ ಪಾಲು ಮತ್ತು ಅನುಮೋದನೆ ಪರಿಶೀಲಿಸಿ",
+  waitingNext: "ಕಾಯುತ್ತಿದೆ: ಬೇಕಾದ ವಿವರಕ್ಕೆ ತೆರೆಯಿರಿ",
+  completedNext: "ಪೂರ್ಣ: ಸಂಗ್ರಹಿಸಿದ ಮಾರಾಟ ನೋಡಿ",
+
   demoTitle: "ಡೆಮೊ ಪ್ರಯತ್ನಿಸಿ",
   demoFictional:
     "ಅಂಗಡಿಗಳು, ಗ್ರಾಹಕರು ಮತ್ತು ಪೂರೈಕೆದಾರರು ಕಾಲ್ಪನಿಕ. ನಿಜವಾದ ಆರ್ಡರ್ ಅಥವಾ ಪಾವತಿ ಇಲ್ಲ.",

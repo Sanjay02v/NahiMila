@@ -155,6 +155,7 @@ export function liveStream(owner: string, key: string, signal: AbortSignal) {
   return new Response(stream, {
     headers: {
       "Content-Type": "application/x-ndjson",
+      "Content-Encoding": "identity",
       "Cache-Control": "no-store, no-transform",
       "X-Accel-Buffering": "no",
     },
@@ -185,11 +186,11 @@ export function sendLive(
     message.sequence !== session.next ||
     typeof message.audio !== "string" ||
     !/^[A-Za-z0-9+/]+={0,2}$/.test(message.audio) ||
-    message.audio.length > 9000
+    message.audio.length > 43000
   )
     throw new Error("INVALID_REQUEST");
   const pcm = Buffer.from(message.audio, "base64");
-  if (!pcm.length || pcm.length % 2 || pcm.length > 6400)
+  if (!pcm.length || pcm.length % 2 || pcm.length > 32000)
     throw new Error("INVALID_REQUEST");
   if (session.bytes + pcm.length > 672000 || session.next >= 110)
     throw new Error("VOICE_FILE_TOO_LARGE");

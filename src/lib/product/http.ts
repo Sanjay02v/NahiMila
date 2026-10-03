@@ -30,10 +30,11 @@ export function failure(e: unknown) {
     },
   );
 }
-export async function body(req: Request) {
+export async function body(req: Request, maxBytes = 16000) {
   assertSameOrigin(req);
   const value = await req.text();
-  if (value.length > 16000) throw new Error("INVALID_REQUEST");
+  if (Buffer.byteLength(value, "utf8") > maxBytes)
+    throw new Error("INVALID_REQUEST");
   const b = JSON.parse(value);
   if (!b || Array.isArray(b) || typeof b !== "object")
     throw new Error("INVALID_REQUEST");

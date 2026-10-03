@@ -202,3 +202,29 @@ describe("Assistant draft fallback", () => {
     expect(i.budget_paise).toBe(5000);
   });
 });
+
+describe("batched hosted voice uploads", () => {
+  it("accepts one second of PCM and rejects oversized audio", async () => {
+    const s = session(),
+      reader = s.response.body!.getReader();
+    event(s, { event: "session.begin" });
+    const ready = JSON.parse(
+      new TextDecoder().decode((await reader.read()).value),
+    );
+    expect(() =>
+      sendLive(s.owner, ready.session, {
+        action: "audio",
+        sequence: 0,
+        audio: Buffer.alloc(32000).toString("base64"),
+      }),
+    ).not.toThrow();
+    expect(() =>
+      sendLive(s.owner, ready.session, {
+        action: "audio",
+        sequence: 1,
+        audio: Buffer.alloc(32002).toString("base64"),
+      }),
+    ).toThrow("INVALID_REQUEST");
+    s.abort.abort();
+  });
+});

@@ -16,6 +16,7 @@ export default function Access({
     locale = useLocale(),
     [register, setRegister] = useState(false),
     [busy, setBusy] = useState(false),
+    [checkEmail, setCheckEmail] = useState(false),
     [error, setError] = useState(""),
     [lat, setLat] = useState(""),
     [lon, setLon] = useState("");
@@ -70,136 +71,196 @@ export default function Access({
               {error}
             </p>
           )}
-          <form
-            onSubmit={async (e) => {
-              e.preventDefault();
-              setBusy(true);
-              setError("");
-              const f = new FormData(e.currentTarget);
-              try {
-                if (onboard)
-                  await api("/api/merchant", {
-                    action: "onboard",
-                    name: f.get("name"),
-                    area: f.get("area"),
-                    latitude: Number(lat),
-                    longitude: Number(lon),
-                    locale,
-                    sharing: f.get("sharing") === "on",
-                  });
-                else {
-                  const result = await api("/api/auth", {
-                    action: register ? "register" : "login",
-                    email: f.get("email"),
-                    password: f.get("password"),
-                  });
-                  if (result.locale && result.locale !== locale) {
-                    window.location.reload();
-                    return;
-                  }
-                }
-                ready();
-              } catch (e) {
-                const code = e instanceof Error ? e.message : "UNKNOWN";
-                setError(
-                  t.has(`error.${code}`)
-                    ? t(`error.${code}`)
-                    : t("errorGeneric"),
-                );
-              } finally {
-                setBusy(false);
-              }
-            }}
-          >
-            {onboard ? (
-              <>
-                <label>
-                  {t("shopName")}
-                  <input
-                    name="name"
-                    required
-                    maxLength={100}
-                    autoComplete="organization"
-                  />
-                </label>
-                <label>
-                  {t("area")}
-                  <input name="area" required maxLength={100} />
-                </label>
-                <button
-                  className="button secondary full"
-                  type="button"
-                  onClick={gps}
-                >
-                  <MapPin size={18} />
-                  {t("useLocation")}
-                </button>
-                <p className="fine">{t("locationHint")}</p>
-                <div className="form-grid">
-                  <label>
-                    {t("latitude")}
-                    <input
-                      value={lat}
-                      onChange={(e) => setLat(e.target.value)}
-                      type="number"
-                      step="any"
-                      min="-90"
-                      max="90"
-                      required
-                    />
-                  </label>
-                  <label>
-                    {t("longitude")}
-                    <input
-                      value={lon}
-                      onChange={(e) => setLon(e.target.value)}
-                      type="number"
-                      step="any"
-                      min="-180"
-                      max="180"
-                      required
-                    />
-                  </label>
-                </div>
-                <label className="check">
-                  <input type="checkbox" name="sharing" />
-                  {t("shareDemand")}
-                </label>
-              </>
-            ) : (
-              <>
-                <label>
-                  {t("email")}
-                  <input
-                    name="email"
-                    type="email"
-                    required
-                    autoComplete="email"
-                  />
-                </label>
-                <label>
-                  {t("password")}
-                  <input
-                    name="password"
-                    type="password"
-                    minLength={10}
-                    required
-                    autoComplete={
-                      register ? "new-password" : "current-password"
+          {!onboard && !register && (
+            <div className="demo-entry">
+              <button
+                className="button full"
+                disabled={busy}
+                onClick={async () => {
+                  setBusy(true);
+                  setError("");
+                  try {
+                    const result = await api("/api/auth", { action: "demo" });
+                    if (result.locale && result.locale !== locale) {
+                      window.location.reload();
+                      return;
                     }
-                  />
-                </label>
-              </>
-            )}
-            <button className="button full" disabled={busy}>
-              {onboard ? t("finish") : register ? t("register") : t("login")}
-              <ArrowRight size={18} />
-            </button>
-          </form>
+                    ready();
+                  } catch (e) {
+                    const code = e instanceof Error ? e.message : "UNKNOWN";
+                    setError(
+                      t.has(`error.${code}`)
+                        ? t(`error.${code}`)
+                        : t("errorGeneric"),
+                    );
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+              >
+                {t("exploreDemo")}
+                <ArrowRight size={18} />
+              </button>
+              <p className="fine">{t("demoEntryHint")}</p>
+            </div>
+          )}
+          {checkEmail && (
+            <p className="flash success" role="status">
+              {t("checkEmailSuccess")}
+            </p>
+          )}
+          <details
+            className="merchant-login"
+            open={onboard || register || undefined}
+          >
+            <summary>
+              {onboard
+                ? t("shopName")
+                : register
+                  ? t("register")
+                  : t("merchantSignIn")}
+            </summary>
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setBusy(true);
+                setError("");
+                const f = new FormData(e.currentTarget);
+                try {
+                  if (onboard)
+                    await api("/api/merchant", {
+                      action: "onboard",
+                      name: f.get("name"),
+                      area: f.get("area"),
+                      latitude: Number(lat),
+                      longitude: Number(lon),
+                      locale,
+                      sharing: f.get("sharing") === "on",
+                    });
+                  else {
+                    const result = await api("/api/auth", {
+                      action: register ? "register" : "login",
+                      email: f.get("email"),
+                      password: f.get("password"),
+                    });
+                    if (result.check_email) {
+                      setCheckEmail(true);
+                      setRegister(false);
+                      return;
+                    }
+                    if (result.locale && result.locale !== locale) {
+                      window.location.reload();
+                      return;
+                    }
+                  }
+                  ready();
+                } catch (e) {
+                  const code = e instanceof Error ? e.message : "UNKNOWN";
+                  setError(
+                    t.has(`error.${code}`)
+                      ? t(`error.${code}`)
+                      : t("errorGeneric"),
+                  );
+                } finally {
+                  setBusy(false);
+                }
+              }}
+            >
+              {onboard ? (
+                <>
+                  <label>
+                    {t("shopName")}
+                    <input
+                      name="name"
+                      required
+                      maxLength={100}
+                      autoComplete="organization"
+                    />
+                  </label>
+                  <label>
+                    {t("area")}
+                    <input name="area" required maxLength={100} />
+                  </label>
+                  <button
+                    className="button secondary full"
+                    type="button"
+                    onClick={gps}
+                  >
+                    <MapPin size={18} />
+                    {t("useLocation")}
+                  </button>
+                  <p className="fine">{t("locationHint")}</p>
+                  <div className="form-grid">
+                    <label>
+                      {t("latitude")}
+                      <input
+                        value={lat}
+                        onChange={(e) => setLat(e.target.value)}
+                        type="number"
+                        step="any"
+                        min="-90"
+                        max="90"
+                        required
+                      />
+                    </label>
+                    <label>
+                      {t("longitude")}
+                      <input
+                        value={lon}
+                        onChange={(e) => setLon(e.target.value)}
+                        type="number"
+                        step="any"
+                        min="-180"
+                        max="180"
+                        required
+                      />
+                    </label>
+                  </div>
+                  <label className="check">
+                    <input type="checkbox" name="sharing" />
+                    {t("shareDemand")}
+                  </label>
+                </>
+              ) : (
+                <>
+                  <label>
+                    {t("email")}
+                    <input
+                      name="email"
+                      type="email"
+                      required
+                      autoComplete="email"
+                    />
+                  </label>
+                  <label>
+                    {t("password")}
+                    <input
+                      name="password"
+                      type="password"
+                      minLength={10}
+                      required
+                      autoComplete={
+                        register ? "new-password" : "current-password"
+                      }
+                    />
+                  </label>
+                </>
+              )}
+              <button className="button full" disabled={busy}>
+                {onboard ? t("finish") : register ? t("register") : t("login")}
+                <ArrowRight size={18} />
+              </button>
+            </form>
+          </details>
           {!onboard && (
             <button
               className="text-button"
-              onClick={() => setRegister(!register)}
+              disabled={busy}
+              onClick={() => {
+                setCheckEmail(false);
+                setRegister(!register);
+                setError("");
+              }}
             >
               {register ? t("haveAccount") : t("needAccount")}
             </button>

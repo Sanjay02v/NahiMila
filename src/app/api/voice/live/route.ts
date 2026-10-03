@@ -19,7 +19,7 @@ export async function POST(req: Request) {
 export async function PUT(req: Request) {
   try {
     const shop = await shopActor();
-    const b = await body(req);
+    const b = await body(req, 64000);
     sendLive(shop.id, text(b.session, 50), b);
     return ok({ ok: true });
   } catch (e) {
