@@ -13,8 +13,12 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const user = await actor();
-    throttle("map:" + user, 12);
-    return ok({ results: await lookupAddress(await body(req)) });
+    const b = await body(req);
+    throttle(
+      (b.action === "autocomplete" ? "map-suggest:" : "map:") + user,
+      b.action === "autocomplete" ? 45 : 12,
+    );
+    return ok({ results: await lookupAddress(b) });
   } catch (e) {
     return failure(e);
   }

@@ -1,4 +1,9 @@
 export const en = {
+  searchingAddress: "Finding addresses…",
+  addressSuggestions: "Address suggestions",
+  addressIndiaHint:
+    "Start typing an address in India, then choose a suggestion.",
+
   merchantName: "Your name",
   shopAddress: "Shop address",
   addressExample: "Shop, street, area and city",
@@ -472,6 +477,10 @@ export const en = {
   needsDetails: "Needs details",
   unknownPack: "Pack not specified",
   error: {
+    INDIA_ONLY: "Shop locations are supported only in India for now.",
+    LOCATION_COUNTRY_UNVERIFIED:
+      "We could not verify this pin is in India. Choose a nearby street address or adjust the pin and try again.",
+
     MAP_NOT_CONFIGURED:
       "Address search is not set up yet. Use your location and type your shop address.",
     LOCATION_CONFIRMATION_REQUIRED: "Confirm your shop pin before saving.",
@@ -563,6 +572,10 @@ export const en = {
 type Messages = typeof en;
 export const hi: Messages = {
   ...en,
+  searchingAddress: "पते खोज रहे हैं…",
+  addressSuggestions: "पते के सुझाव",
+  addressIndiaHint: "भारत का पता लिखें, फिर नीचे से एक सुझाव चुनें।",
+
   merchantName: "आपका नाम",
   shopAddress: "दुकान का पता",
   addressExample: "दुकान, सड़क, इलाका और शहर",
@@ -1014,6 +1027,10 @@ export const hi: Messages = {
   needsDetails: "जानकारी चाहिए",
   unknownPack: "पैक नहीं बताया",
   error: {
+    INDIA_ONLY: "अभी केवल भारत की दुकानें समर्थित हैं।",
+    LOCATION_COUNTRY_UNVERIFIED:
+      "इस पिन का भारत में होना पक्का नहीं हुआ। पास का सड़क पता चुनें या पिन ठीक करके फिर कोशिश करें।",
+
     MAP_NOT_CONFIGURED:
       "पता खोज अभी सेट नहीं है। अपनी लोकेशन लें और दुकान का पता लिखें।",
     LOCATION_CONFIRMATION_REQUIRED: "सहेजने से पहले दुकान का पिन पक्का करें।",
@@ -1093,6 +1110,10 @@ export const hi: Messages = {
 };
 export const kn: Messages = {
   ...en,
+  searchingAddress: "ವಿಳಾಸಗಳನ್ನು ಹುಡುಕಲಾಗುತ್ತಿದೆ…",
+  addressSuggestions: "ವಿಳಾಸ ಸಲಹೆಗಳು",
+  addressIndiaHint: "ಭಾರತದ ವಿಳಾಸ ಬರೆಯಲು ಪ್ರಾರಂಭಿಸಿ, ನಂತರ ಸಲಹೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ.",
+
   merchantName: "ನಿಮ್ಮ ಹೆಸರು",
   shopAddress: "ಅಂಗಡಿಯ ವಿಳಾಸ",
   addressExample: "ಅಂಗಡಿ, ರಸ್ತೆ, ಪ್ರದೇಶ ಮತ್ತು ನಗರ",
@@ -1553,6 +1574,10 @@ export const kn: Messages = {
   needsDetails: "ವಿವರ ಬೇಕು",
   unknownPack: "ಪ್ಯಾಕ್ ತಿಳಿಸಿಲ್ಲ",
   error: {
+    INDIA_ONLY: "ಈಗ ಭಾರತದ ಅಂಗಡಿಗಳಿಗೆ ಮಾತ್ರ ಬೆಂಬಲವಿದೆ.",
+    LOCATION_COUNTRY_UNVERIFIED:
+      "ಈ ಪಿನ್ ಭಾರತದಲ್ಲಿದೆ ಎಂದು ಖಚಿತಪಡಿಸಲು ಆಗಲಿಲ್ಲ. ಹತ್ತಿರದ ರಸ್ತೆ ವಿಳಾಸ ಆಯ್ಕೆಮಾಡಿ ಅಥವಾ ಪಿನ್ ಸರಿಸಿ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+
     MAP_NOT_CONFIGURED:
       "ವಿಳಾಸ ಹುಡುಕಾಟ ಇನ್ನೂ ಸಿದ್ಧವಾಗಿಲ್ಲ. ನಿಮ್ಮ ಸ್ಥಳ ಬಳಸಿ ಅಂಗಡಿಯ ವಿಳಾಸ ಬರೆಯಿರಿ.",
     LOCATION_CONFIRMATION_REQUIRED: "ಉಳಿಸುವ ಮೊದಲು ಅಂಗಡಿಯ ಪಿನ್ ಖಚಿತಪಡಿಸಿ.",

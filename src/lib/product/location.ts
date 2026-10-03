@@ -18,18 +18,22 @@ export type AddressResult = {
   address: string;
   latitude: number;
   longitude: number;
+  country_code: "in";
 };
 const cache = new Map<string, { expires: number; results: AddressResult[] }>();
 const pending = new Map<string, Promise<AddressResult[]>>();
 export async function lookupAddress(
   b: Record<string, unknown>,
 ): Promise<AddressResult[]> {
-  const reverse = b.action === "reverse";
-  if (!reverse && b.action !== "search") throw new Error("INVALID_REQUEST");
+  const reverse = b.action === "reverse",
+    autocomplete = b.action === "autocomplete";
+  if (!reverse && !autocomplete && b.action !== "search")
+    throw new Error("INVALID_REQUEST");
   const query = reverse
     ? verifiedLocation({ ...b, address: "Location", location_confirmed: true })
     : { text: text(b.text, 400) };
-  const id = JSON.stringify(query),
+  if (autocomplete && "text" in query && [...query.text].length < 3) return [];
+  const id = JSON.stringify([b.action, query]),
     saved = cache.get(id);
   if (saved && saved.expires > Date.now()) return saved.results;
   if (pending.has(id)) return pending.get(id)!;
@@ -37,13 +41,14 @@ export async function lookupAddress(
   if (!key) throw new Error("MAP_NOT_CONFIGURED");
   const task = (async () => {
     const url = new URL(
-      `https://api.geoapify.com/v1/geocode/${reverse ? "reverse" : "search"}`,
+      `https://api.geoapify.com/v1/geocode/${reverse ? "reverse" : autocomplete ? "autocomplete" : "search"}`,
     );
     url.searchParams.set("apiKey", key);
     url.searchParams.set("format", "json");
     if ("text" in query) {
       url.searchParams.set("text", query.text);
       url.searchParams.set("limit", "5");
+      url.searchParams.set("filter", "countrycode:in");
     } else {
       url.searchParams.set("lat", String(query.latitude));
       url.searchParams.set("lon", String(query.longitude));
@@ -57,11 +62,20 @@ export async function lookupAddress(
       throw new Error("MAP_UNAVAILABLE");
     }
     const data = await response.json();
+    const rows: Record<string, unknown>[] = Array.isArray(data.results)
+      ? data.results
+      : [];
+    // Reverse queries stay unfiltered: a pin outside India must never be snapped to an Indian address.
+    if (reverse && rows[0]?.country_code !== "in")
+      throw new Error(
+        rows.length ? "INDIA_ONLY" : "LOCATION_COUNTRY_UNVERIFIED",
+      );
     const results: AddressResult[] = (
       Array.isArray(data.results) ? data.results : []
     )
       .filter(
         (r: Record<string, unknown>) =>
+          r.country_code === "in" &&
           typeof r.formatted === "string" &&
           typeof r.lat === "number" &&
           typeof r.lon === "number" &&
@@ -75,15 +89,28 @@ export async function lookupAddress(
         address: r.formatted.slice(0, 400),
         latitude: r.lat,
         longitude: r.lon,
+        country_code: "in" as const,
       }));
     if (cache.size > 500) cache.clear();
     cache.set(id, { results, expires: Date.now() + 86400000 });
     return results;
   })()
-    .catch(() => {
+    .catch((e) => {
+      if (
+        e instanceof Error &&
+        ["INDIA_ONLY", "LOCATION_COUNTRY_UNVERIFIED"].includes(e.message)
+      )
+        throw e;
       throw new Error("MAP_UNAVAILABLE");
     })
     .finally(() => pending.delete(id));
   pending.set(id, task);
   return task;
+}
+
+export async function assertIndianLocation(b: Record<string, unknown>) {
+  const location = verifiedLocation(b);
+  const results = await lookupAddress({ action: "reverse", ...location });
+  if (!results.length) throw new Error("LOCATION_COUNTRY_UNVERIFIED");
+  return location;
 }

@@ -10,6 +10,14 @@ import {
 } from "../src/lib/product/network";
 let network: Network, user: string | null;
 let queue: Promise<unknown> = Promise.resolve();
+vi.mock("../src/lib/product/location", async (original) => {
+  const real = await original<typeof import("../src/lib/product/location")>();
+  return {
+    ...real,
+    assertIndianLocation: async (b: Record<string, unknown>) =>
+      real.verifiedLocation(b),
+  };
+});
 vi.mock("../src/lib/product/auth", () => ({
   actor: async () => {
     if (!user) throw new Error("UNAUTHENTICATED");

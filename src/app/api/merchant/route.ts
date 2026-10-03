@@ -1,4 +1,4 @@
-import { verifiedLocation } from "@/lib/product/location";
+import { verifiedLocation, assertIndianLocation } from "@/lib/product/location";
 import { isDemoShop } from "@/lib/product/demo-identity";
 import { resetJudgeDemo } from "@/lib/product/demo";
 import { canonicalIdentity } from "@/lib/product/canonical";
@@ -14,7 +14,7 @@ import {
   normalizePhone,
   ensureProduct,
 } from "@/lib/product/network";
-import { body, failure, ok, text, integer } from "@/lib/product/http";
+import { body, failure, ok, text, integer, throttle } from "@/lib/product/http";
 import { locales, type Locale, type Shop } from "@/lib/product/types";
 export const runtime = "nodejs";
 export async function GET() {
@@ -29,6 +29,12 @@ export async function POST(req: Request) {
   try {
     const b = await body(req);
     const user = await actor();
+    if (b.shop_id !== undefined || b.merchant_id !== undefined) throw new Error("FORBIDDEN");
+    if (b.action === "onboard" || b.action === "profile") {
+      throttle("shop-location:" + user, 12);
+      // Validate the provider's country for the actual saved pin, not a client-supplied country label.
+      await assertIndianLocation(b);
+    }
     return ok(
       await withNetwork(async (n) => {
         let shop = n.shops.find((s) => s.user_id === user);

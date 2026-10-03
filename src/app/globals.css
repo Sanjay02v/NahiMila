@@ -2992,3 +2992,5 @@ input[type="checkbox"] {
     height: 220px;
   }
 }
+
+.address-search-status {display:flex;align-items:center;gap:8px}.address-results button[aria-selected="true"] {background:#eaf2e6;border-color:#275d43}
