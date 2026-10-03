@@ -21,7 +21,9 @@ export function failure(e: unknown) {
                 ? 404
                 : known === "CONFLICT"
                   ? 409
-                  : known === "DATABASE_UNAVAILABLE" ||
+                  : known === "MAP_UNAVAILABLE" ||
+                      known === "MAP_NOT_CONFIGURED" ||
+                      known === "DATABASE_UNAVAILABLE" ||
                       known === "AI_UNAVAILABLE" ||
                       known === "AI_QUOTA_CONFIG"
                     ? 503

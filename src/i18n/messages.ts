@@ -472,6 +472,8 @@ export const en = {
   needsDetails: "Needs details",
   unknownPack: "Pack not specified",
   error: {
+    MAP_NOT_CONFIGURED:
+      "Address search is not set up yet. Use your location and type your shop address.",
     LOCATION_CONFIRMATION_REQUIRED: "Confirm your shop pin before saving.",
     MAP_UNAVAILABLE:
       "Address lookup is unavailable. Try again, or use your location and enter the address.",
@@ -1012,6 +1014,8 @@ export const hi: Messages = {
   needsDetails: "जानकारी चाहिए",
   unknownPack: "पैक नहीं बताया",
   error: {
+    MAP_NOT_CONFIGURED:
+      "पता खोज अभी सेट नहीं है। अपनी लोकेशन लें और दुकान का पता लिखें।",
     LOCATION_CONFIRMATION_REQUIRED: "सहेजने से पहले दुकान का पिन पक्का करें।",
     MAP_UNAVAILABLE:
       "पता खोज अभी उपलब्ध नहीं है। फिर कोशिश करें या अपनी लोकेशन लेकर पता लिखें।",
@@ -1396,7 +1400,8 @@ export const kn: Messages = {
   nearbyRequests: "ಹತ್ತಿರದ ಕೋರಿಕೆಗಳು",
   participating: "ಬೇಡಿಕೆ ದಾಖಲಿಸಿದ ಹತ್ತಿರದ ಅಂಗಡಿಗಳು",
   radius: "1.5 ಕಿಮೀ ಒಳಗೆ · ಕಳೆದ 7 ದಿನ",
-  limited: "ಕನಿಷ್ಠ 3 ಇತರ ಹತ್ತಿರದ ಅಂಗಡಿಗಳು ಬೇಡಿಕೆ ದಾಖಲಿಸಿದಾಗ ಸಂಖ್ಯೆ ಕಾಣಿಸುತ್ತದೆ.",
+  limited:
+    "ಕನಿಷ್ಠ 3 ಇತರ ಹತ್ತಿರದ ಅಂಗಡಿಗಳು ಬೇಡಿಕೆ ದಾಖಲಿಸಿದಾಗ ಸಂಖ್ಯೆ ಕಾಣಿಸುತ್ತದೆ.",
   signalNote: "ದಾಖಲಾದ ಕೋರಿಕೆಗಳು ಖಚಿತ ಖರೀದಿಯಲ್ಲ.",
   reviewOrder: "ನೀವು ಈ ವಸ್ತು ತರಿಸಬಹುದೇ?",
   supplier: "ಪೂರೈಕೆದಾರ",
@@ -1548,6 +1553,8 @@ export const kn: Messages = {
   needsDetails: "ವಿವರ ಬೇಕು",
   unknownPack: "ಪ್ಯಾಕ್ ತಿಳಿಸಿಲ್ಲ",
   error: {
+    MAP_NOT_CONFIGURED:
+      "ವಿಳಾಸ ಹುಡುಕಾಟ ಇನ್ನೂ ಸಿದ್ಧವಾಗಿಲ್ಲ. ನಿಮ್ಮ ಸ್ಥಳ ಬಳಸಿ ಅಂಗಡಿಯ ವಿಳಾಸ ಬರೆಯಿರಿ.",
     LOCATION_CONFIRMATION_REQUIRED: "ಉಳಿಸುವ ಮೊದಲು ಅಂಗಡಿಯ ಪಿನ್ ಖಚಿತಪಡಿಸಿ.",
     MAP_UNAVAILABLE:
       "ವಿಳಾಸ ಹುಡುಕಾಟ ಲಭ್ಯವಿಲ್ಲ. ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ ಅಥವಾ ನಿಮ್ಮ ಸ್ಥಳ ಬಳಸಿ ವಿಳಾಸ ನಮೂದಿಸಿ.",

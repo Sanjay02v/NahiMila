@@ -34,7 +34,7 @@ export async function lookupAddress(
   if (saved && saved.expires > Date.now()) return saved.results;
   if (pending.has(id)) return pending.get(id)!;
   const key = process.env.GEOAPIFY_API_KEY?.trim();
-  if (!key) throw new Error("MAP_UNAVAILABLE");
+  if (!key) throw new Error("MAP_NOT_CONFIGURED");
   const task = (async () => {
     const url = new URL(
       `https://api.geoapify.com/v1/geocode/${reverse ? "reverse" : "search"}`,
@@ -52,7 +52,10 @@ export async function lookupAddress(
       signal: AbortSignal.timeout(10000),
       cache: "no-store",
     });
-    if (!response.ok) throw new Error("MAP_UNAVAILABLE");
+    if (!response.ok) {
+      console.warn("Address provider unavailable", { status: response.status });
+      throw new Error("MAP_UNAVAILABLE");
+    }
     const data = await response.json();
     const results: AddressResult[] = (
       Array.isArray(data.results) ? data.results : []

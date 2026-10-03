@@ -51,15 +51,13 @@ describe("Shop location", () => {
     vi.stubEnv("GEOAPIFY_API_KEY", "");
     await expect(
       lookupAddress({ action: "reverse", latitude: 12.945, longitude: 77.612 }),
-    ).rejects.toThrow("MAP_UNAVAILABLE");
+    ).rejects.toThrow("MAP_NOT_CONFIGURED");
     vi.stubEnv("GEOAPIFY_API_KEY", "test");
-    const fetch = vi
-      .fn()
-      .mockResolvedValue(
-        Response.json({
-          results: [{ formatted: "Shop", lat: 12.945, lon: 77.612 }],
-        }),
-      );
+    const fetch = vi.fn().mockResolvedValue(
+      Response.json({
+        results: [{ formatted: "Shop", lat: 12.945, lon: 77.612 }],
+      }),
+    );
     vi.stubGlobal("fetch", fetch);
     expect(
       await lookupAddress({
