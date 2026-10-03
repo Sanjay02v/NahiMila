@@ -1011,14 +1011,33 @@ export default function MerchantApp() {
                 </div>
                 <button
                   className="text-button"
+                  disabled={busy}
                   onClick={async () => {
-                    await api("/api/auth", { action: "logout" });
-                    setData(null);
-                    setView("home");
-                    setCapture(false);
-                    setAgent(false);
-                    setApproval(null);
-                    setAccess("login");
+                    if (mutating.current) return;
+                    mutating.current = true;
+                    generation.current++;
+                    setBusy(true);
+                    try {
+                      await api("/api/auth", { action: "logout" });
+                      setData(null);
+                      setView("home");
+                      setCapture(false);
+                      setAgent(false);
+                      setApproval(null);
+                      setQuote(false);
+                      setEditQuote(null);
+                      setSelectedProduct(null);
+                      setSelectedQuote(null);
+                      setOrderSearch("");
+                      setNearbySearch("");
+                      setAccess("login");
+                    } catch (e) {
+                      err(e);
+                    } finally {
+                      mutating.current = false;
+                      generation.current++;
+                      setBusy(false);
+                    }
                   }}
                 >
                   {t("logout")}
