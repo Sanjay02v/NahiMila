@@ -135,6 +135,41 @@ describe("Language services remain evidence-limited", () => {
     });
     expect(result.product).not.toMatch(/[\u0c80-\u0cff]/);
   });
+  it("retries rejected display labels without changing the exact product", async () => {
+    vi.stubEnv("GEMINI_API_KEY", "test-key");
+    const provider = (value: unknown) =>
+      Response.json({
+        candidates: [{ content: { parts: [{ text: JSON.stringify(value) }] } }],
+      });
+    const canonical = manualDraft("Coke Zero 500ml bottle");
+    const fetch = vi
+      .fn()
+      .mockResolvedValueOnce(
+        provider({
+          ...canonical,
+          input_language: "hi",
+          display_item: "कोक",
+          display_details: "ज़ीरो, 500 मिलीलीटर बोतल",
+        }),
+      )
+      .mockImplementationOnce(async (_url: string, options: RequestInit) => {
+        const sources = JSON.parse(
+          JSON.parse(options.body as string).contents[0].parts[0].text,
+        ) as string[];
+        return provider({
+          translations: sources.map((source) => ({
+            source,
+            label: "ज़ीरो, 500ml बोतल",
+          })),
+        });
+      });
+    vi.stubGlobal("fetch", fetch);
+    const result = await normalize("कोक ज़ीरो 500ml बोतल", "en");
+    expect(result.capture?.display_details).toBe("ज़ीरो, 500ml बोतल");
+    expect(result.size).toBe(500);
+    expect(result.unit).toBe("ml");
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
   it("reports provider quota/rate limits distinctly instead of claiming AI was removed", async () => {
     vi.stubEnv("GEMINI_API_KEY", "test-key");
     const fetch = vi
