@@ -57,6 +57,13 @@ describe("Simple capture fields preserve exact specifications", () => {
       "Coke bottle",
     );
   });
+  it("preserves the original name spelling if an assistant transliterates it", () => {
+    const draft = preserveDraftContacts(
+      "ग्राहक का नाम राहुल। दो बोतल चाहिए।",
+      "Customer name: Rahul. Two bottles.",
+    );
+    expect(customerNameFromText(draft)).toBe("राहुल");
+  });
   it("autofills only explicitly stated customer names even without AI", () => {
     expect(
       customerNameFromText(

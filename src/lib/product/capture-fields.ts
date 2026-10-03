@@ -121,11 +121,11 @@ export function preserveDraftContacts(raw: string, draft: string): string {
   const name = customerNameFromText(raw);
   const phone = phoneFromText(raw);
   return [
-    draft,
     name && customerNameFromText(draft) !== name
       ? `Customer name: ${name}.`
       : "",
     phone && phoneFromText(draft) !== phone ? `Customer phone: +${phone}.` : "",
+    draft,
   ]
     .filter(Boolean)
     .join("\n");
