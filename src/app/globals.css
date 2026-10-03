@@ -1,3 +1,4 @@
+@import "leaflet/dist/leaflet.css";
 @import "tailwindcss";
 :root {
   --ink: #20352b;
@@ -2900,3 +2901,94 @@ input[type="checkbox"] {
 .supplier-more { border-top:1px solid #dde6da; padding-top:12px; }
 .approved-note { display:flex; align-items:center; gap:8px; color:#315b46; font-weight:600; }
 @media(max-width:640px) { .order-product-row, .supplier-option-row { padding:16px; gap:12px; } .order-row-action { font-size:12px; } .order-product-row strong { font-size:16px; } }
+
+/* Shop setup keeps coordinates behind the map. */
+.location-picker,
+.profile-form {
+  display: grid;
+  gap: 14px;
+}
+.location-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.shop-map {
+  height: 260px;
+  border: 1px solid var(--line, #dbe4d9);
+  border-radius: 14px;
+  overflow: hidden;
+  z-index: 0;
+}
+.shop-map-pin {
+  color: #245a43;
+  font-size: 30px;
+  text-shadow: 0 0 3px white;
+  line-height: 28px;
+}
+.address-results {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+.address-results button {
+  text-align: left;
+  padding: 12px;
+  border: 1px solid #dbe4d9;
+  border-radius: 10px;
+  background: #f7faf6;
+  width: 100%;
+  font: inherit;
+  cursor: pointer;
+}
+.map-attribution {
+  font-size: 11px;
+  color: #65756a;
+  margin: 0;
+}
+.reset-dialog {
+  max-width: 520px;
+}
+.reset-dialog .modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+.reset-dialog p {
+  line-height: 1.6;
+}
+.demo-badge {
+  display: inline-block;
+  margin-left: 12px;
+  font-size: 11px;
+  background: #edf3e5;
+  color: #49633d;
+  border-radius: 6px;
+  padding: 4px 7px;
+  vertical-align: middle;
+}
+.greeting h1 {
+  font-size: clamp(28px, 4vw, 40px);
+  line-height: 1.2;
+  margin: 0 0 24px;
+  color: #21392c;
+}
+.home-hero h2 {
+  font-size: clamp(25px, 3vw, 36px);
+  line-height: 1.25;
+  margin: 0 0 14px;
+}
+@media (max-width: 640px) {
+  .reset-dialog .modal-actions {
+    flex-wrap: wrap;
+  }
+  .reset-dialog .modal-actions .button {
+    flex: 1;
+  }
+  .shop-map {
+    height: 220px;
+  }
+}

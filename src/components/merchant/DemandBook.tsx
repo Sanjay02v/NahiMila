@@ -1,4 +1,6 @@
 "use client";
+import { useProductLabels } from "./useProductLabels";
+import { productLabels } from "@/lib/product/product-label-sources";
 import ReservationTerms from "./ReservationTerms";
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
@@ -53,7 +55,10 @@ export default function DemandBook({
   const [contact, setContact] = useState<PrivateRequest | null>(null);
   const [confirm, setConfirm] = useState<PrivateRequest | null>(null),
     [revise, setRevise] = useState<PrivateRequest | null>(null);
-  const groups = groupDemand(requests, search, filter);
+  const label = useProductLabels(
+    requests.flatMap((r) => productLabels(r.product)),
+  );
+  const groups = groupDemand(requests, search, filter, undefined, label);
   const date = (value: string) =>
     new Intl.DateTimeFormat(`${locale}-IN`, {
       day: "numeric",
@@ -133,7 +138,7 @@ export default function DemandBook({
             <details className="demand-group" key={g.key}>
               <summary>
                 <div className="demand-product">
-                  <h2>{g.label}</h2>
+                  <h2>{label(g.label)}</h2>
                   <p>
                     {g.specifications > 1
                       ? t("differentItemDetails")
@@ -193,7 +198,7 @@ export default function DemandBook({
                         </span>
                       </div>
                       <p className="fine demand-item-spec">
-                        {r.product.name} · {pack(r.product.pack_size)}
+                        {label(r.product.name)} · {pack(r.product.pack_size)}
                       </p>
                       {r.detail?.raw_text && (
                         <p className="demand-original">“{r.detail.raw_text}”</p>
@@ -255,7 +260,7 @@ export default function DemandBook({
                                 : "reservationMessage",
                               {
                                 shop,
-                                product: r.product.name,
+                                product: label(r.product.name),
                                 pack: pack(r.product.pack_size),
                                 quantity: r.quantity,
                                 price: price(r.offer!.price),
@@ -402,7 +407,7 @@ export default function DemandBook({
               </p>
             )}
             <h3>
-              {contact.product.name} · {pack(contact.product.pack_size)}
+              {label(contact.product.name)} · {pack(contact.product.pack_size)}
             </h3>
             <p>
               {contact.customer_name &&
@@ -454,7 +459,7 @@ export default function DemandBook({
               </p>
             )}
             <h3>
-              {confirm.product.name} · {pack(confirm.product.pack_size)}
+              {label(confirm.product.name)} · {pack(confirm.product.pack_size)}
             </h3>
             <p>
               {confirm.quantity} × <Money value={confirm.offer.price} />

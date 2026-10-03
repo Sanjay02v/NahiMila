@@ -1,4 +1,5 @@
 "use client";
+import { useProductLabels } from "./useProductLabels";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { Check, ShoppingBag, ShieldCheck } from "lucide-react";
@@ -10,6 +11,7 @@ export default function Customer({ token }: { token: string }) {
     [data, setData] = useState<CustomerView | null>(null),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
+  const label = useProductLabels(data ? [data.product] : [], token);
   const changing = useRef(false),
     refreshing = useRef(false),
     generation = useRef(0),
@@ -97,7 +99,7 @@ export default function Customer({ token }: { token: string }) {
         )}
         {data ? (
           <>
-            <h1>{data.product}</h1>
+            <h1>{label(data.product)}</h1>
             <p className="customer-pack">
               {data.pack} · {data.quantity} {t("units")}
             </p>

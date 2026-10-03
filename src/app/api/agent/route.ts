@@ -1,3 +1,7 @@
+import {
+  explicitOperation,
+  operationAnswer,
+} from "@/lib/product/assistant-operations";
 import { shopActor } from "@/lib/product/auth";
 import { withNetwork } from "@/lib/product/repository";
 import { merchantView } from "@/lib/product/network";
@@ -25,8 +29,18 @@ export async function POST(req: Request) {
       throw new Error("FORBIDDEN");
     const history = historySchema.parse(b.history ?? []);
     const v = await withNetwork((n) => merchantView(n, shop.id));
-    const reply: AssistantReply =
-      b.tool !== undefined
+    const explicit =
+      b.tool === undefined
+        ? explicitOperation(v, text(b.question, 1200), history)
+        : null;
+    const reply: AssistantReply = explicit
+      ? {
+          answer: operationAnswer(explicit.quote, explicit.topic, shop.locale),
+          tool: "quotes",
+          draft_text: null,
+          can_wait: null,
+        }
+      : b.tool !== undefined
         ? {
             tool: b.tool as ReadTool,
             answer: recordAnswer(b.tool as ReadTool, shop.locale),
@@ -41,10 +55,21 @@ export async function POST(req: Request) {
           );
     if (reply.tool === "draft" && !reply.draft_text?.trim())
       throw new Error("AI_UNAVAILABLE");
+    const focused =
+      explicit?.quote ||
+      (reply.focus && reply.tool === "quotes"
+        ? v.quotes[reply.focus.quote_index]
+        : undefined);
+    if (reply.focus && !focused) throw new Error("AI_UNAVAILABLE");
+    if (focused && reply.focus)
+      reply.answer = operationAnswer(focused, reply.focus.topic, shop.locale);
     const result: AssistantResult = {
       answer: reply.answer,
       tool: reply.tool,
-      rows: assistantRows(v, reply.tool),
+      rows: assistantRows(
+        focused ? { ...v, quotes: [focused] } : v,
+        reply.tool,
+      ),
       draft:
         reply.tool === "draft"
           ? { raw: reply.draft_text!.trim(), can_wait: reply.can_wait }
@@ -57,7 +82,7 @@ export async function POST(req: Request) {
             : ["quotes", "orders", "pickups"].includes(reply.tool)
               ? "orders"
               : null,
-      source: b.tool !== undefined ? "records" : "gemini",
+      source: b.tool !== undefined || explicit ? "records" : "gemini",
     };
     await withNetwork((n) => {
       n.state.auditEvents.push({

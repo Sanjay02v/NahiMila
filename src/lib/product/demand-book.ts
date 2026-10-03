@@ -27,6 +27,7 @@ export function groupDemand(
   search = "",
   filter: DemandFilter = "all",
   now = Date.now(),
+  label = (s: string) => s,
 ) {
   const groups = new Map<
     string,
@@ -60,7 +61,7 @@ export function groupDemand(
   return [...groups.values()].flatMap((g) => {
     if (
       query &&
-      !`${g.label} ${g.rows.map((r) => `${r.product.name} ${r.product.pack_size} ${r.detail?.raw_text || ""}`).join(" ")}`
+      !`${g.label} ${label(g.label)} ${g.rows.map((r) => `${r.product.name} ${label(r.product.name)} ${r.product.pack_size} ${r.detail?.raw_text || ""}`).join(" ")}`
         .toLocaleLowerCase()
         .includes(query)
     )

@@ -1,8 +1,9 @@
 "use client";
 import { useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import { ArrowRight, MapPin, LockKeyhole } from "lucide-react";
+import { ArrowRight, LockKeyhole } from "lucide-react";
 import { Brand, Language, api } from "./common";
+import LocationPicker, { type ShopLocation } from "./LocationPicker";
 export default function Access({
   onboard,
   ready,
@@ -18,23 +19,7 @@ export default function Access({
     [busy, setBusy] = useState(false),
     [checkEmail, setCheckEmail] = useState(false),
     [error, setError] = useState(""),
-    [lat, setLat] = useState(""),
-    [lon, setLon] = useState("");
-  async function gps() {
-    setError("");
-    if (!navigator.geolocation) {
-      setError(t("locationFailed"));
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      (p) => {
-        setLat(String(p.coords.latitude));
-        setLon(String(p.coords.longitude));
-      },
-      () => setError(t("locationFailed")),
-      { enableHighAccuracy: true, timeout: 10000 },
-    );
-  }
+    [location, setLocation] = useState<ShopLocation | null>(null);
   return (
     <div className="access">
       <header>
@@ -131,9 +116,9 @@ export default function Access({
                     await api("/api/merchant", {
                       action: "onboard",
                       name: f.get("name"),
-                      area: f.get("area"),
-                      latitude: Number(lat),
-                      longitude: Number(lon),
+                      owner_name: f.get("owner_name"),
+                      ...location,
+                      location_confirmed: !!location,
                       locale,
                       sharing: f.get("sharing") === "on",
                     });
@@ -178,44 +163,15 @@ export default function Access({
                     />
                   </label>
                   <label>
-                    {t("area")}
-                    <input name="area" required maxLength={100} />
+                    {t("merchantName")}
+                    <input
+                      name="owner_name"
+                      required
+                      maxLength={100}
+                      autoComplete="name"
+                    />
                   </label>
-                  <button
-                    className="button secondary full"
-                    type="button"
-                    onClick={gps}
-                  >
-                    <MapPin size={18} />
-                    {t("useLocation")}
-                  </button>
-                  <p className="fine">{t("locationHint")}</p>
-                  <div className="form-grid">
-                    <label>
-                      {t("latitude")}
-                      <input
-                        value={lat}
-                        onChange={(e) => setLat(e.target.value)}
-                        type="number"
-                        step="any"
-                        min="-90"
-                        max="90"
-                        required
-                      />
-                    </label>
-                    <label>
-                      {t("longitude")}
-                      <input
-                        value={lon}
-                        onChange={(e) => setLon(e.target.value)}
-                        type="number"
-                        step="any"
-                        min="-180"
-                        max="180"
-                        required
-                      />
-                    </label>
-                  </div>
+                  <LocationPicker onChange={setLocation} />
                   <label className="check">
                     <input type="checkbox" name="sharing" />
                     {t("shareDemand")}
@@ -246,7 +202,10 @@ export default function Access({
                   </label>
                 </>
               )}
-              <button className="button full" disabled={busy}>
+              <button
+                className="button full"
+                disabled={busy || (onboard && !location)}
+              >
                 {onboard ? t("finish") : register ? t("register") : t("login")}
                 <ArrowRight size={18} />
               </button>

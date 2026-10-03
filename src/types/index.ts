@@ -57,6 +57,7 @@ export interface Merchant {
 }
 
 export interface Product {
+  localized_labels?: Partial<Record<"en" | "hi" | "kn", Record<string, string>>>;
   intent_key?: string;
   canonical_identity?: {
     product: string;

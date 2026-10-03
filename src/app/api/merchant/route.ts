@@ -1,3 +1,4 @@
+import { verifiedLocation } from "@/lib/product/location";
 import { isDemoShop } from "@/lib/product/demo-identity";
 import { resetJudgeDemo } from "@/lib/product/demo";
 import { canonicalIdentity } from "@/lib/product/canonical";
@@ -35,27 +36,16 @@ export async function POST(req: Request) {
           throw new Error("FORBIDDEN");
         if (b.action === "onboard") {
           if (shop) throw new Error("ALREADY_ONBOARDED");
-          const latitude = b.latitude as number,
-            longitude = b.longitude as number;
-          if (
-            typeof latitude !== "number" ||
-            typeof longitude !== "number" ||
-            !Number.isFinite(latitude) ||
-            !Number.isFinite(longitude) ||
-            latitude < -90 ||
-            latitude > 90 ||
-            longitude < -180 ||
-            longitude > 180
-          )
-            throw new Error("INVALID_LOCATION");
+          const { latitude, longitude, address } = verifiedLocation(b);
           if (!locales.includes(b.locale as Locale))
             throw new Error("INVALID_REQUEST");
           shop = {
             id: crypto.randomUUID(),
             user_id: user,
             name: text(b.name, 100),
-            owner_name: "",
-            neighborhood: text(b.area, 100),
+            owner_name: text(b.owner_name, 100),
+            neighborhood: address.slice(0, 100),
+            address,
             contact_phone: "",
             cash_cap_paise: 35000,
             allowed_suppliers: n.state.suppliers.map((s) => s.id),
@@ -82,6 +72,16 @@ export async function POST(req: Request) {
           case "create":
             saveRequest(n, shop.id, b);
             break;
+          case "profile": {
+            const location = verifiedLocation(b);
+            shop.owner_name = text(b.owner_name, 100);
+            shop.name = text(b.name, 100);
+            const moved = shop.latitude !== location.latitude || shop.longitude !== location.longitude;
+            Object.assign(shop, location, { neighborhood: location.address.slice(0, 100), location_accuracy: "confirmed" });
+            if (moved) s.invalidateAllApprovals("Shop location changed");
+            n.state = s.exportState();
+            break;
+          }
           case "settings": {
             if (b.locale !== undefined) {
               if (!locales.includes(b.locale as Locale))
@@ -93,6 +93,7 @@ export async function POST(req: Request) {
             if (b.sharing !== undefined) {
               if (typeof b.sharing !== "boolean")
                 throw new Error("INVALID_REQUEST");
+              if (shop.sharing !== b.sharing) s.invalidateAllApprovals("Shop sharing changed");
               shop.sharing = b.sharing;
             }
             n.state = s.exportState();

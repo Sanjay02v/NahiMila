@@ -1,10 +1,16 @@
 import type { NearbySignal, OrderView, QuoteView } from "./types";
 const normalized = (value: string) =>
   value.normalize("NFKC").toLocaleLowerCase().trim();
-export function nearbyList(rows: NearbySignal[], query: string) {
+export function nearbyList(
+  rows: NearbySignal[],
+  query: string,
+  label = (s: string) => s,
+) {
   const q = normalized(query);
   return rows
-    .filter((r) => normalized(`${r.name} ${r.pack}`).includes(q))
+    .filter((r) =>
+      normalized(`${r.name} ${label(r.name)} ${r.pack}`).includes(q),
+    )
     .sort(
       (a, b) =>
         b.own_units - a.own_units ||
@@ -16,6 +22,7 @@ export function orderGroups(
   orders: OrderView[],
   quotes: QuoteView[],
   query: string,
+  label = (s: string) => s,
 ) {
   const groups = new Map<
     string,
@@ -53,7 +60,9 @@ export function orderGroups(
     );
   const q = normalized(query);
   return [...groups.values()]
-    .filter((g) => normalized(`${g.name} ${g.pack}`).includes(q))
+    .filter((g) =>
+      normalized(`${g.name} ${label(g.name)} ${g.pack}`).includes(q),
+    )
     .sort(
       (a, b) =>
         Number(b.orders.some((o) => o.remaining > 0)) -

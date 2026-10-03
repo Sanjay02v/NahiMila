@@ -25,6 +25,12 @@ import type {
   NearbySignal,
 } from "@/lib/product/types";
 import { api, Brand, Language, Modal, Money, WhatsAppAction } from "./common";
+import { useProductLabels } from "./useProductLabels";
+import {
+  productLabels,
+  viewProducts,
+} from "@/lib/product/product-label-sources";
+import ProfileForm from "./ProfileForm";
 import Access from "./Access";
 import Capture from "./Capture";
 import QuoteForm from "./QuoteForm";
@@ -66,6 +72,7 @@ function ProgressiveRows<T>({
 export default function MerchantApp() {
   const t = useTranslations(),
     locale = useLocale();
+  const [editProfile, setEditProfile] = useState(false);
   const [data, setData] = useState<MerchantView | null>(null),
     [access, setAccess] = useState<"login" | "onboard" | null>(null),
     [nearbySearch, setNearbySearch] = useState(""),
@@ -108,6 +115,13 @@ export default function MerchantApp() {
         : null,
     );
   }, []);
+  const labelSources = data
+    ? [
+        ...viewProducts(data).flatMap(productLabels),
+        ...data.nearby.map((r) => r.name),
+      ]
+    : [];
+  const label = useProductLabels(labelSources);
   const refresh = useCallback(async () => {
     if (mutating.current || refreshing.current) return;
     refreshing.current = true;
@@ -274,7 +288,7 @@ export default function MerchantApp() {
       {rows.map((n) => (
         <article className="compact-signal" key={n.key}>
           <div>
-            <h3>{n.name}</h3>
+            <h3>{label(n.name)}</h3>
             <p>{displayPack(n.pack)}</p>
             <span className="fine">
               {n.suppressed
@@ -308,7 +322,7 @@ export default function MerchantApp() {
       {!rows.length && <p className="empty">{t("noResults")}</p>}
     </div>
   );
-  const nearbyRows = nearbyList(data.nearby, nearbySearch);
+  const nearbyRows = nearbyList(data.nearby, nearbySearch, label);
   const pendingQuotes = data.quotes.filter(
     (q) =>
       !q.committed &&
@@ -511,7 +525,7 @@ export default function MerchantApp() {
       )}
     </article>
   );
-  const groups = orderGroups(data.orders, pendingQuotes, orderSearch);
+  const groups = orderGroups(data.orders, pendingQuotes, orderSearch, label);
   const selectedGroup = orderGroups(data.orders, pendingQuotes, "").find(
     (g) => g.key === selectedProduct,
   );
@@ -526,7 +540,7 @@ export default function MerchantApp() {
             <Package size={26} />
           </span>
           <div>
-            <h2>{o.product.name}</h2>
+            <h2>{label(o.product.name)}</h2>
             <p>{o.product.pack_size}</p>
           </div>
           <span className="status positive">
@@ -599,7 +613,7 @@ export default function MerchantApp() {
                         message={() =>
                           t("pickupMessage", {
                             shop: data.shop.name,
-                            product: o.product.name,
+                            product: label(o.product.name),
                             pack: o.product.pack_size,
                             quantity: p.quantity,
                             price: new Intl.NumberFormat(`${locale}-IN`, {
@@ -691,8 +705,12 @@ export default function MerchantApp() {
         <header className="topbar">
           <div className="mobile-brand">
             <Brand />
+            {data.demo && <span className="demo-badge">{t("demoMode")}</span>}
           </div>
-          <span className="desktop-page-name">{t(view)}</span>
+          <span className="desktop-page-name">
+            {t(view)}{" "}
+            {data.demo && <span className="demo-badge">{t("demoMode")}</span>}
+          </span>
           <div>
             <Language persistShop />
 
@@ -754,14 +772,15 @@ export default function MerchantApp() {
           {view === "home" && (
             <>
               <div className="greeting">
-                <span className="eyebrow">{data.shop.neighborhood}</span>
-                <p>
-                  {t("welcome")} {data.shop.name}
-                </p>
+                <h1>
+                  {t("personalGreeting", {
+                    name: data.shop.owner_name || data.shop.name,
+                  })}
+                </h1>
               </div>
               <section className="home-hero">
                 <div>
-                  <h1>{t("what")}</h1>
+                  <h2>{t("what")}</h2>
                   <p>{t("intro")}</p>
                   <div className="hero-actions">
                     <button
@@ -919,7 +938,7 @@ export default function MerchantApp() {
                     }}
                   >
                     <span>
-                      <strong>{g.name}</strong>
+                      <strong>{label(g.name)}</strong>
                       <small>{displayPack(g.pack)}</small>
                       <span className="order-next-step">
                         {g.orders.some((o) => o.remaining > 0)
@@ -1007,8 +1026,14 @@ export default function MerchantApp() {
                 </form>
                 <div className="settings-location">
                   <MapPin size={19} />
-                  {data.shop.neighborhood}
+                  {data.shop.address || data.shop.neighborhood}
                 </div>
+                <button
+                  className="button secondary"
+                  onClick={() => setEditProfile(true)}
+                >
+                  {t("editShop")}
+                </button>
                 <button
                   className="text-button"
                   disabled={busy}
@@ -1062,7 +1087,7 @@ export default function MerchantApp() {
       </div>
       {selectedProduct && !capture && !quote && !approval && !resetConfirm && (
         <Modal
-          title={selectedGroup?.name || t("orders")}
+          title={selectedGroup ? label(selectedGroup.name) : t("orders")}
           className="item-order-panel"
           close={() => {
             setSelectedProduct(null);
@@ -1173,8 +1198,21 @@ export default function MerchantApp() {
           setAgent(false);
         }}
       />
-      {resetConfirm && (
+      {editProfile && (
+        <Modal title={t("editShop")} close={() => setEditProfile(false)}>
+          <ProfileForm
+            shop={data.shop}
+            error={error}
+            busy={busy}
+            save={async (payload) => {
+              if (await mutate(payload)) setEditProfile(false);
+            }}
+          />
+        </Modal>
+      )}
+      {resetConfirm && data.demo && (
         <Modal
+          className="reset-dialog"
           title={t("demoResetTitle")}
           close={() => {
             if (!busy) setResetConfirm(false);
@@ -1186,16 +1224,16 @@ export default function MerchantApp() {
               {error}
             </p>
           )}
-          <div className="form-actions">
+          <div className="modal-actions">
             <button
-              className="btn outline"
+              className="button secondary"
               disabled={busy}
               onClick={() => setResetConfirm(false)}
             >
-              {t("back")}
+              {t("cancel")}
             </button>
             <button
-              className="btn primary"
+              className="button"
               disabled={busy}
               onClick={async () => {
                 if (await mutate({ action: "reset_demo", confirm: true })) {
@@ -1217,8 +1255,12 @@ export default function MerchantApp() {
                 }
               }}
             >
-              <RotateCcw size={16} />
-              {t("demoReset")}
+              {busy ? (
+                <LoaderCircle className="spin" size={16} />
+              ) : (
+                <RotateCcw size={16} />
+              )}
+              {t(busy ? "resettingDemo" : "demoReset")}
             </button>
           </div>
         </Modal>
@@ -1236,7 +1278,7 @@ export default function MerchantApp() {
             )}
           </>
           <p className="note">
-            {approval.product.name} · {approval.quote.pack_size}
+            {label(approval.product.name)} · {approval.quote.pack_size}
           </p>
           <div className="approval-total">
             <strong>

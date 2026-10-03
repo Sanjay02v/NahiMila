@@ -202,7 +202,9 @@ describe("Server-enforced account boundaries", () => {
         await post({
           action: "onboard",
           name: "Test",
-          area: "Bengaluru",
+          address: "Test shop, Bengaluru",
+          owner_name: "Ravi",
+          location_confirmed: true,
           locale: "en",
           latitude: null,
           longitude: 77,
@@ -214,7 +216,9 @@ describe("Server-enforced account boundaries", () => {
         await post({
           action: "onboard",
           name: "Test",
-          area: "Bengaluru",
+          address: "Test shop, Bengaluru",
+          owner_name: "Ravi",
+          location_confirmed: true,
           locale: "en",
           latitude: 12.9,
           longitude: 77.6,
@@ -227,7 +231,9 @@ describe("Server-enforced account boundaries", () => {
         await post({
           action: "onboard",
           name: "Other",
-          area: "Bengaluru",
+          address: "Test shop, Bengaluru",
+          owner_name: "Ravi",
+          location_confirmed: true,
           locale: "en",
           latitude: 12.9,
           longitude: 77.6,
@@ -235,6 +241,49 @@ describe("Server-enforced account boundaries", () => {
       ).status,
     ).toBe(400);
     expect(network.shops.filter((s) => s.user_id === user)).toHaveLength(1);
+  });
+  it("shop setup requires a name and confirmed pin; profile changes remain account-scoped", async () => {
+    const old = user;
+    user = crypto.randomUUID();
+    const setup = {
+      action: "onboard",
+      name: "Ravi Stores",
+      owner_name: "Ravi",
+      address: "12 Test Street, Bengaluru",
+      latitude: 12.97,
+      longitude: 77.64,
+      locale: "en",
+      sharing: true,
+    };
+    expect((await post(setup)).status).toBe(400);
+    expect(network.shops.some((s) => s.user_id === user)).toBe(false);
+    const result = await post({ ...setup, location_confirmed: true });
+    expect(result.status).toBe(200);
+    const v = await result.json();
+    expect(v.shop.owner_name).toBe("Ravi");
+    expect(v.shop.address).toBe(setup.address);
+    expect(v.requests).toHaveLength(0);
+    const others = JSON.stringify(
+      network.shops.filter((s) => s.user_id !== user),
+    );
+    expect(
+      (
+        await post({
+          ...setup,
+          action: "profile",
+          owner_name: "Ravi Kumar",
+          latitude: 12.9701,
+          location_confirmed: true,
+        })
+      ).status,
+    ).toBe(200);
+    expect(network.shops.find((s) => s.user_id === user)?.owner_name).toBe(
+      "Ravi Kumar",
+    );
+    expect(
+      JSON.stringify(network.shops.filter((s) => s.user_id !== user)),
+    ).toBe(others);
+    user = old;
   });
   it("read tools inherit session context and cannot accept another shop ID or write tool", async () => {
     const v = await (await agentPOST(request({ tool: "requests" }))).json();

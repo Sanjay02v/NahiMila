@@ -54,6 +54,37 @@ describe("Language services remain evidence-limited", () => {
     expect(JSON.stringify(intent)).not.toContain("Ravi");
     expect(Object.keys(parseIntent(intent))).not.toContain("customer_name");
   });
+  it("returns localized review labels separately from canonical matching fields", async () => {
+    vi.stubEnv("GEMINI_API_KEY", "test-key");
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockResolvedValue(
+          Response.json({
+            candidates: [
+              {
+                content: {
+                  parts: [
+                    {
+                      text: JSON.stringify({
+                        ...manualDraft("Coke Zero 500ml bottle"),
+                        display_item: "कोक",
+                        display_details: "ज़ीरो, 500ml, बोतल",
+                      }),
+                    },
+                  ],
+                },
+              },
+            ],
+          }),
+        ),
+    );
+    const normalized = await normalize("Coke Zero 500ml bottle", "hi");
+    expect(normalized.capture?.display_item).toBe("कोक");
+    expect(normalized.product).not.toMatch(/[\u0900-\u097f]/);
+    expect(Object.keys(parseIntent(normalized))).not.toContain("display_item");
+  });
   it("reports provider quota/rate limits distinctly instead of claiming AI was removed", async () => {
     vi.stubEnv("GEMINI_API_KEY", "test-key");
     const fetch = vi

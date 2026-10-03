@@ -44,6 +44,7 @@ export default function Capture({
     [error, setError] = useState(""),
     [notice, setNotice] = useState("");
   const submission = useRef(crypto.randomUUID()),
+    displayFields = useRef<{ item?: string; details?: string }>({}),
     textInput = useRef<HTMLTextAreaElement>(null);
   useEffect(() => {
     if (mode !== "type" || intent) return;
@@ -66,11 +67,16 @@ export default function Capture({
     try {
       const j = await api("/api/intent", { raw_text: raw });
       next = parseIntent(j.intent);
+      displayFields.current = {
+        item: j.capture?.display_item,
+        details: j.capture?.display_details,
+      };
       customerName =
         typeof j.capture?.customer_name === "string"
           ? j.capture.customer_name
           : customerName;
     } catch (e) {
+      displayFields.current = {};
       next = manualDraft(raw);
       setNotice(
         t(
@@ -92,8 +98,8 @@ export default function Capture({
     };
     setIntent(nextIntent);
     const fields = combinedItemFields(nextIntent);
-    setItem(fields.item);
-    setVariant(fields.details);
+    setItem(displayFields.current.item || fields.item);
+    setVariant(displayFields.current.details || fields.details);
     setQuantity(String(next.quantity ?? 1));
     setWait(hints.can_wait ?? (initialWait ? true : null));
     setPhone(hints.phone ? `+${hints.phone}` : "");
@@ -112,7 +118,16 @@ export default function Capture({
         throw new Error("INVALID_PHONE");
       }
       const reviewed = await reviewCombinedItemFields(
-        { item, details: variant },
+        {
+          item:
+            item === displayFields.current.item
+              ? combinedItemFields(intent).item
+              : item,
+          details:
+            variant === displayFields.current.details
+              ? combinedItemFields(intent).details
+              : variant,
+        },
         intent,
         async (value) => {
           const j = await api("/api/intent", { raw_text: value });

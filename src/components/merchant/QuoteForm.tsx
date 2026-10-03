@@ -1,4 +1,5 @@
 "use client";
+import { useProductLabels } from "./useProductLabels";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import type { MerchantView, QuoteView } from "@/lib/product/types";
@@ -18,6 +19,7 @@ export default function QuoteForm({
     [error, setError] = useState(false),
     [busy, setBusy] = useState(false);
   const q = initial?.quote;
+  const label = useProductLabels(data.requests.map((r) => r.product.name));
   const products = Array.from(
     new Map(data.requests.map((r) => [r.product.id, r.product])).values(),
   );
@@ -69,7 +71,7 @@ export default function QuoteForm({
           <select name="product" defaultValue={initial?.product.id} required>
             {products.map((p) => (
               <option key={p.id} value={p.id}>
-                {p.name} · {p.pack_size}
+                {label(p.name)} · {p.pack_size}
               </option>
             ))}
           </select>

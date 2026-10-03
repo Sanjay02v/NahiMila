@@ -1,4 +1,23 @@
 export const en = {
+  merchantName: "Your name",
+  shopAddress: "Shop address",
+  addressExample: "Shop, street, area and city",
+  findAddress: "Find address",
+  addressNotFound: "No address found. Add the street and city, then try again.",
+  confirmPinHint:
+    "Is this your shop? Tap the map or drag the pin to correct it.",
+  confirmShopPin: "This pin marks my shop",
+  shopMap: "Shop location map",
+  nearbyRadiusHint:
+    "Nearby demand uses shops within 1.5 km. Counts stay hidden until enough shops contribute.",
+  addressProvider: "Address lookup by",
+  mapUnavailable:
+    "Address lookup is unavailable. Try again, or use your location and enter the address.",
+  editShop: "Edit shop details",
+  demoMode: "Demo only",
+  personalGreeting: "Hi, {name}!",
+  resettingDemo: "Resetting…",
+
   itemDetailsOptional: "Variant / details · optional",
   combinedDetailsExample: "e.g. Masala, 100g pouch or Sky blue, 8GB/128GB",
   exactDetailsHint:
@@ -41,7 +60,7 @@ export const en = {
     "Nearby: Coke Zero requests use different wording but share the same reviewed item. These customers could not wait, so their interest never counts as a confirmed order.",
   demoResetTitle: "Start the demo again?",
   demoResetWarning:
-    "This clears progress for all six shared demo shops and restores fresh examples and customer links. Other visitors using these demo accounts will also see the reset. Real merchant accounts and AI usage limits are kept.",
+    "Restore fresh examples for the six shared demo shops. Other demo visitors will see this reset too. Real shops and AI limits are kept.",
   demoResetDone: "Demo restored. You can try it again.",
 
   aiDailyLimit:
@@ -295,7 +314,7 @@ export const en = {
   nearbyRequests: "Nearby requests",
   participating: "Contributing nearby shops",
   radius: "Within 1.5 km · last 7 days",
-  limited: "Not enough shops to show private neighbourhood counts yet.",
+  limited: "Counts appear when at least 3 other nearby shops contribute.",
   signalNote: "Recorded requests are interest, not confirmed purchases.",
   reviewOrder: "Can you stock this?",
   supplier: "Supplier",
@@ -453,6 +472,9 @@ export const en = {
   needsDetails: "Needs details",
   unknownPack: "Pack not specified",
   error: {
+    LOCATION_CONFIRMATION_REQUIRED: "Confirm your shop pin before saving.",
+    MAP_UNAVAILABLE:
+      "Address lookup is unavailable. Try again, or use your location and enter the address.",
     INVALID_PHONE:
       "Enter a valid Indian mobile number or a full international number starting with +.",
     CONTACT_CONSENT_REQUIRED:
@@ -539,6 +561,25 @@ export const en = {
 type Messages = typeof en;
 export const hi: Messages = {
   ...en,
+  merchantName: "आपका नाम",
+  shopAddress: "दुकान का पता",
+  addressExample: "दुकान, सड़क, इलाका और शहर",
+  findAddress: "पता खोजें",
+  addressNotFound: "पता नहीं मिला। सड़क और शहर जोड़कर फिर खोजें।",
+  confirmPinHint:
+    "क्या यह आपकी दुकान है? नक्शे पर दबाएँ या पिन खींचकर ठीक करें।",
+  confirmShopPin: "यह पिन मेरी दुकान पर है",
+  shopMap: "दुकान का नक्शा",
+  nearbyRadiusHint:
+    "पास की माँग में 1.5 किमी के अंदर की दुकानें आती हैं। पर्याप्त दुकानें होने तक संख्या छिपी रहती है।",
+  addressProvider: "पता खोजने की सेवा",
+  mapUnavailable:
+    "पता खोज अभी उपलब्ध नहीं है। फिर कोशिश करें या अपनी लोकेशन लेकर पता लिखें।",
+  editShop: "दुकान की जानकारी बदलें",
+  demoMode: "केवल डेमो",
+  personalGreeting: "नमस्ते, {name}!",
+  resettingDemo: "रीसेट हो रहा है…",
+
   itemDetailsOptional: "प्रकार / विवरण · वैकल्पिक",
   combinedDetailsExample: "जैसे मसाला, 100g पाउच या नीला, 8GB/128GB",
   exactDetailsHint:
@@ -821,7 +862,7 @@ export const hi: Messages = {
   nearbyRequests: "आस-पास के अनुरोध",
   participating: "माँग दर्ज करने वाली आसपास की दुकानें",
   radius: "1.5 किमी के भीतर · पिछले 7 दिन",
-  limited: "निजी माँग दिखाने के लिए अभी पर्याप्त दुकानें नहीं हैं।",
+  limited: "संख्या तब दिखेगी जब कम से कम 3 अन्य पास की दुकानें माँग दर्ज करें।",
   signalNote: "दर्ज माँग खरीद की पुष्टि नहीं है।",
   reviewOrder: "क्या आप यह मँगवा सकते हैं?",
   supplier: "आपूर्तिकर्ता",
@@ -971,6 +1012,9 @@ export const hi: Messages = {
   needsDetails: "जानकारी चाहिए",
   unknownPack: "पैक नहीं बताया",
   error: {
+    LOCATION_CONFIRMATION_REQUIRED: "सहेजने से पहले दुकान का पिन पक्का करें।",
+    MAP_UNAVAILABLE:
+      "पता खोज अभी उपलब्ध नहीं है। फिर कोशिश करें या अपनी लोकेशन लेकर पता लिखें।",
     INVALID_PHONE:
       "सही भारतीय मोबाइल नंबर या + से शुरू पूरा अंतरराष्ट्रीय नंबर डालें।",
     CONTACT_CONSENT_REQUIRED:
@@ -1045,6 +1089,25 @@ export const hi: Messages = {
 };
 export const kn: Messages = {
   ...en,
+  merchantName: "ನಿಮ್ಮ ಹೆಸರು",
+  shopAddress: "ಅಂಗಡಿಯ ವಿಳಾಸ",
+  addressExample: "ಅಂಗಡಿ, ರಸ್ತೆ, ಪ್ರದೇಶ ಮತ್ತು ನಗರ",
+  findAddress: "ವಿಳಾಸ ಹುಡುಕಿ",
+  addressNotFound: "ವಿಳಾಸ ಸಿಗಲಿಲ್ಲ. ರಸ್ತೆ ಮತ್ತು ನಗರ ಸೇರಿಸಿ ಮತ್ತೆ ಹುಡುಕಿ.",
+  confirmPinHint:
+    "ಇದು ನಿಮ್ಮ ಅಂಗಡಿಯೇ? ನಕ್ಷೆಯಲ್ಲಿ ತಟ್ಟಿ ಅಥವಾ ಪಿನ್ ಸರಿಸಿ ಸರಿಪಡಿಸಿ.",
+  confirmShopPin: "ಈ ಪಿನ್ ನನ್ನ ಅಂಗಡಿಯಲ್ಲಿದೆ",
+  shopMap: "ಅಂಗಡಿಯ ನಕ್ಷೆ",
+  nearbyRadiusHint:
+    "ಹತ್ತಿರದ ಬೇಡಿಕೆಗೆ 1.5 ಕಿಮೀ ಒಳಗಿನ ಅಂಗಡಿಗಳು ಸೇರುತ್ತವೆ. ಸಾಕಷ್ಟು ಅಂಗಡಿಗಳು ಸೇರುವವರೆಗೆ ಸಂಖ್ಯೆ ಮರೆಮಾಡಲಾಗುತ್ತದೆ.",
+  addressProvider: "ವಿಳಾಸ ಹುಡುಕುವ ಸೇವೆ",
+  mapUnavailable:
+    "ವಿಳಾಸ ಹುಡುಕಾಟ ಲಭ್ಯವಿಲ್ಲ. ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ ಅಥವಾ ನಿಮ್ಮ ಸ್ಥಳ ಬಳಸಿ ವಿಳಾಸ ನಮೂದಿಸಿ.",
+  editShop: "ಅಂಗಡಿ ವಿವರ ಬದಲಿಸಿ",
+  demoMode: "ಡೆಮೋ ಮಾತ್ರ",
+  personalGreeting: "ನಮಸ್ಕಾರ, {name}!",
+  resettingDemo: "ಮರುಹೊಂದಿಸಲಾಗುತ್ತಿದೆ…",
+
   itemDetailsOptional: "ವಿಧ / ವಿವರ · ಐಚ್ಛಿಕ",
   combinedDetailsExample: "ಉದಾ. ಮಸಾಲಾ, 100g ಪೌಚ್ ಅಥವಾ ನೀಲಿ, 8GB/128GB",
   exactDetailsHint:
@@ -1333,7 +1396,7 @@ export const kn: Messages = {
   nearbyRequests: "ಹತ್ತಿರದ ಕೋರಿಕೆಗಳು",
   participating: "ಬೇಡಿಕೆ ದಾಖಲಿಸಿದ ಹತ್ತಿರದ ಅಂಗಡಿಗಳು",
   radius: "1.5 ಕಿಮೀ ಒಳಗೆ · ಕಳೆದ 7 ದಿನ",
-  limited: "ಖಾಸಗಿ ಬೇಡಿಕೆ ತೋರಿಸಲು ಇನ್ನೂ ಸಾಕಷ್ಟು ಅಂಗಡಿಗಳಿಲ್ಲ.",
+  limited: "ಕನಿಷ್ಠ 3 ಇತರ ಹತ್ತಿರದ ಅಂಗಡಿಗಳು ಬೇಡಿಕೆ ದಾಖಲಿಸಿದಾಗ ಸಂಖ್ಯೆ ಕಾಣಿಸುತ್ತದೆ.",
   signalNote: "ದಾಖಲಾದ ಕೋರಿಕೆಗಳು ಖಚಿತ ಖರೀದಿಯಲ್ಲ.",
   reviewOrder: "ನೀವು ಈ ವಸ್ತು ತರಿಸಬಹುದೇ?",
   supplier: "ಪೂರೈಕೆದಾರ",
@@ -1485,6 +1548,9 @@ export const kn: Messages = {
   needsDetails: "ವಿವರ ಬೇಕು",
   unknownPack: "ಪ್ಯಾಕ್ ತಿಳಿಸಿಲ್ಲ",
   error: {
+    LOCATION_CONFIRMATION_REQUIRED: "ಉಳಿಸುವ ಮೊದಲು ಅಂಗಡಿಯ ಪಿನ್ ಖಚಿತಪಡಿಸಿ.",
+    MAP_UNAVAILABLE:
+      "ವಿಳಾಸ ಹುಡುಕಾಟ ಲಭ್ಯವಿಲ್ಲ. ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ ಅಥವಾ ನಿಮ್ಮ ಸ್ಥಳ ಬಳಸಿ ವಿಳಾಸ ನಮೂದಿಸಿ.",
     INVALID_PHONE:
       "ಸರಿಯಾದ ಭಾರತೀಯ ಮೊಬೈಲ್ ಸಂಖ್ಯೆ ಅಥವಾ + ಆರಂಭದ ಪೂರ್ಣ ಅಂತರರಾಷ್ಟ್ರೀಯ ಸಂಖ್ಯೆ ನಮೂದಿಸಿ.",
     CONTACT_CONSENT_REQUIRED:

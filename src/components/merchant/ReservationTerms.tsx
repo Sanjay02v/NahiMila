@@ -1,4 +1,6 @@
 "use client";
+import { useProductLabels } from "./useProductLabels";
+import { productLabels } from "@/lib/product/product-label-sources";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import type { PrivateRequest } from "@/lib/product/types";
@@ -13,6 +15,8 @@ import {
   reviewCombinedItemFields,
 } from "@/lib/product/item-review";
 import { api, Modal } from "./common";
+const futureDeadline = (deadline: string | null) =>
+  !!deadline && Date.parse(deadline) > Date.now();
 export default function ReservationTerms({
   request,
   close,
@@ -31,6 +35,7 @@ export default function ReservationTerms({
       request.status,
     ),
     base = request.detail?.intent || manualDraft(request.product.name);
+  const label = useProductLabels(productLabels(request.product));
   const initial = combinedItemFields(base);
   const [item, setItem] = useState(initial.item),
     [variant, setVariant] = useState(initial.details);
@@ -45,7 +50,13 @@ export default function ReservationTerms({
           let failure = "itemReviewRetry";
           try {
             const i = await reviewCombinedItemFields(
-              { item, details: variant },
+              {
+                item: item === label(initial.item) ? initial.item : item,
+                details:
+                  variant === label(initial.details)
+                    ? initial.details
+                    : variant,
+              },
               base,
               async (value) =>
                 (await api("/api/intent", { raw_text: value })).intent,
@@ -60,8 +71,7 @@ export default function ReservationTerms({
             if (budget && price > budget) throw new Error("BUDGET");
             failure = "pickupDateFix";
             const deadline = deadlineFromDay(String(f.get("deadline") || ""));
-            if (!deadline || Date.parse(deadline) <= Date.now())
-              throw new Error("DATE");
+            if (!futureDeadline(deadline)) throw new Error("DATE");
             failure = "phoneFix";
             if (!phoneNumber(String(f.get("phone") || "")))
               throw new Error("PHONE");
@@ -105,7 +115,7 @@ export default function ReservationTerms({
         <label>
           {t("itemLabel")}
           <input
-            value={item}
+            value={item === initial.item ? label(initial.item) : item}
             onChange={(e) => setItem(e.target.value)}
             maxLength={300}
             required
@@ -114,7 +124,9 @@ export default function ReservationTerms({
         <label>
           {t("itemDetailsOptional")}
           <input
-            value={variant}
+            value={
+              variant === initial.details ? label(initial.details) : variant
+            }
             onChange={(e) => setVariant(e.target.value)}
             maxLength={220}
             placeholder={t("combinedDetailsExample")}

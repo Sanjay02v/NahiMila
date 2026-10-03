@@ -31,6 +31,7 @@ export interface Intent {
   no_rush?: boolean;
 }
 export interface Shop extends Merchant {
+  address?: string;
   user_id: string;
   locale: Locale;
   latitude: number | null;

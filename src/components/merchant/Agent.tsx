@@ -1,4 +1,5 @@
 "use client";
+import { useProductLabels } from "./useProductLabels";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useTranslations } from "next-intl";
 import {
@@ -45,6 +46,7 @@ export default function Agent({
   onDraft: (draft: { raw: string; can_wait: boolean | null }) => void;
   navigate: (screen: "requests" | "nearby" | "orders") => void;
 }) {
+  const label = useProductLabels();
   const mobile = useSyncExternalStore(
     subscribeMobile,
     mobileSnapshot,
@@ -269,8 +271,8 @@ export default function Agent({
                   {m.result.rows.slice(0, 8).map((r, i) => (
                     <div className="assistant-evidence-row" key={i}>
                       <span>
-                        <strong>{r.title}</strong>
-                        <small>{r.detail}</small>
+                        <strong>{label(r.title)}</strong>
+                        <small>{label(r.detail)}</small>
                       </span>
                       <b>{r.count}</b>
                     </div>

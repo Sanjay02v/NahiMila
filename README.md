@@ -13,7 +13,7 @@ npm run dev -- --port 3001
 
 Open http://localhost:3001. Typed capture, account access, customer offers and procurement work without external keys. Local data persists in `.data/product-network.json`; account passwords are scrypt hashes and sessions are opaque, hashed server-side tokens in `.data/product-auth.json`. One local Node process only. File storage is deliberately disabled on Vercel and Render.
 
-Separate fictional accounts use `sharma`, `gupta`, `lakshmi`, `corner`, `daily` and `annapurna` at `@demo.nahimila.local`. Their initial demo password is `NahiMila-demo-2026`. Use separate browser profiles/devices for simultaneous merchant accounts. Signing in identifies one shop; there is no merchant selector. A newly registered account completes shop/location onboarding.
+Separate fictional accounts use `sharma`, `gupta`, `lakshmi`, `corner`, `daily` and `annapurna` at `@demo.nahimila.local`. Their initial demo password is `NahiMila-demo-2026`. Use separate browser profiles/devices for simultaneous merchant accounts. Signing in identifies one shop; there is no merchant selector. A newly registered account enters the merchant name, shop name and address, then confirms a shop pin. Use current location or search a typed address; Settings → Edit shop details updates the name and location without exposing coordinate inputs.
 
 To restore the fictional local seed (with a backup in `.data/backups`):
 
@@ -36,7 +36,7 @@ This is a development command, not a merchant action. It refuses hosted storage.
 - **Private book:** only the signed-in shop's individual requests, customer nicknames, spending allowance, approvals, orders and pickups are returned. The retired anonymous workspace API returns 410.
 - **Missed demand:** customers who won't wait are recorded even without a name, budget or date. These records never create reservations or fund orders.
 - **Nearby intelligence:** confirmed shop coordinates, a 1.5 km radius, seven-day window, opt-in contributors, at least three other shops, and five-request count bands. No peer customer records, shop-by-shop demand or cash limits are returned. Products without your own requests stay hidden below the threshold. This suppression reduces leakage; it is not a formal differential privacy guarantee.
-- **Exact customer offers:** independent `/confirm/<opaque-token>` pages show only that offer's product, pack, quantity, price, shop and deadline. Copy, preview and QR actions are compact merchant controls. Repeated confirmation counts once.
+- **Exact customer offers:** independent `/confirm/<opaque-token>` pages show only that offer's product, pack, quantity, price, shop and deadline. Copy-link and WhatsApp actions are compact merchant controls. Repeated confirmation counts once.
 - **Deterministic purchasing:** exact reviewed identity/pack, whole supplier cases, live confirmations, supplier permission, landed cost, customer budgets, delivery, quote expiry and each shop's remaining cash allowance are checked on the server. Group membership is restricted to the quote origin's consenting local cohort. Gemini cannot approve or commit.
 - **Approvals:** each participant approves their own computed exposure. Changing confirmations, terms, permissions or caps clears stale approvals. A fingerprint also checks selected reservations, deadlines, caps and permissions. The final commit rechecks all rules inside the persistence transaction/revision retry. A repeated commit creates no new order and debits no second budget.
 - **Visible order blockers:** cost previews remain accessible while a case is incomplete. The preview is explicitly provisional; actual approval stays disabled until eligibility checks pass. The quote shows missing confirmed units, late delivery, expiry, price/budget or group-permission failures and outstanding shop approvals beside the order action. A waiting-offers shortcut opens the merchant's own request book.
@@ -139,3 +139,19 @@ Home shows up to three demand items. Nearby uses compact rows, searches the comp
 Merchant mutations immediately display the server response. Same-browser sessions receive a BroadcastChannel invalidation; focused visible pages refresh from persisted records every three seconds and on focus. Customer offer pages also refresh while visible. Reads do not overlap, and responses started before a mutation cannot overwrite its result. This is short polling, not a Supabase Realtime subscription. Quote approvals and financial checks remain server-authoritative. Explicitly stated customer names have an evidence-checked AI suggestion with a deterministic fallback for common identity phrases; phone numbers do not identify a person.
 
 Verify the one-upload voice path using a nonempty synthetic speech file: `node --import tsx scripts/verify-hosted-recording.ts /absolute/path/speech.webm`. The hosted WAV and WebM speech tests passed. Device microphone permissions still require rehearsal on the actual browser.
+
+## Shop location and display languages
+
+Set `GEOAPIFY_API_KEY` in `.env.local` and Render Environment for server-side address search and reverse lookup. The free Geoapify plan currently offers 3,000 credits/day; see https://www.geoapify.com/pricing/. The key is never sent to the browser. Lookups occur only after an explicit button press, are throttled per account and cached for a day within each server process. Map tiles use OpenStreetMap with visible attribution and ordinary browser caching, without prefetching. `NEXT_PUBLIC_MAP_TILE_URL` can override the tile source when needed; use a provider with compatible attribution/usage terms. Current location requires HTTPS (or localhost), browser permission, and confirmation that the pin represents the shop. Addresses and coordinates stay out of AI prompts. Nearby distance remains 1.5 km straight-line distance. Two real shops can test shared procurement, but anonymous nearby counts require three other contributing shops. Fictional demo shops remain a separate cohort.
+
+Hindi and Kannada product labels are translated in batches and cached in existing product JSON. English canonical names, SKUs and specification keys remain unchanged. Localized and English names both work in searches. Brands can be transliterated; model codes and identifying numbers remain exact. If AI is unavailable, original labels remain readable. Editable request labels are mapped back to the original canonical fields when unchanged; edits still require normal review. No new Supabase schema migration is needed for addresses or label caches.
+
+The assistant distinguishes supplier eligibility from readiness: missing approvals, missing units, current share costs and remaining checks are calculated on the server. Specific operational questions show only the relevant supplier record, use fresh state for follow-ups, and clarify ambiguous suppliers/packs. The assistant does not approve orders.
+
+To verify the integrated production flows against the shared fictional demo and restore its baseline afterward:
+
+```sh
+node --import tsx scripts/verify-shop-usability.ts --confirm
+```
+
+Set `NML_VERIFY_URL` to a local production server for a pre-deployment run. The verification checks authorized map lookups, exact missing-approval answers, fresh follow-ups, persisted Hindi/Kannada labels, unchanged product identity and scoped customer-link translations. It changes only fictional demo progress and restores it in a `finally` block.
