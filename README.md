@@ -2,7 +2,7 @@
 
 **Turn missed customer requests into demand merchants can act on.**
 
-HackSprint · PS-21: FinTech & Smart Commerce · Team Commit and Run
+Team Commit and Run
 
 NahiMila helps Indian kirana merchants capture unavailable-item requests, identify nearby demand and share a supplier case when exact customer confirmations and each shop’s cash limit support it. Initial procurement focus: sealed, shelf-stable packaged goods.
 
