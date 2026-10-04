@@ -43,3 +43,7 @@ next-env.d.ts
 
 # Local synthetic demo state
 .data/
+
+# Local coding-assistant guidance
+/AGENTS.md
+/CLAUDE.md
